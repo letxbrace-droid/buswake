@@ -2118,7 +2118,7 @@ async function openMatchDetail(matchId) {
   const matchRef = doc(db, 'matchs', matchId);
   let firstLoad = true;
   const unsub = onSnapshot(matchRef, async snap => {
-    if (!snap.exists()) { closeModal(); return; }
+    if (!snap.exists()) { window.closeModal(); return; }
     const m = snap.data();
     if (firstLoad) {
       firstLoad = false;
@@ -2951,10 +2951,10 @@ window.confirmAnnulerMatch = async function(matchId) {
     showToast('Action non autorisée.', 'error'); return;
   }
   await deleteDoc(ref);
-  showToast('Match annulé.', '');
-  closeModal();
-  window._canCreateMatch = { can: true }; // reset eligibility
-  renderScreen('home');
+  window.closeModal(); // appelle la version surchargée → unsub() + ferme le modal
+  window._canCreateMatch = { can: true };
+  showToast('Match supprimé.', '');
+  navigateTo('home');
 };
 
 // ===== TERMINER MATCH =====
