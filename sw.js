@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v6';
+const CACHE = 'cs5-v7';
 const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png'];
 
 self.addEventListener('install', e => {
