@@ -1668,22 +1668,28 @@ async function renderHome() {
   const el = document.getElementById('home-content');
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
-  // Prochain match confirmé
-  const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'), orderBy('dateFinale', 'asc'));
+  // Prochain match confirmé (pas d'orderBy pour éviter l'index composite)
+  const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'));
   const snapC = await getDocs(qConfirme).catch(() => null);
 
   // Sondages en cours
-  const qSondage = query(collection(db, 'matchs'), where('statut', '==', 'sondage'), orderBy('createdAt', 'desc'));
+  const qSondage = query(collection(db, 'matchs'), where('statut', '==', 'sondage'));
   const snapS = await getDocs(qSondage).catch(() => null);
 
   let html = '';
 
-  // Prochain match confirmé
-  const confirmes = snapC ? snapC.docs.filter(d => {
-    const dFin = d.data().dateFinale;
-    if (!dFin) return false;
-    return (dFin.toDate ? dFin.toDate() : new Date(dFin)) > new Date();
-  }) : [];
+  // Prochain match confirmé — tri côté client par dateFinale asc, futurs seulement
+  const confirmes = snapC ? snapC.docs
+    .filter(d => {
+      const dFin = d.data().dateFinale;
+      if (!dFin) return false;
+      return (dFin.toDate ? dFin.toDate() : new Date(dFin)) > new Date();
+    })
+    .sort((a, b) => {
+      const ta = a.data().dateFinale?.toMillis?.() ?? 0;
+      const tb = b.data().dateFinale?.toMillis?.() ?? 0;
+      return ta - tb;
+    }) : [];
 
   if (confirmes.length > 0) {
     const m = confirmes[0].data();
@@ -1702,8 +1708,12 @@ async function renderHome() {
     renderAvatarsAsync(confirmes[0].id, m.joueursInscrits || [], 'home-avatars-' + confirmes[0].id);
   }
 
-  // Sondages
-  const sondages = snapS ? snapS.docs : [];
+  // Sondages — tri côté client par createdAt desc
+  const sondages = snapS ? snapS.docs.slice().sort((a, b) => {
+    const ta = a.data().createdAt?.toMillis?.() ?? 0;
+    const tb = b.data().createdAt?.toMillis?.() ?? 0;
+    return tb - ta;
+  }) : [];
   if (sondages.length > 0) {
     html += `<div class="section-title">🗳️ Sondages en cours <span class="badge-dot">${sondages.length}</span></div>`;
     for (const d of sondages.slice(0, 3)) {
