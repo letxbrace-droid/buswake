@@ -512,6 +512,26 @@
       font-size:10px; font-weight:700;
     }
 
+    /* Liste joueurs avec distance */
+    .jd-list { display:flex; flex-direction:column; gap:6px; }
+    .jd-row {
+      display:flex; align-items:center; gap:10px;
+      padding:9px 12px; border-radius:11px;
+      background:var(--card); border:1px solid var(--border);
+      transition:opacity .2s;
+    }
+    .jd-row.hidden { display:none !important; }
+    .jd-row.jd-bench { opacity:.55; }
+    .jd-rank { min-width:22px; font-size:11px; font-weight:700; color:var(--text-muted); font-family:Oswald,sans-serif; text-align:center; }
+    .jd-info { flex:1; min-width:0; }
+    .jd-pseudo { font-size:13px; font-weight:600; color:var(--text); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .jd-sub { font-size:11px; color:var(--text-muted); margin-top:1px; display:block; }
+    .jd-dist-pill { font-size:11px; font-weight:600; color:var(--text-sec); background:rgba(255,255,255,.06); border:1px solid var(--border); border-radius:20px; padding:3px 8px; white-space:nowrap; flex-shrink:0; }
+    .jd-bench-sep { text-align:center; font-size:10px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; padding:6px 0 4px; }
+    .dept-filter-wrap { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
+    .dept-filter-input { flex:1; font-size:13px; padding:8px 12px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--text); outline:none; }
+    .dept-filter-input:focus { border-color:var(--orange); }
+
     /* Équipes */
     .equipe-block { background:var(--card); border-radius:13px; padding:14px; margin-bottom:10px; border-left:4px solid var(--orange); }
     .equipe-nom { font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; display:flex; align-items:center; gap:8px; }
@@ -1223,6 +1243,10 @@
         <input type="text" id="reg-pseudo" placeholder="Ton surnom sur le terrain" maxlength="20">
       </div>
       <div class="form-group">
+        <label>Code postal <span style="font-weight:400;opacity:.6">(pour la distance au terrain)</span></label>
+        <input type="tel" id="reg-cp" placeholder="Ex : 91130" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      </div>
+      <div class="form-group">
         <label>Équipe préférée</label>
         <input type="hidden" id="reg-equipe" value="PSG">
         <div class="club-scroll" id="reg-club-grid"></div>
@@ -1691,10 +1715,19 @@ async function doRegister() {
   };
   document.getElementById('auth-error').textContent = '';
   if (!pseudo) { document.getElementById('auth-error').textContent = 'Le pseudo est obligatoire.'; return; }
+  const regCp = document.getElementById('reg-cp')?.value.trim() || '';
+  let cpCoords = {};
+  if (/^\d{5}$/.test(regCp)) {
+    try {
+      const geo = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${regCp}&country=fr&format=json`).then(r=>r.json());
+      if (geo[0]) cpCoords = { domicileLat: +geo[0].lat, domicileLon: +geo[0].lon };
+    } catch {}
+  }
   try {
     const cred = await createUserWithEmailAndPassword(auth, email, pwd);
     await setDoc(doc(db, 'users', cred.user.uid), {
       email, pseudo, equipePreferee: equipe, posteFavori: poste, atouts,
+      codePostal: regCp || null, ...cpCoords,
       xp: 0, niveau: 1, badges: [],
       stats: { matchsJoues: 0, victoires: 0, hommeDuMatch: 0 },
       createdAt: serverTimestamp()
@@ -1864,6 +1897,53 @@ function formatDateShort(ts) {
 function initiales(pseudo) {
   if (!pseudo) return '?';
   return pseudo.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371, r = d => d * Math.PI / 180;
+  const dLat = r(lat2-lat1), dLon = r(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(r(lat1))*Math.cos(r(lat2))*Math.sin(dLon/2)**2;
+  return +(R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a))).toFixed(1);
+}
+
+window.filterJoueursDept = function(val) {
+  const v = val.trim();
+  document.querySelectorAll('.jd-list .jd-row').forEach(row => {
+    const dept = (row.dataset.dept || '');
+    row.classList.toggle('hidden', v.length > 0 && !dept.startsWith(v));
+  });
+};
+
+function buildJoueursListHtml(joueursAvecDist) {
+  if (!joueursAvecDist.length)
+    return '<span style="color:var(--text-muted);font-size:13px">Personne encore.</span>';
+  const hasAnyDist = joueursAvecDist.some(j => j.dist !== null || j.codePostal);
+  let h = hasAnyDist ? `<div class="dept-filter-wrap">
+    <input class="dept-filter-input" type="tel" maxlength="5"
+      placeholder="🔍 Filtrer par dépt. ex: 91"
+      oninput="filterJoueursDept(this.value)">
+  </div>` : '';
+  h += `<div class="jd-list">`;
+  joueursAvecDist.forEach((j, i) => {
+    const isBench = !j.isTitulaire;
+    const rankLabel = j.isTitulaire ? `#${joueursAvecDist.filter((x,xi) => x.isTitulaire && xi <= i).length}` : `R${joueursAvecDist.filter((x,xi) => !x.isTitulaire && xi <= i).length}`;
+    const distTxt = j.dist !== null ? `${j.dist} km` : '';
+    const pill = (j.codePostal || j.dist !== null)
+      ? `<div class="jd-dist-pill">📍 ${[j.codePostal, distTxt].filter(Boolean).join(' · ')}</div>`
+      : '';
+    if (isBench && i > 0 && joueursAvecDist[i-1].isTitulaire)
+      h += `<div class="jd-bench-sep">— Remplaçants —</div>`;
+    h += `<div class="jd-row${isBench ? ' jd-bench' : ''}" data-dept="${(j.codePostal||'').slice(0,3)}">
+      <div class="jd-rank">${rankLabel}</div>
+      <div class="j-avatar">${initiales(j.pseudo)}</div>
+      <div class="jd-info">
+        <span class="jd-pseudo">${j.pseudo}</span>
+      </div>
+      ${pill}
+    </div>`;
+  });
+  h += `</div>`;
+  return h;
 }
 
 // Cache local des users pour éviter des lectures répétées
@@ -2143,11 +2223,29 @@ async function renderMatchDetail(matchId, m) {
   const isCreateur = m.createurUid === uid;
   const best = getBestCreneau(m);
 
-  // Charger les pseudos des inscrits
+  // Charger les données complètes des inscrits (pseudo + code postal + coords)
   let inscritsPseudos = {};
+  let inscritsFullData = {};
   for (const u of inscrits) {
     const d = await getUserData(u);
     inscritsPseudos[u] = d?.pseudo || 'Joueur';
+    inscritsFullData[u] = d || {};
+  }
+
+  // Construire la liste triée par distance au terrain
+  const venueCoords = m.lieuCoords || null;
+  const joueursAvecDist = inscrits.map((u, i) => {
+    const d = inscritsFullData[u];
+    const dist = (venueCoords && d.domicileLat && d.domicileLon)
+      ? haversine(d.domicileLat, d.domicileLon, venueCoords.lat, venueCoords.lon)
+      : null;
+    return { uid: u, pseudo: inscritsPseudos[u], codePostal: d.codePostal || '', dist, isTitulaire: i < 10 };
+  });
+  if (venueCoords) {
+    joueursAvecDist.sort((a, b) => {
+      if (a.dist !== null && b.dist !== null) return a.dist - b.dist;
+      return a.dist !== null ? -1 : b.dist !== null ? 1 : 0;
+    });
   }
 
   let html = '';
@@ -2183,10 +2281,8 @@ async function renderMatchDetail(matchId, m) {
     }
 
     html += `<div class="divider"></div>
-      <div class="section-sub">Joueurs inscrits (${inscrits.length})</div>
-      <div class="joueurs-list">
-        ${inscrits.map(u => `<div class="joueur-chip"><div class="j-avatar">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('') || '<span style="color:var(--text-muted);font-size:13px">Personne encore.</span>'}
-      </div>
+      <div class="section-sub">Joueurs inscrits (${inscrits.length}/10)${venueCoords ? ' <span style="font-size:10px;color:var(--text-muted);font-weight:400">· triés par distance</span>' : ''}</div>
+      ${buildJoueursListHtml(joueursAvecDist)}
       <div class="divider"></div>
       <button class="btn-sm ${isInscrit ? 'btn-outline' : 'btn-orange'}" style="width:100%" onclick="toggleInscription('${matchId}', ${isInscrit})">
         ${isInscrit ? '❌ Me désinscrire' : '✅ M\'inscrire au match'}
@@ -2215,10 +2311,8 @@ async function renderMatchDetail(matchId, m) {
     }
 
     html += `<div class="divider"></div>
-      <div class="section-sub">Joueurs inscrits (${inscrits.length})</div>
-      <div class="joueurs-list">
-        ${inscrits.map(u => `<div class="joueur-chip"><div class="j-avatar">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('') || '<span style="color:var(--text-muted);font-size:13px">Aucun joueur.</span>'}
-      </div>
+      <div class="section-sub">Joueurs inscrits (${inscrits.length}/10)${venueCoords ? ' <span style="font-size:10px;color:var(--text-muted);font-weight:400">· triés par distance</span>' : ''}</div>
+      ${buildJoueursListHtml(joueursAvecDist)}
       <div class="divider"></div>
       <button class="btn-sm ${isInscrit ? 'btn-outline' : 'btn-orange'}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}', ${isInscrit})">
         ${isInscrit ? '❌ Me désinscrire' : '✅ M\'inscrire au match'}
@@ -2303,21 +2397,63 @@ async function voterCreneau(matchId, creneauId) {
 window.voterCreneau = voterCreneau;
 
 // ===== INSCRIPTION MATCH =====
+async function _doJoinMatch(matchId) {
+  const uid = currentUser.uid;
+  await updateDoc(doc(db, 'matchs', matchId), { joueursInscrits: arrayUnion(uid) });
+  showToast('Tu es inscrit ! 🎉', 'success');
+  checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
+}
+
 async function toggleInscription(matchId, isInscrit) {
   if (!currentUser) return;
   const uid = currentUser.uid;
-  const ref = doc(db, 'matchs', matchId);
   if (isInscrit) {
-    await updateDoc(ref, { joueursInscrits: arrayRemove(uid) });
+    await updateDoc(doc(db, 'matchs', matchId), { joueursInscrits: arrayRemove(uid) });
     showToast('Tu t\'es désinscrit du match.', '');
-  } else {
-    await updateDoc(ref, { joueursInscrits: arrayUnion(uid) });
-    showToast('Tu es inscrit ! 🎉', 'success');
+    checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
+    return;
   }
-  // Refresh état d'éligibilité après chaque changement d'inscription
-  checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
+  // Vérifier si code postal renseigné
+  const ud = await getUserData(uid);
+  if (!ud?.codePostal) {
+    openModal('📍 Ton code postal', `
+      <p style="font-size:14px;color:var(--text-sec);margin-bottom:14px;line-height:1.5">
+        Renseigne ton code postal pour que les autres joueurs voient<br>
+        ta distance jusqu'au terrain.
+      </p>
+      <input class="input-field" type="tel" id="cp-join-input"
+        placeholder="Ex : 91130" maxlength="5"
+        style="margin-bottom:14px;font-size:16px;letter-spacing:3px;text-align:center"
+        oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+      <div style="display:flex;gap:8px">
+        <button class="btn-sm btn-outline" style="flex:1"
+          onclick="window._skipCpJoin('${matchId}')">Passer</button>
+        <button class="btn-sm btn-orange" style="flex:1"
+          onclick="window._saveCpJoin('${matchId}')">S'inscrire</button>
+      </div>`);
+    return;
+  }
+  await _doJoinMatch(matchId);
 }
 window.toggleInscription = toggleInscription;
+
+window._skipCpJoin = async function(matchId) {
+  window.closeModal();
+  await _doJoinMatch(matchId);
+};
+window._saveCpJoin = async function(matchId) {
+  const cp = document.getElementById('cp-join-input')?.value.trim();
+  if (cp && /^\d{5}$/.test(cp)) {
+    try {
+      const geo = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${cp}&country=fr&format=json`).then(r=>r.json());
+      const coords = geo[0] ? { domicileLat: +geo[0].lat, domicileLon: +geo[0].lon } : {};
+      await updateDoc(doc(db, 'users', currentUser.uid), { codePostal: cp, ...coords });
+      delete usersCache[currentUser.uid];
+    } catch {}
+  }
+  window.closeModal();
+  await _doJoinMatch(matchId);
+};
 
 // ===== CONFIRMER MATCH =====
 async function confirmerMatch(matchId, creneauId) {
@@ -2562,6 +2698,7 @@ window.selectVenueItem = function(i) {
   if (el) el.classList.add('selected');
   const manualEl = document.getElementById('venue-manual-input');
   if (manualEl) manualEl.value = v.name + (v.addr ? ' — ' + v.addr : '');
+  window._selectedVenueCoords = (v.lat && v.lon) ? { lat: v.lat, lon: v.lon } : null;
 };
 
 window.confirmVenueSelection = function(inputId) {
@@ -2610,8 +2747,10 @@ window.submitCreateMatch = async function() {
     hommeDuMatchUid: null,
     scoreA: null, scoreB: null,
     lieuFinal: null, dateFinale: null,
+    lieuCoords: window._selectedVenueCoords || null,
     createdAt: serverTimestamp()
   });
+  window._selectedVenueCoords = null;
 
   await addXP(uid, XP.creer);
   // Badge organisateur
@@ -3127,7 +3266,7 @@ async function renderProfil() {
   </div>`;
 
   el.innerHTML = `
-    <div class="rank-badge">${rang.label} · ${d.xp || 0} XP</div>
+    <div class="rank-badge">${rang.label} · ${d.xp || 0} XP${d.codePostal ? ` · 📍 ${d.codePostal}` : ''}</div>
 
     ${futHtml}
 
@@ -3166,6 +3305,10 @@ function openEditProfile() {
     <div class="form-group">
       <label class="input-label">Pseudo</label>
       <input class="input-field" id="ep-pseudo" value="${d.pseudo || ''}">
+    </div>
+    <div class="form-group" style="margin-top:12px">
+      <label class="input-label">Code postal <span style="font-weight:400;opacity:.6">(distance au terrain)</span></label>
+      <input class="input-field" type="tel" id="ep-cp" value="${d.codePostal || ''}" placeholder="Ex : 91130" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
     </div>
     <div class="form-group" style="margin-top:12px">
       <label class="input-label">Équipe préférée</label>
@@ -3213,15 +3356,25 @@ window.saveProfile = async function() {
   const atoutsOrder = ['vitesse','dribble','frappe','defense','physique'];
   const atouts = {};
   atoutsOrder.forEach(a => { atouts[a] = +document.getElementById('epa-' + a).value; });
+  const newCp = document.getElementById('ep-cp')?.value.trim() || '';
+  let cpCoords = {};
+  if (/^\d{5}$/.test(newCp) && newCp !== (currentUserData?.codePostal || '')) {
+    try {
+      const geo = await fetch(`https://nominatim.openstreetmap.org/search?postalcode=${newCp}&country=fr&format=json`).then(r=>r.json());
+      if (geo[0]) cpCoords = { domicileLat: +geo[0].lat, domicileLon: +geo[0].lon };
+    } catch {}
+  }
   await updateDoc(doc(db, 'users', currentUser.uid), {
     pseudo: document.getElementById('ep-pseudo').value.trim(),
     equipePreferee: document.getElementById('ep-equipe').value,
     posteFavori: document.getElementById('ep-poste').value,
     atouts,
+    codePostal: newCp || deleteField(),
+    ...cpCoords,
   });
   delete usersCache[currentUser.uid];
   showToast('Profil mis à jour ! ✅', 'success');
-  closeModal();
+  window.closeModal();
   renderProfil();
 };
 
