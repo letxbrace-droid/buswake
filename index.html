@@ -8,7 +8,8 @@
   <meta name="theme-color" content="#00C853">
   <meta name="description" content="Organisation de matchs de foot à 5 — Cap Saclay · Dépôt RATP">
   <title>Cap Saclay Five</title>
-  <link rel="manifest" id="manifest-link">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="apple-touch-icon" href="./icon-512.png">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
@@ -1462,19 +1463,10 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-// ===== PWA MANIFEST =====
-const manifest = {
-  name: 'Cap Saclay Five', short_name: 'CS Five',
-  description: 'Foot à 5 · Dépôt RATP · Cap Saclay',
-  start_url: './', display: 'standalone',
-  background_color: '#060608', theme_color: '#00C853',
-  icons: [
-    { src: './logo.jpg', sizes: '512x512', type: 'image/jpeg', purpose: 'any maskable' },
-    { src: './logo.jpg', sizes: '192x192', type: 'image/jpeg' }
-  ]
-};
-const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
-document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+// ===== SERVICE WORKER =====
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
+}
 
 // ===== ÉTAT GLOBAL =====
 let currentUser = null;       // objet Firebase Auth
