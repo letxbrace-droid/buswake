@@ -1067,31 +1067,33 @@ const BADGES_DEF = [
 ];
 const XP = { participer: 100, voter: 10, creer: 50, hdm: 200 };
 
-// ===== DONNÉES CLUBS — ÉCUSSONS SVG =====
+// ===== DONNÉES CLUBS — VRAIS ÉCUSSONS =====
+// Logos : crests.football-data.org (PNG publics, sans clé API)
+// Fallback : pill coloré aux couleurs du club (pas de SVG, pas de CDN secondaire)
 const CLUBS = [
-  { id:'psg',       name:'PSG',       short:'PSG', c1:'#001E5D', c2:'#DA020E' },
-  { id:'om',        name:'OM',        short:'OM',  c1:'#2196F3', c2:'#FFFFFF' },
-  { id:'ol',        name:'OL',        short:'OL',  c1:'#E30613', c2:'#FFFFFF' },
-  { id:'monaco',    name:'Monaco',    short:'ASM', c1:'#DA291C', c2:'#FFFFFF' },
-  { id:'barca',     name:'Barça',     short:'FCB', c1:'#A50044', c2:'#004D98' },
-  { id:'real',      name:'Real',      short:'RMA', c1:'#F5F5F5', c2:'#FEBE10' },
-  { id:'bayern',    name:'Bayern',    short:'FCB', c1:'#DC052D', c2:'#0066B2' },
-  { id:'city',      name:'Man City',  short:'MCI', c1:'#6CABDD', c2:'#1C2C5B' },
-  { id:'liverpool', name:'Liverpool', short:'LFC', c1:'#C8102E', c2:'#00B2A9' },
-  { id:'chelsea',   name:'Chelsea',   short:'CFC', c1:'#034694', c2:'#DBA111' },
+  { id:'psg',       name:'PSG',       short:'PSG', fdId:524, c1:'#001E5D', c2:'#DA020E' },
+  { id:'om',        name:'OM',        short:'OM',  fdId:516, c1:'#2196F3', c2:'#FFFFFF' },
+  { id:'ol',        name:'OL',        short:'OL',  fdId:523, c1:'#E30613', c2:'#FFFFFF' },
+  { id:'monaco',    name:'Monaco',    short:'ASM', fdId:548, c1:'#DA291C', c2:'#FFFFFF' },
+  { id:'barca',     name:'Barça',     short:'FCB', fdId:81,  c1:'#A50044', c2:'#004D98' },
+  { id:'real',      name:'Real',      short:'RMA', fdId:86,  c1:'#F5F5F5', c2:'#FEBE10' },
+  { id:'bayern',    name:'Bayern',    short:'FCB', fdId:5,   c1:'#DC052D', c2:'#0066B2' },
+  { id:'city',      name:'Man City',  short:'MCI', fdId:65,  c1:'#6CABDD', c2:'#1C2C5B' },
+  { id:'liverpool', name:'Liverpool', short:'LFC', fdId:64,  c1:'#C8102E', c2:'#00B2A9' },
+  { id:'chelsea',   name:'Chelsea',   short:'CFC', fdId:61,  c1:'#034694', c2:'#DBA111' },
 ];
 
+// Logo réel via CDN ; fallback = pill aux couleurs du club + abréviation
 function clubShield(club, size = 36) {
-  const c = CLUBS.find(c => c.name === club || c.id === club) || CLUBS[0];
-  const h = Math.round(size * 1.1);
-  return `<svg width="${size}" height="${h}" viewBox="0 0 50 55" xmlns="http://www.w3.org/2000/svg">
-    <path d="M25 2L47 10L47 28C47 42 37 50 25 53C13 50 3 42 3 28L3 10Z" fill="${c.c1}"/>
-    <path d="M25 2L25 53C13 50 3 42 3 28L3 10Z" fill="${c.c2}" opacity=".55"/>
-    <text x="25" y="35" text-anchor="middle" dominant-baseline="middle"
-      font-family="Oswald,Arial Narrow,Arial,sans-serif"
-      font-size="13" font-weight="900" fill="white"
-      stroke="rgba(0,0,0,.4)" stroke-width=".6">${c.short}</text>
-  </svg>`;
+  const c = CLUBS.find(x => x.name === club || x.id === club) || CLUBS[0];
+  const fs = Math.max(9, Math.round(size * 0.3));
+  return `<span style="position:relative;display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0;vertical-align:middle">
+    <img src="https://crests.football-data.org/${c.fdId}.png"
+      onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"
+      width="${size}" height="${size}"
+      style="object-fit:contain;border-radius:4px;display:block" alt="${c.name}" loading="lazy">
+    <span style="display:none;position:absolute;inset:0;background:linear-gradient(135deg,${c.c1},${c.c2});border-radius:5px;align-items:center;justify-content:center;font:900 ${fs}px Oswald,sans-serif;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 3px rgba(0,0,0,.4)">${c.short}</span>
+  </span>`;
 }
 
 // ===== DONNÉES POSTES =====
