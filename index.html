@@ -1463,7 +1463,7 @@
         <div class="form-row">
           <div class="form-group">
             <label>Pseudo</label>
-            <input type="text" id="reg-pseudo" placeholder="Sur le terrain" maxlength="20" autocomplete="username">
+            <input type="text" id="reg-pseudo" placeholder="Sur le terrain" maxlength="20" name="pseudo" autocomplete="off" autocapitalize="words" spellcheck="false" data-lpignore="true" data-1p-ignore data-form-type="other">
           </div>
           <div class="form-group">
             <label>Code postal</label>
@@ -1633,7 +1633,7 @@ import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/fireba
 import {
   getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
   onAuthStateChanged, signOut, GoogleAuthProvider, signInWithPopup,
-  deleteUser, reauthenticateWithCredential, reauthenticateWithPopup, EmailAuthProvider
+  deleteUser, reauthenticateWithCredential, reauthenticateWithPopup, EmailAuthProvider, updatePassword
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
@@ -2021,6 +2021,7 @@ async function doRegister() {
   const errEl = document.getElementById('auth-error');
   if (errEl) errEl.textContent = '';
   if (!pseudo || !email || !pwd) { if(errEl) errEl.textContent = 'Identifiants manquants — retourne à l\'étape 1.'; return; }
+  if (pseudo === pwd) { if(errEl) errEl.textContent = 'Ton pseudo ne doit pas être identique à ton mot de passe.'; return; }
   const regCp = document.getElementById('reg-cp')?.value.trim() || '';
   let cpCoords = {};
   if (/^\d{5}$/.test(regCp)) {
@@ -3680,6 +3681,7 @@ async function renderProfil() {
     })()}
 
     <div class="divider"></div>
+    <button class="profile-action-btn" onclick="window.openChangePassword()">🔒 Changer mon mot de passe</button>
     <button class="delete-account-btn" onclick="window.openDeleteAccount()">🗑️ Supprimer mon compte</button>
     <div style="height:28px"></div>
   `;
@@ -3882,6 +3884,59 @@ window.confirmDeleteAccount = async function() {
         showToast('Compte supprimé.', '');
       } catch (e2) {
         showToast('Échec : ' + (e2.code || e2.message), 'error');
+      }
+    } else {
+      showToast('Erreur : ' + (e.code || e.message), 'error');
+    }
+  }
+};
+
+// ===== CHANGER LE MOT DE PASSE =====
+window.openChangePassword = function() {
+  const isGoogle = (currentUser?.providerData || []).some(p => p.providerId === 'google.com');
+  if (isGoogle && (currentUser?.providerData || []).length === 1) {
+    openModal('🔒 Mot de passe', `
+      <p style="font-size:14px;line-height:1.5;color:var(--text-sec)">
+        Ton compte utilise la connexion Google : ton mot de passe se gère
+        directement dans ton compte Google, pas ici.
+      </p>
+      <button class="btn-sm btn-outline" style="width:100%;margin-top:16px" onclick="closeModal()">OK</button>`);
+    return;
+  }
+  openModal('🔒 Changer mon mot de passe', `
+    <input class="input-field" type="password" id="cp-old" placeholder="Mot de passe actuel" style="margin-bottom:10px" autocomplete="current-password">
+    <input class="input-field" type="password" id="cp-new" placeholder="Nouveau mot de passe (min. 6)" style="margin-bottom:10px" autocomplete="new-password">
+    <input class="input-field" type="password" id="cp-new2" placeholder="Confirme le nouveau" style="margin-bottom:16px" autocomplete="new-password">
+    <div style="display:flex;gap:10px">
+      <button class="btn-sm btn-outline" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn-sm btn-orange" style="flex:1" onclick="window.confirmChangePassword()">Valider</button>
+    </div>`);
+};
+window.confirmChangePassword = async function() {
+  if (!currentUser) return;
+  const oldPwd = document.getElementById('cp-old')?.value || '';
+  const newPwd = document.getElementById('cp-new')?.value || '';
+  const newPwd2 = document.getElementById('cp-new2')?.value || '';
+  if (newPwd.length < 6) { showToast('Le nouveau mot de passe fait min. 6 caractères.', 'error'); return; }
+  if (newPwd !== newPwd2) { showToast('Les deux mots de passe ne correspondent pas.', 'error'); return; }
+  try {
+    if (oldPwd) {
+      try {
+        await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email, oldPwd));
+      } catch (_) {}
+    }
+    await updatePassword(currentUser, newPwd);
+    window.closeModal();
+    showToast('Mot de passe mis à jour ! 🔒', 'success');
+  } catch (e) {
+    if (e.code === 'auth/requires-recent-login') {
+      try {
+        await reauthenticateWithCredential(currentUser, EmailAuthProvider.credential(currentUser.email, oldPwd));
+        await updatePassword(currentUser, newPwd);
+        window.closeModal();
+        showToast('Mot de passe mis à jour ! 🔒', 'success');
+      } catch (e2) {
+        showToast('Mot de passe actuel incorrect.', 'error');
       }
     } else {
       showToast('Erreur : ' + (e.code || e.message), 'error');
