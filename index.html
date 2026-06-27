@@ -314,29 +314,31 @@
     }
     .nav-btn {
       flex:1; display:flex; flex-direction:column;
-      align-items:center; gap:5px;
+      align-items:center; gap:3px;
       border:none; background:transparent;
       color:var(--text-muted); cursor:pointer;
-      padding:8px 0; transition:color .2s;
-      position:relative;
+      padding:6px 0 4px; transition:color .18s;
+    }
+    .nav-icon-wrap {
+      width:46px; height:30px;
+      display:flex; align-items:center; justify-content:center;
+      border-radius:15px;
+      transition:background .2s, transform .18s;
     }
     .nav-btn.active { color:var(--orange); }
-    .nav-btn.active svg { filter:drop-shadow(0 0 5px var(--orange-glow)); }
-    .nav-btn svg { width:22px; height:22px; fill:currentColor; transition:transform .2s; }
-    .nav-btn.active svg { transform:scale(1.1); }
-    .nav-btn span { font-size:10px; font-weight:600; letter-spacing:.6px; text-transform:uppercase; }
-    /* Indicateur actif */
-    .nav-btn::before {
-      content:'';
-      position:absolute; top:0; left:50%;
-      transform:translateX(-50%);
-      width:0; height:2px;
-      background:linear-gradient(90deg, var(--orange), var(--orange2));
-      border-radius:0 0 2px 2px;
-      transition:width .3s cubic-bezier(0.34,1.4,0.64,1);
-      box-shadow:0 0 8px var(--orange-glow);
+    .nav-btn.active .nav-icon-wrap {
+      background:var(--orange-glow-soft);
+      transform:scale(1.06);
     }
-    .nav-btn.active::before { width:32px; }
+    .nav-btn svg {
+      width:22px; height:22px; fill:currentColor;
+      transition:filter .2s;
+    }
+    .nav-btn.active svg { filter:drop-shadow(0 0 4px var(--orange-glow)); }
+    .nav-btn span {
+      font-size:9px; font-weight:700;
+      letter-spacing:.5px; text-transform:uppercase;
+    }
 
     /* ===== COMMON COMPONENTS ===== */
     .section-title {
@@ -1325,19 +1327,30 @@
   <!-- Bottom nav -->
   <nav id="bottom-nav">
     <button class="nav-btn active" data-screen="home" onclick="navigateTo('home')">
-      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      </div>
       <span>Accueil</span>
     </button>
     <button class="nav-btn" data-screen="matchs" onclick="navigateTo('matchs')">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      <div class="nav-icon-wrap">
+        <!-- Calendar/schedule icon -->
+        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+      </div>
       <span>Matchs</span>
     </button>
     <button class="nav-btn" data-screen="profil" onclick="navigateTo('profil')">
-      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      <div class="nav-icon-wrap">
+        <!-- Person icon -->
+        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+      </div>
       <span>Profil</span>
     </button>
     <button class="nav-btn" data-screen="classement" onclick="navigateTo('classement')">
-      <svg viewBox="0 0 24 24"><path d="M7 17h2v-7H7zm4 0h2V7h-2zm4 0h2v-4h-2zM5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
+      <div class="nav-icon-wrap">
+        <!-- Trophy icon -->
+        <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V18H7v2h10v-2h-4v-2.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+      </div>
       <span>Classement</span>
     </button>
   </nav>
@@ -2160,11 +2173,13 @@ async function renderMatchDetail(matchId, m) {
         </div>`;
     }).join('');
 
-    if (isCreateur && best) {
-      html += `<div class="divider"></div>
-        <div class="section-sub">Action créateur</div>
-        <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>
-        <button class="btn-sm btn-green" style="width:100%" onclick="confirmerMatch('${matchId}','${best.id}')">✅ CONFIRMER CE MATCH</button>`;
+    if (isCreateur) {
+      html += `<div class="divider"></div><div class="section-sub">Actions créateur</div>`;
+      if (best) {
+        html += `<p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>
+          <button class="btn-sm btn-green" style="width:100%;margin-bottom:8px" onclick="confirmerMatch('${matchId}','${best.id}')">✅ CONFIRMER CE MATCH</button>`;
+      }
+      html += `<button class="btn-sm btn-red" style="width:100%;opacity:.7" onclick="annulerMatch('${matchId}')">🗑️ Annuler ce match</button>`;
     }
 
     html += `<div class="divider"></div>
@@ -2217,12 +2232,13 @@ async function renderMatchDetail(matchId, m) {
       html += `
         <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">🎨 Composer les équipes</button>`;
       if (canStart) {
-        html += `<button class="btn-sm btn-red" style="width:100%" onclick="openTerminerMatch('${matchId}')">🏁 Terminer le match</button>`;
+        html += `<button class="btn-sm btn-red" style="width:100%;margin-bottom:8px" onclick="openTerminerMatch('${matchId}')">🏁 Terminer le match</button>`;
       } else {
-        html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-top:4px">
+        html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-bottom:8px">
           ⚠️ Compose les équipes avant de pouvoir démarrer le match (min. ${MIN_PLAYERS} joueurs assignés)
         </div>`;
       }
+      html += `<button class="btn-sm" style="width:100%;opacity:.6;border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text-sec);background:transparent;cursor:pointer" onclick="annulerMatch('${matchId}')">🗑️ Annuler ce match</button>`;
     }
   }
 
@@ -2437,12 +2453,14 @@ window.openVenueMap = function(inputId) {
 
         const d = 0.12;
         const bb = `${lat-d},${lon-d*1.8},${lat+d},${lon+d*1.8}`;
+        // Only commercial indoor 5-a-side / futsal venues — no clubs or public complexes
         const oq = `[out:json][timeout:15];(
-          node["sport"="soccer"]["leisure"="pitch"](${bb});
-          node["sport"="soccer"]["building"](${bb});
-          node["name"~"soccer|foot|five|futsal|urban|sport",i]["leisure"](${bb});
-          way["sport"="soccer"](${bb});
-          way["name"~"foot|five|futsal|urban|sport",i](${bb});
+          node["name"~"five|futsal|urban soccer|urban foot|foot five|speed soccer|city stade|footeo|urbain foot|mini foot indoor",i](${bb});
+          way["name"~"five|futsal|urban soccer|urban foot|foot five|speed soccer|city stade|footeo|urbain foot|mini foot indoor",i](${bb});
+          node["sport"="futsal"](${bb});
+          way["sport"="futsal"](${bb});
+          node["sport"="soccer"]["indoor"="yes"](${bb});
+          way["sport"="soccer"]["indoor"="yes"](${bb});
         );out center 30;`;
 
         const listEl = document.getElementById('venue-list');
@@ -2453,8 +2471,17 @@ window.openVenueMap = function(inputId) {
         })
         .then(r => r.json())
         .then(data => {
+          const INDOOR_KW = ['five','futsal','urban','indoor','speed soccer','city stade','footeo','mini foot'];
+          const EXCL_KW  = ['club sportif','association','complexe sportif','stade municipal','gymnase','lycée','collège','école','mairie','omnisports'];
           const venues = (data.elements || [])
-            .filter(e => e.tags?.name)
+            .filter(e => {
+              if (!e.tags?.name) return false;
+              const n = e.tags.name.toLowerCase();
+              // Must match an indoor keyword OR have sport=futsal tag
+              const isIndoor = INDOOR_KW.some(k => n.includes(k)) || e.tags?.sport === 'futsal' || e.tags?.indoor === 'yes';
+              const isExcl   = EXCL_KW.some(k => n.includes(k));
+              return isIndoor && !isExcl;
+            })
             .map(e => ({
               name: e.tags.name,
               lat: e.lat ?? e.center?.lat,
@@ -2466,7 +2493,7 @@ window.openVenueMap = function(inputId) {
           const lEl = document.getElementById('venue-list');
           if (!lEl) return;
           if (venues.length === 0) {
-            lEl.innerHTML = '<div class="venue-item"><div class="vi-name">Aucun terrain trouvé — saisis le nom manuellement</div></div>';
+            lEl.innerHTML = '<div class="venue-item"><div class="vi-name">Aucun terrain Five/Futsal/Urban trouvé près d\'ici — recherche une ville ou saisis le nom manuellement</div></div>';
             return;
           }
           window._venueResults = venues;
@@ -2647,7 +2674,7 @@ function renderTerrainView() {
     const ini = initiales(pseudos[uid] || 'J');
     const name = (pseudos[uid] || 'Joueur').split(' ')[0].toUpperCase().slice(0, 8);
     const photo = localStorage.getItem('cs5_photo_' + uid);
-    return `<div class="mini-card ${rar}" data-uid="${uid}" onclick="openPlayerDetail('${uid}')">
+    return `<div class="mini-card ${rar}" data-uid="${uid}" onclick="openAssignMenu('${uid}')">
       <div class="mc-overall">${ovr}</div>
       <div class="mc-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:3px">` : ini}</div>
       <div class="mc-name">${name}</div>
@@ -2741,32 +2768,56 @@ window.shareCompo = function() {
   }
 };
 
-window.openPlayerDetail = function(uid) {
+window.openAssignMenu = function(uid) {
   document.getElementById('pdp-overlay')?.remove();
   const d = (window._composerPlayersData || {})[uid];
   const pseudo = (window._composerPseudos || {})[uid] || 'Joueur';
   const a = d?.atouts || {};
   const ovr = calcOverall(d);
   const rar = rarityClass(ovr);
-  const rarColors = { gold:'#c8973a', silver:'#8888a0', bronze:'#8b5820' };
   const photo = localStorage.getItem('cs5_photo_' + uid);
-  const atoutsMap = [
-    ['vitesse','VIT'],['dribble','DRI'],['frappe','TIR'],['defense','DEF'],['physique','PHY']
-  ];
+  const atoutsMap = [['vitesse','VIT'],['dribble','DRI'],['frappe','TIR'],['defense','DEF'],['physique','PHY']];
+
+  // Current assignment
+  const inA = (eqData[0]?.joueurs || []).includes(uid);
+  const inB = (eqData[1]?.joueurs || []).includes(uid);
+  const colA = eqData[0]?.couleur || '#FF6B35';
+  const colB = eqData[1]?.couleur || '#3498DB';
+  const nomA = eqData[0]?.nom || 'Équipe A';
+  const nomB = eqData[1]?.nom || 'Équipe B';
+
+  function assignBtn(label, color, zone, active) {
+    return `<button onclick="doAssignPlayer('${uid}',${zone})"
+      style="flex:1;padding:10px 6px;border-radius:12px;border:2px solid ${active?color:'rgba(255,255,255,.1)'};
+      background:${active?color+'22':'transparent'};color:${active?color:'var(--text-sec)'};
+      font-family:Oswald,sans-serif;font-size:12px;font-weight:700;cursor:pointer;
+      display:flex;flex-direction:column;align-items:center;gap:3px">
+      <span style="font-size:18px">${zone===0?eqData[0].logo:zone===1?eqData[1].logo:'🪑'}</span>
+      <span>${label}</span>
+    </button>`;
+  }
+
   const popup = document.createElement('div');
   popup.id = 'pdp-overlay';
   popup.className = 'player-detail-popup';
   popup.innerHTML = `<div class="pdp-inner">
     <div class="pdp-header">
-      <div class="pdp-photo">${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : initiales(pseudo)}</div>
+      <div class="pdp-photo">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">`:(initiales(pseudo)||'?')}</div>
       <div style="flex:1;min-width:0">
         <div class="pdp-name">${pseudo.toUpperCase()}</div>
-        <span class="pdp-ovr-chip mini-card ${rar}" style="width:auto;flex-direction:row;padding:3px 10px;border-radius:12px;font-size:12px;gap:4px">
-          ${ovr} OVR
-        </span>
+        <div style="margin-top:3px;font-size:12px;color:var(--text-sec)">${ovr} OVR · ${rar==='gold'?'⭐ Or':rar==='silver'?'🥈 Argent':'🥉 Bronze'}</div>
       </div>
-      <button id="pdp-close" style="background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;flex-shrink:0">✕</button>
+      <button id="pdp-close" style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;flex-shrink:0">✕</button>
     </div>
+
+    <!-- Assign buttons -->
+    <div style="display:flex;gap:8px;margin-bottom:14px">
+      ${assignBtn(nomA, colA, 0, inA)}
+      ${assignBtn(nomB, colB, 1, inB)}
+      ${assignBtn('Banc', '#888', -1, !inA&&!inB)}
+    </div>
+
+    <!-- Stats -->
     <div>
       ${atoutsMap.map(([k,l]) => `
         <div class="pdp-stat-row">
@@ -2779,6 +2830,13 @@ window.openPlayerDetail = function(uid) {
   popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
   document.getElementById('main-modal').appendChild(popup);
   document.getElementById('pdp-close').addEventListener('click', () => popup.remove());
+};
+
+window.doAssignPlayer = function(uid, zone) {
+  eqData.forEach((eq, i) => { eq.joueurs = eq.joueurs.filter(u => u !== uid); });
+  if (zone >= 0) eqData[zone].joueurs.push(uid);
+  document.getElementById('pdp-overlay')?.remove();
+  renderTerrainView();
 };
 
 function initTerrainDnD() {
@@ -2870,6 +2928,33 @@ window.saveEquipes = async function() {
   showToast('Équipes enregistrées ! 🎨', 'success');
   closeModal();
   openMatchDetail(matchId);
+};
+
+// ===== ANNULER MATCH =====
+window.annulerMatch = async function(matchId) {
+  // Confirmation légère via modal
+  openModal('🗑️ Annuler ce match', `
+    <p style="font-size:15px;line-height:1.5;margin-bottom:20px;color:var(--text-sec)">
+      Ce match sera <strong style="color:var(--red)">définitivement supprimé</strong>.<br>
+      Les votes et inscriptions seront perdus.
+    </p>
+    <div style="display:flex;gap:10px">
+      <button class="btn-sm btn-outline" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn-sm btn-red" style="flex:1" onclick="confirmAnnulerMatch('${matchId}')">Oui, supprimer</button>
+    </div>`);
+};
+window.confirmAnnulerMatch = async function(matchId) {
+  if (!currentUser) return;
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  if (!snap.exists() || snap.data().createurUid !== currentUser.uid) {
+    showToast('Action non autorisée.', 'error'); return;
+  }
+  await deleteDoc(ref);
+  showToast('Match annulé.', '');
+  closeModal();
+  window._canCreateMatch = { can: true }; // reset eligibility
+  renderScreen('home');
 };
 
 // ===== TERMINER MATCH =====
