@@ -738,6 +738,82 @@
       box-shadow:0 0 10px var(--orange-glow);
     }
 
+    /* ===== CLUB GRID ===== */
+    .club-scroll { display:grid; grid-template-columns:repeat(5,1fr); gap:6px; margin-top:6px; }
+    .club-card {
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      padding:8px 4px; background:var(--surface);
+      border:1.5px solid var(--border); border-radius:10px;
+      cursor:pointer; transition:all .18s;
+    }
+    .club-card:hover { border-color:rgba(255,255,255,.2); transform:translateY(-1px); }
+    .club-card.selected { border-color:var(--orange); background:var(--orange-glow-soft); box-shadow:0 0 10px var(--orange-glow); }
+    .club-card .cn { font-size:9px; font-weight:700; color:var(--text-sec); letter-spacing:.3px; text-align:center; }
+    .club-card.selected .cn { color:var(--orange); }
+
+    /* ===== POSTE GRID ===== */
+    .poste-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:6px; }
+    .poste-btn {
+      display:flex; flex-direction:column; align-items:center; gap:4px;
+      padding:12px 4px; background:var(--surface);
+      border:1.5px solid var(--border); border-radius:11px;
+      cursor:pointer; transition:all .18s;
+    }
+    .poste-btn:hover { border-color:rgba(255,255,255,.2); transform:translateY(-1px); }
+    .poste-btn.selected { border-color:var(--orange); background:var(--orange-glow-soft); box-shadow:0 0 10px var(--orange-glow); }
+    .poste-btn .p-icon { font-size:22px; }
+    .poste-btn .p-abbr { font-family:'Oswald',sans-serif; font-size:13px; font-weight:700; color:var(--text-sec); }
+    .poste-btn .p-label { font-size:9px; color:var(--text-muted); font-weight:500; }
+    .poste-btn.selected .p-abbr { color:var(--orange); }
+    .poste-btn.selected .p-label { color:var(--orange); opacity:.7; }
+
+    /* ===== THEME DOTS ===== */
+    .theme-picker { display:flex; gap:6px; align-items:center; }
+    .t-dot {
+      width:16px; height:16px; border-radius:50%;
+      cursor:pointer; border:2px solid transparent;
+      transition:all .2s; flex-shrink:0;
+    }
+    .t-dot:hover { transform:scale(1.15); }
+    .t-dot.active { border-color:#fff; box-shadow:0 0 6px currentColor; transform:scale(1.1); }
+
+    /* ===== SLIDER AMÉLIORÉ avec tooltip ===== */
+    .slider-wrap { position:relative; padding-top:22px; }
+    .s-tooltip {
+      position:absolute; top:0;
+      transform:translateX(-50%);
+      background:var(--orange); color:#fff;
+      font-size:11px; font-weight:700;
+      padding:2px 7px; border-radius:6px;
+      pointer-events:none; transition:left .05s;
+      font-family:'Oswald',sans-serif;
+      white-space:nowrap;
+      box-shadow:0 2px 8px var(--orange-glow);
+    }
+    .s-tooltip::after {
+      content:''; position:absolute; top:100%; left:50%;
+      transform:translateX(-50%);
+      border:4px solid transparent;
+      border-top-color:var(--orange);
+    }
+    .atout-item input[type=range]:active::-webkit-slider-thumb { transform:scale(1.3); box-shadow:0 0 16px var(--orange-glow); }
+
+    /* ===== FUT CARD shield + poste ===== */
+    .fut-club-shield { display:inline-flex; align-items:center; gap:8px; margin-top:6px; justify-content:center; }
+    .fut-poste-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(0,230,118,.15); border:1px solid rgba(0,230,118,.3);
+      border-radius:20px; padding:4px 12px;
+      font-size:12px; font-weight:700; color:var(--green);
+      margin-top:6px;
+    }
+
+    /* ===== THEME SECTION in profil ===== */
+    .theme-section { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding:14px; background:var(--card); border:1px solid var(--border); border-radius:var(--r); }
+    .theme-section .ts-label { font-size:13px; color:var(--text-sec); font-weight:500; flex:1; }
+    .theme-section .theme-picker { gap:8px; }
+    .theme-section .t-dot { width:22px; height:22px; }
+
     @media (min-width:480px) {
       .screen { padding:20px 20px calc(var(--nav-h) + 20px); }
     }
@@ -789,47 +865,53 @@
         <label>Pseudo</label>
         <input type="text" id="reg-pseudo" placeholder="Ton surnom sur le terrain" maxlength="20">
       </div>
-      <div class="form-row">
-        <div class="form-group">
-          <label>Équipe préférée</label>
-          <select id="reg-equipe">
-            <option>PSG</option><option>OM</option><option>OL</option><option>Monaco</option>
-            <option>Barcelone</option><option>Real Madrid</option><option>Bayern</option>
-            <option>Man City</option><option>Liverpool</option><option>Chelsea</option>
-          </select>
-        </div>
-        <div class="form-group">
-          <label>Poste</label>
-          <select id="reg-poste">
-            <option value="gardien">Gardien</option>
-            <option value="defenseur">Défenseur</option>
-            <option value="milieu">Milieu</option>
-            <option value="attaquant">Attaquant</option>
-          </select>
-        </div>
+      <div class="form-group">
+        <label>Équipe préférée</label>
+        <input type="hidden" id="reg-equipe" value="PSG">
+        <div class="club-scroll" id="reg-club-grid"></div>
       </div>
       <div class="form-group">
-        <label>Tes atouts (distribue les points)</label>
+        <label>Ton poste</label>
+        <input type="hidden" id="reg-poste" value="attaquant">
+        <div class="poste-grid" id="reg-poste-grid"></div>
+      </div>
+      <div class="form-group">
+        <label>Tes atouts</label>
         <div class="atouts-grid">
           <div class="atout-item form-group">
             <label>Vitesse <span class="val" id="v-vitesse">70</span></label>
-            <input type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncAtout('vitesse',this.value)">
+            <div class="slider-wrap">
+              <div class="s-tooltip" id="st-vitesse">70</div>
+              <input type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncAtout('vitesse',this.value)">
+            </div>
           </div>
           <div class="atout-item form-group">
             <label>Dribble <span class="val" id="v-dribble">70</span></label>
-            <input type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncAtout('dribble',this.value)">
+            <div class="slider-wrap">
+              <div class="s-tooltip" id="st-dribble">70</div>
+              <input type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncAtout('dribble',this.value)">
+            </div>
           </div>
           <div class="atout-item form-group">
             <label>Frappe <span class="val" id="v-frappe">70</span></label>
-            <input type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncAtout('frappe',this.value)">
+            <div class="slider-wrap">
+              <div class="s-tooltip" id="st-frappe">70</div>
+              <input type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncAtout('frappe',this.value)">
+            </div>
           </div>
           <div class="atout-item form-group">
             <label>Défense <span class="val" id="v-defense">70</span></label>
-            <input type="range" min="20" max="99" value="70" id="a-defense" oninput="syncAtout('defense',this.value)">
+            <div class="slider-wrap">
+              <div class="s-tooltip" id="st-defense">70</div>
+              <input type="range" min="20" max="99" value="70" id="a-defense" oninput="syncAtout('defense',this.value)">
+            </div>
           </div>
           <div class="atout-item form-group">
             <label>Physique <span class="val" id="v-physique">70</span></label>
-            <input type="range" min="20" max="99" value="70" id="a-physique" oninput="syncAtout('physique',this.value)">
+            <div class="slider-wrap">
+              <div class="s-tooltip" id="st-physique">70</div>
+              <input type="range" min="20" max="99" value="70" id="a-physique" oninput="syncAtout('physique',this.value)">
+            </div>
           </div>
         </div>
       </div>
@@ -846,6 +928,7 @@
   <header id="topbar">
     <div class="top-logo">INRUN<span style="color:#fff">5</span></div>
     <div class="top-actions">
+      <div class="theme-picker" id="topbar-themes"></div>
       <span class="top-xp" id="top-xp-badge">0 XP</span>
       <button class="btn-icon" onclick="doLogout()" title="Déconnexion">⎋</button>
     </div>
@@ -984,6 +1067,112 @@ const BADGES_DEF = [
 ];
 const XP = { participer: 100, voter: 10, creer: 50, hdm: 200 };
 
+// ===== DONNÉES CLUBS — ÉCUSSONS SVG =====
+const CLUBS = [
+  { id:'psg',       name:'PSG',       short:'PSG', c1:'#001E5D', c2:'#DA020E' },
+  { id:'om',        name:'OM',        short:'OM',  c1:'#2196F3', c2:'#FFFFFF' },
+  { id:'ol',        name:'OL',        short:'OL',  c1:'#E30613', c2:'#FFFFFF' },
+  { id:'monaco',    name:'Monaco',    short:'ASM', c1:'#DA291C', c2:'#FFFFFF' },
+  { id:'barca',     name:'Barça',     short:'FCB', c1:'#A50044', c2:'#004D98' },
+  { id:'real',      name:'Real',      short:'RMA', c1:'#F5F5F5', c2:'#FEBE10' },
+  { id:'bayern',    name:'Bayern',    short:'FCB', c1:'#DC052D', c2:'#0066B2' },
+  { id:'city',      name:'Man City',  short:'MCI', c1:'#6CABDD', c2:'#1C2C5B' },
+  { id:'liverpool', name:'Liverpool', short:'LFC', c1:'#C8102E', c2:'#00B2A9' },
+  { id:'chelsea',   name:'Chelsea',   short:'CFC', c1:'#034694', c2:'#DBA111' },
+];
+
+function clubShield(club, size = 36) {
+  const c = CLUBS.find(c => c.name === club || c.id === club) || CLUBS[0];
+  const h = Math.round(size * 1.1);
+  return `<svg width="${size}" height="${h}" viewBox="0 0 50 55" xmlns="http://www.w3.org/2000/svg">
+    <path d="M25 2L47 10L47 28C47 42 37 50 25 53C13 50 3 42 3 28L3 10Z" fill="${c.c1}"/>
+    <path d="M25 2L25 53C13 50 3 42 3 28L3 10Z" fill="${c.c2}" opacity=".55"/>
+    <text x="25" y="35" text-anchor="middle" dominant-baseline="middle"
+      font-family="Oswald,Arial Narrow,Arial,sans-serif"
+      font-size="13" font-weight="900" fill="white"
+      stroke="rgba(0,0,0,.4)" stroke-width=".6">${c.short}</text>
+  </svg>`;
+}
+
+// ===== DONNÉES POSTES =====
+const POSTES = [
+  { id:'gardien',   icon:'🧤', abbr:'GK',  label:'Gardien' },
+  { id:'defenseur', icon:'🛡️', abbr:'DEF', label:'Défenseur' },
+  { id:'milieu',    icon:'⚡', abbr:'MIL', label:'Milieu' },
+  { id:'attaquant', icon:'🎯', abbr:'ATT', label:'Attaquant' },
+];
+
+// ===== THÈMES DE COULEUR =====
+const THEMES = {
+  orange: { label:'🟠', '--orange':'#FF5500','--orange2':'#FF8800','--orange-dark':'#CC4400','--orange-glow':'rgba(255,85,0,.4)','--orange-glow-soft':'rgba(255,85,0,.12)' },
+  vert:   { label:'🟢', '--orange':'#00C853','--orange2':'#69F0AE','--orange-dark':'#00952F','--orange-glow':'rgba(0,200,83,.4)','--orange-glow-soft':'rgba(0,200,83,.12)' },
+  bleu:   { label:'🔵', '--orange':'#0091EA','--orange2':'#40C4FF','--orange-dark':'#006DB3','--orange-glow':'rgba(0,145,234,.4)','--orange-glow-soft':'rgba(0,145,234,.12)' },
+  violet: { label:'🟣', '--orange':'#D500F9','--orange2':'#EA80FC','--orange-dark':'#A100C2','--orange-glow':'rgba(213,0,249,.4)','--orange-glow-soft':'rgba(213,0,249,.12)' },
+  rouge:  { label:'🔴', '--orange':'#FF1744','--orange2':'#FF6D00','--orange-dark':'#C4001D','--orange-glow':'rgba(255,23,68,.4)','--orange-glow-soft':'rgba(255,23,68,.12)' },
+};
+
+let currentTheme = localStorage.getItem('inrun5_theme') || 'orange';
+
+function applyTheme(name) {
+  const t = THEMES[name];
+  if (!t) return;
+  currentTheme = name;
+  const r = document.documentElement;
+  Object.entries(t).forEach(([k,v]) => { if (k !== 'label') r.style.setProperty(k, v); });
+  localStorage.setItem('inrun5_theme', name);
+  renderThemeDots();
+}
+
+function renderThemeDots() {
+  const wrap = document.getElementById('topbar-themes');
+  if (!wrap) return;
+  wrap.innerHTML = Object.entries(THEMES).map(([k, t]) => {
+    const color = t['--orange'];
+    return `<div class="t-dot${k === currentTheme ? ' active' : ''}"
+      style="background:${color};color:${color}"
+      onclick="applyTheme('${k}')" title="${k}"></div>`;
+  }).join('');
+}
+window.applyTheme = applyTheme;
+
+// ===== RENDU GRILLES CLUBS & POSTES =====
+function renderClubGrid(containerId, hiddenId, selected) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = CLUBS.map(c =>
+    `<div class="club-card${c.name === selected ? ' selected' : ''}" onclick="selectClub('${c.name}','${hiddenId}','${containerId}')">
+      ${clubShield(c.name, 28)}
+      <span class="cn">${c.name}</span>
+    </div>`
+  ).join('');
+}
+
+function renderPosteGrid(containerId, hiddenId, selected) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+  wrap.innerHTML = POSTES.map(p =>
+    `<div class="poste-btn${p.id === selected ? ' selected' : ''}" onclick="selectPoste('${p.id}','${hiddenId}','${containerId}')">
+      <span class="p-icon">${p.icon}</span>
+      <span class="p-abbr">${p.abbr}</span>
+      <span class="p-label">${p.label}</span>
+    </div>`
+  ).join('');
+}
+
+window.selectClub = function(name, hiddenId, containerId) {
+  document.getElementById(hiddenId).value = name;
+  document.querySelectorAll(`#${containerId} .club-card`).forEach(el => {
+    el.classList.toggle('selected', el.querySelector('.cn')?.textContent === name);
+  });
+};
+
+window.selectPoste = function(posteId, hiddenId, containerId) {
+  document.getElementById(hiddenId).value = posteId;
+  document.querySelectorAll(`#${containerId} .poste-btn`).forEach(el => {
+    el.classList.toggle('selected', el.querySelector('.p-abbr')?.textContent === POSTES.find(p=>p.id===posteId)?.abbr);
+  });
+};
+
 // Calcule la note globale FUT (moyenne pondérée des atouts)
 function noteGlobale(atouts) {
   if (!atouts) return 70;
@@ -1053,28 +1242,39 @@ function showAuthTab(tab) {
   const toggle = document.getElementById('auth-toggle');
   if (toggle) toggle.classList.toggle('register', tab === 'register');
   document.getElementById('auth-error').textContent = '';
-  // Initialiser les gradients des sliders à l'affichage
+  // Initialiser les grilles clubs/postes et sliders
   if (tab === 'register') {
     setTimeout(() => {
+      renderClubGrid('reg-club-grid', 'reg-equipe', document.getElementById('reg-equipe').value || 'PSG');
+      renderPosteGrid('reg-poste-grid', 'reg-poste', document.getElementById('reg-poste').value || 'attaquant');
       document.querySelectorAll('.atout-item input[type=range]').forEach(r => updateRangeGradient(r));
     }, 50);
   }
 }
 window.showAuthTab = showAuthTab;
 
-// Met à jour le gradient live du slider
+// Met à jour gradient + tooltip du slider
 function updateRangeGradient(input) {
   const min = +input.min || 20;
   const max = +input.max || 99;
   const val = +input.value || 70;
   const pct = ((val - min) / (max - min)) * 100;
   input.style.background = `linear-gradient(90deg, var(--orange) ${pct}%, var(--border) ${pct}%)`;
+  const tooltip = input.parentElement?.querySelector('.s-tooltip');
+  if (tooltip) {
+    tooltip.textContent = val;
+    // Positionne le tooltip au-dessus du thumb
+    const thumbOffset = (pct / 100) * (input.offsetWidth - 20) + 10;
+    tooltip.style.left = thumbOffset + 'px';
+  }
 }
 
 function syncAtout(name, val) {
   document.getElementById('v-' + name).textContent = val;
   const input = document.getElementById('a-' + name);
   if (input) updateRangeGradient(input);
+  const tooltip = document.getElementById('st-' + name);
+  if (tooltip) tooltip.textContent = val;
 }
 window.syncAtout = syncAtout;
 
@@ -1904,8 +2104,8 @@ async function renderProfil() {
 
   const rang = getRang(d.xp || 0);
   const note = noteGlobale(d.atouts);
-  const postes = { gardien: 'GK', defenseur: 'DEF', milieu: 'MIL', attaquant: 'ATT' };
-  const posteLabel = postes[d.posteFavori] || d.posteFavori || 'MIL';
+  const posteData = POSTES.find(p => p.id === d.posteFavori) || POSTES[2];
+  const posteLabel = posteData.abbr;
 
   const atoutsOrder = [
     { key: 'vitesse', label: 'Vitesse' },
@@ -1930,7 +2130,8 @@ async function renderProfil() {
       <div class="fut-overall">${note}</div>
       <div class="fut-pos">${posteLabel}</div>
       <div class="fut-pseudo">${d.pseudo || 'Joueur'}</div>
-      <div class="fut-equipe">🏟️ ${d.equipePreferee || '—'}</div>
+      <div class="fut-club-shield">${clubShield(d.equipePreferee || 'PSG', 32)}<span style="font-size:13px;color:#A5D6A7">${d.equipePreferee || '—'}</span></div>
+      <div class="fut-poste-badge">${posteData.icon} ${posteLabel} — ${posteData.label}</div>
       <div class="fut-divider"></div>
       <div class="fut-stats">
         ${atoutsOrder.map(a => `
@@ -1971,34 +2172,50 @@ function openEditProfile() {
   const d = currentUserData;
   if (!d) return;
   const atoutsOrder = ['vitesse','dribble','frappe','defense','physique'];
+  const atoutsIcons = { vitesse:'⚡', dribble:'🎭', frappe:'💥', defense:'🛡️', physique:'💪' };
   openModal('✏️ Modifier mon profil', `
     <div class="form-group">
       <label class="input-label">Pseudo</label>
       <input class="input-field" id="ep-pseudo" value="${d.pseudo || ''}">
     </div>
-    <div class="form-group" style="margin-top:10px">
+    <div class="form-group" style="margin-top:12px">
       <label class="input-label">Équipe préférée</label>
-      <select class="input-field" id="ep-equipe">
-        ${['PSG','OM','OL','Monaco','Barcelone','Real Madrid','Bayern','Man City','Liverpool','Chelsea'].map(e =>
-          `<option${e === d.equipePreferee ? ' selected' : ''}>${e}</option>`).join('')}
-      </select>
+      <input type="hidden" id="ep-equipe" value="${d.equipePreferee || 'PSG'}">
+      <div class="club-scroll" id="ep-club-grid"></div>
     </div>
-    <div class="form-group" style="margin-top:10px">
+    <div class="form-group" style="margin-top:12px">
       <label class="input-label">Poste</label>
-      <select class="input-field" id="ep-poste">
-        ${[['gardien','Gardien'],['defenseur','Défenseur'],['milieu','Milieu'],['attaquant','Attaquant']].map(([v,l]) =>
-          `<option value="${v}"${v === d.posteFavori ? ' selected' : ''}>${l}</option>`).join('')}
-      </select>
+      <input type="hidden" id="ep-poste" value="${d.posteFavori || 'milieu'}">
+      <div class="poste-grid" id="ep-poste-grid"></div>
     </div>
-    <div style="margin-top:14px">
+    <div style="margin-top:16px">
       <label class="input-label">Atouts</label>
-      ${atoutsOrder.map(a => `
-        <div class="atout-item form-group" style="margin-top:8px">
-          <label style="display:flex;justify-content:space-between"><span style="text-transform:capitalize">${a}</span><span id="epv-${a}" style="color:var(--orange);font-weight:600">${d.atouts?.[a] ?? 70}</span></label>
-          <input type="range" min="20" max="99" value="${d.atouts?.[a] ?? 70}" id="epa-${a}" oninput="document.getElementById('epv-${a}').textContent=this.value" style="width:100%;accent-color:var(--orange)">
-        </div>`).join('')}
+      ${atoutsOrder.map(a => {
+        const val = d.atouts?.[a] ?? 70;
+        const pct = ((val-20)/(99-20))*100;
+        return `<div class="atout-item form-group" style="margin-top:10px">
+          <label style="display:flex;justify-content:space-between;align-items:center">
+            <span>${atoutsIcons[a] || ''} <span style="text-transform:capitalize">${a}</span></span>
+            <span id="epv-${a}" style="color:var(--orange);font-weight:700;font-family:Oswald,sans-serif;font-size:16px">${val}</span>
+          </label>
+          <div class="slider-wrap">
+            <div class="s-tooltip" id="epst-${a}" style="left:calc(${pct}% + ${10-pct*.2}px)">${val}</div>
+            <input type="range" min="20" max="99" value="${val}" id="epa-${a}"
+              style="background:linear-gradient(90deg,var(--orange) ${pct}%,var(--border) ${pct}%)"
+              oninput="(function(el){
+                document.getElementById('epv-${a}').textContent=el.value;
+                updateRangeGradient(el);
+              })(this)">
+          </div>
+        </div>`;
+      }).join('')}
     </div>
-    <button class="btn-primary" style="margin-top:16px" onclick="saveProfile()">ENREGISTRER</button>`);
+    <button class="btn-primary" style="margin-top:20px" onclick="saveProfile()">ENREGISTRER</button>`);
+  // Rend les grilles après injection HTML
+  setTimeout(() => {
+    renderClubGrid('ep-club-grid', 'ep-equipe', d.equipePreferee || 'PSG');
+    renderPosteGrid('ep-poste-grid', 'ep-poste', d.posteFavori || 'milieu');
+  }, 30);
 }
 window.openEditProfile = openEditProfile;
 
@@ -2081,6 +2298,9 @@ async function renderClassement() {
 }
 
 // ===== AUTH STATE =====
+// Appliquer le thème sauvegardé dès le départ
+applyTheme(currentTheme);
+
 onAuthStateChanged(auth, async (user) => {
   document.getElementById('loading-screen').classList.add('hidden');
   if (user) {
@@ -2092,9 +2312,10 @@ onAuthStateChanged(auth, async (user) => {
     if (currentUserData) {
       document.getElementById('top-xp-badge').textContent = `${currentUserData.xp || 0} XP`;
     }
-    // Afficher l'app
+    // Afficher l'app + points de thème
     document.getElementById('auth-wrap').classList.add('hidden');
     document.getElementById('app').classList.remove('hidden');
+    renderThemeDots();
     renderHome();
   } else {
     currentUser = null;
