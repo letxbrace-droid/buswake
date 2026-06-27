@@ -9,6 +9,10 @@ service cloud.firestore {
     function isOwner(uid) {
       return request.auth != null && request.auth.uid == uid;
     }
+    // Compte administrateur (toi) : droits de maintenance (nettoyage global).
+    function isAdmin() {
+      return request.auth != null && request.auth.token.email == 'letxbrace@gmail.com';
+    }
 
     // Validation du document utilisateur écrit par son propriétaire.
     // Ceinture-bretelles contre la fuite de mot de passe dans le pseudo :
@@ -56,10 +60,11 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn();
-      // Suppression : le créateur, ou tout connecté pour les anciens matchs
-      // sans créateur enregistré (nettoyage des données héritées).
+      // Suppression : le créateur, l'admin (maintenance), ou tout connecté
+      // pour les anciens matchs sans créateur enregistré (données héritées).
       allow delete: if isSignedIn()
-        && (!('createurUid' in resource.data)
+        && (isAdmin()
+            || !('createurUid' in resource.data)
             || resource.data.createurUid == request.auth.uid);
     }
 

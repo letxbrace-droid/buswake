@@ -3688,6 +3688,8 @@ async function renderProfil() {
 
     <div class="divider"></div>
     <button class="profile-action-btn" onclick="window.openChangePassword()">🔒 Changer mon mot de passe</button>
+    ${currentUser?.email === 'letxbrace@gmail.com' ? `
+    <button class="profile-action-btn" style="border-color:rgba(255,23,68,.35);color:var(--red)" onclick="window.cleanupAllMatchs()">🧹 Nettoyer tous les matchs (admin)</button>` : ''}
     <button class="delete-account-btn" onclick="window.openDeleteAccount()">🗑️ Supprimer mon compte</button>
     <div style="height:28px"></div>
   `;
@@ -3948,6 +3950,39 @@ window.confirmChangePassword = async function() {
       showToast('Erreur : ' + (e.code || e.message), 'error');
     }
   }
+};
+
+// ===== NETTOYAGE ADMIN (supprimer tous les matchs) =====
+const ADMIN_EMAIL = 'letxbrace@gmail.com';
+window.cleanupAllMatchs = function() {
+  if (currentUser?.email !== ADMIN_EMAIL) { showToast('Réservé à l\'admin.', 'error'); return; }
+  openModal('🧹 Nettoyer tous les matchs', `
+    <p style="font-size:15px;line-height:1.5;margin-bottom:18px;color:var(--text-sec)">
+      <strong style="color:var(--red)">TOUS</strong> les matchs (sondages, confirmés, terminés)
+      seront <strong style="color:var(--red)">définitivement supprimés</strong>.<br>
+      Les comptes joueurs et leurs stats ne sont pas touchés. Action irréversible.
+    </p>
+    <div style="display:flex;gap:10px">
+      <button class="btn-sm btn-outline" style="flex:1" onclick="closeModal()">Annuler</button>
+      <button class="btn-sm btn-red" style="flex:1" onclick="window.confirmCleanupAllMatchs()">Tout supprimer</button>
+    </div>`);
+};
+window.confirmCleanupAllMatchs = async function() {
+  if (currentUser?.email !== ADMIN_EMAIL) return;
+  const col = collection(db, 'matchs');
+  const snap = await getDocsFromServer(col).catch(() => getDocs(col).catch(() => null));
+  if (!snap) { showToast('Lecture impossible.', 'error'); return; }
+  if (snap.empty) { window.closeModal(); showToast('Aucun match à supprimer.', ''); return; }
+  showToast(`Suppression de ${snap.size} match(s)…`, '');
+  let ok = 0, fail = 0;
+  for (const d of snap.docs) {
+    try { await deleteDoc(doc(db, 'matchs', d.id)); ok++; }
+    catch (e) { fail++; console.error('cleanup fail', d.id, e.code || e.message); }
+  }
+  window._canCreateMatch = { can: true };
+  window.closeModal();
+  showToast(`Nettoyage terminé : ${ok} supprimé(s)${fail ? `, ${fail} échec(s)` : ''}.`, fail ? 'error' : 'success');
+  navigateTo('home');
 };
 
 // ===== LIEN D'INVITATION =====
@@ -4236,6 +4271,7 @@ service cloud.firestore {
 
     function isSignedIn() { return request.auth != null; }
     function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
+    function isAdmin() { return request.auth != null && request.auth.token.email == 'letxbrace@gmail.com'; }
 
     // Anti-fuite : pseudo = chaîne 1–24 caractères et jamais égal à l'email.
     function validUserData() {
@@ -4275,7 +4311,8 @@ service cloud.firestore {
       allow create: if isSignedIn();
       allow update: if isSignedIn();
       allow delete: if isSignedIn()
-        && (!('createurUid' in resource.data)
+        && (isAdmin()
+            || !('createurUid' in resource.data)
             || resource.data.createurUid == request.auth.uid);
     }
 
