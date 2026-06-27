@@ -11,6 +11,8 @@
   <link rel="manifest" id="manifest-link">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <style>
     /* ===== DESIGN SYSTEM V2 — ULTRA PREMIUM ===== */
@@ -545,29 +547,94 @@
     .input-field:focus { border-color:var(--orange); box-shadow:0 0 0 3px rgba(255,85,0,.1); }
     .input-label { font-size:11px; color:var(--text-sec); font-weight:600; letter-spacing:.8px; text-transform:uppercase; margin-bottom:5px; display:block; }
 
-    /* ===== PROFIL — CARTE FUT ===== */
-    .fut-card {
-      background:linear-gradient(160deg, #0D2410, #060E08);
-      border:1px solid rgba(0,230,118,.3);
-      border-radius:18px; padding:22px;
-      text-align:center; margin-bottom:20px;
-      position:relative; overflow:hidden;
-      box-shadow:0 0 40px rgba(0,230,118,.08), inset 0 1px 0 rgba(0,230,118,.15);
+    /* ===== FUT CARD V3 — FIFA STYLE ===== */
+    .fut-card-wrap { display:flex; justify-content:center; margin-bottom:20px; }
+    .fut-card-v3 {
+      position:relative; width:220px;
+      background:linear-gradient(160deg, #E8D48B 0%, #C8A830 20%, #F0D060 40%, #B89020 60%, #D8B840 80%, #A07810 100%);
+      border-radius:18px 18px 12px 12px;
+      box-shadow:0 12px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(255,200,50,.3), inset 0 1px 0 rgba(255,255,255,.4);
+      overflow:hidden; font-family:'Oswald',sans-serif;
+      border:2px solid rgba(220,180,40,.6);
     }
-    .fut-card::before {
+    .fut-card-v3::before {
       content:''; position:absolute; inset:0;
-      background:radial-gradient(ellipse at 50% 0%, rgba(0,230,118,.12), transparent 65%);
-      pointer-events:none;
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,255,255,.2) 0%, transparent 60%),
+        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,200,50,.04) 18px, rgba(255,200,50,.04) 19px);
+      pointer-events:none; z-index:1;
     }
-    .fut-overall { font-family:'Oswald',sans-serif; font-size:60px; font-weight:700; color:var(--green); line-height:1; text-shadow:0 0 24px var(--green-glow); }
-    .fut-pos { font-size:11px; color:#66BB6A; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
-    .fut-pseudo { font-family:'Oswald',sans-serif; font-size:26px; font-weight:700; color:#fff; margin-top:10px; }
-    .fut-equipe { font-size:12px; color:#81C784; margin-top:2px; }
-    .fut-divider { height:1px; background:rgba(0,230,118,.15); margin:18px 0; }
-    .fut-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
-    .fut-stat { display:flex; flex-direction:column; align-items:center; }
-    .fut-stat-val { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; color:#fff; }
-    .fut-stat-label { font-size:10px; color:#81C784; font-weight:700; letter-spacing:.5px; text-transform:uppercase; margin-top:2px; }
+    /* Top section */
+    .fc3-top {
+      position:relative; height:165px;
+      background:linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.05) 100%);
+      overflow:hidden;
+    }
+    .fc3-meta {
+      position:absolute; left:12px; top:12px; z-index:3;
+      display:flex; flex-direction:column; align-items:center; gap:3px;
+    }
+    .fc3-overall {
+      font-size:40px; font-weight:700; line-height:1;
+      color:#1A1000; text-shadow:0 2px 4px rgba(255,200,50,.5);
+    }
+    .fc3-pos {
+      font-size:13px; font-weight:600; color:#1A1000; letter-spacing:.5px;
+    }
+    .fc3-badge-row { display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:4px; }
+    .fc3-photo-zone {
+      position:absolute; right:0; top:0; bottom:0; left:40px;
+      display:flex; align-items:flex-end; justify-content:center;
+      z-index:2;
+    }
+    .fc3-photo {
+      width:160px; height:160px; object-fit:cover;
+      object-position:center top;
+      filter:drop-shadow(-4px 0 12px rgba(0,0,0,.4));
+    }
+    .fc3-photo-placeholder {
+      width:100px; height:140px;
+      display:flex; align-items:center; justify-content:center;
+      font-size:72px; opacity:.6; align-self:center;
+    }
+    .fc3-upload-btn {
+      position:absolute; bottom:8px; right:8px; z-index:4;
+      background:rgba(0,0,0,.5); border:1px solid rgba(255,200,50,.4);
+      border-radius:8px; padding:4px 8px; font-size:10px; color:#FFD050;
+      cursor:pointer; font-family:'Inter',sans-serif; font-weight:600;
+      backdrop-filter:blur(4px);
+    }
+    /* Bottom section */
+    .fc3-bottom {
+      position:relative; z-index:2;
+      background:linear-gradient(180deg, rgba(210,160,20,.9) 0%, rgba(180,130,10,.95) 100%);
+      border-top:1px solid rgba(255,200,50,.5);
+      padding:6px 10px 10px;
+    }
+    .fc3-name {
+      font-size:20px; font-weight:700; color:#1A0E00;
+      text-align:center; letter-spacing:1.5px;
+      text-shadow:0 1px 2px rgba(255,200,50,.3);
+      margin-bottom:5px;
+    }
+    .fc3-divider {
+      height:1px; background:rgba(0,0,0,.25); margin:0 0 6px;
+    }
+    .fc3-stats {
+      display:grid; grid-template-columns:1fr 1fr 1fr;
+      gap:2px 8px;
+    }
+    .fc3-stat {
+      display:flex; align-items:baseline; gap:4px; justify-content:center;
+    }
+    .fc3-stat .sn { font-size:14px; font-weight:700; color:#1A0E00; }
+    .fc3-stat .sl { font-size:9px; font-weight:600; color:#5A3A00; letter-spacing:.5px; }
+    /* Glow rare effect */
+    .fut-card-v3.rare::before {
+      background:
+        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,255,255,.3) 0%, transparent 60%),
+        repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(180,120,0,.08) 12px, rgba(180,120,0,.08) 13px);
+    }
 
     .atout-bar-wrap { margin-bottom:10px; }
     .atout-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
@@ -877,6 +944,41 @@
     .btn-google:hover { transform:translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.35); }
     .btn-google:active { transform:scale(.97); }
     .btn-google svg { width:20px; height:20px; flex-shrink:0; }
+
+    /* ===== MAP VENUE PICKER ===== */
+    .venue-map-wrap { position:relative; border-radius:12px; overflow:hidden; margin-bottom:12px; }
+    #venue-map { height:220px; width:100%; border-radius:12px; }
+    .venue-map-search {
+      position:absolute; top:8px; left:8px; right:8px; z-index:1000;
+      display:flex; gap:6px;
+    }
+    .venue-map-search input {
+      flex:1; padding:9px 12px;
+      background:rgba(15,15,22,.92); backdrop-filter:blur(8px);
+      border:1px solid var(--border-light); border-radius:9px;
+      color:var(--text); font-family:'Inter',sans-serif; font-size:13px;
+      outline:none;
+    }
+    .venue-map-search input:focus { border-color:var(--orange); }
+    .venue-list {
+      max-height:160px; overflow-y:auto;
+      border:1px solid var(--border); border-radius:10px;
+      margin-bottom:10px;
+    }
+    .venue-item {
+      padding:10px 14px; font-size:13px; cursor:pointer;
+      border-bottom:1px solid var(--border);
+      transition:background .15s;
+    }
+    .venue-item:last-child { border-bottom:none; }
+    .venue-item:hover, .venue-item.selected { background:var(--orange-glow-soft); color:var(--orange); }
+    .venue-item .vi-name { font-weight:600; }
+    .venue-item .vi-dist { font-size:11px; color:var(--text-sec); margin-top:2px; }
+    .map-or-manual {
+      display:flex; align-items:center; gap:10px;
+      color:var(--text-muted); font-size:11px; margin:8px 0;
+    }
+    .map-or-manual::before,.map-or-manual::after { content:''; flex:1; height:1px; background:var(--border); }
   </style>
 </head>
 <body>
@@ -1105,23 +1207,14 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 // ===== PWA MANIFEST =====
-const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
-  <rect width="192" height="192" rx="40" fill="#060C16"/>
-  <path d="M96 16L170 46V96C170 140 136 163 96 176C56 163 22 140 22 96V46Z" fill="#00C853" opacity="0.15"/>
-  <path d="M96 16L170 46V96C170 140 136 163 96 176C56 163 22 140 22 96V46Z" stroke="#00C853" stroke-width="3" fill="none"/>
-  <circle cx="96" cy="90" r="32" fill="white" opacity="0.92"/>
-  <text x="96" y="90" font-family="Arial Black,sans-serif" font-size="28" font-weight="900" fill="#060C16" text-anchor="middle" dominant-baseline="middle">5</text>
-  <text x="96" y="152" font-family="Arial Black,sans-serif" font-size="11" font-weight="900" fill="#00C853" text-anchor="middle" letter-spacing="1.5">CAP SACLAY</text>
-</svg>`;
-const iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
-const iconUrl = URL.createObjectURL(iconBlob);
 const manifest = {
   name: 'Cap Saclay Five', short_name: 'CS Five',
   description: 'Foot à 5 · Dépôt RATP · Cap Saclay',
-  start_url: '.', display: 'standalone',
+  start_url: './', display: 'standalone',
   background_color: '#060608', theme_color: '#00C853',
   icons: [
-    { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }
+    { src: './logo.jpg', sizes: '512x512', type: 'image/jpeg', purpose: 'any maskable' },
+    { src: './logo.jpg', sizes: '192x192', type: 'image/jpeg' }
   ]
 };
 const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
@@ -1454,6 +1547,22 @@ async function doGoogleSignIn() {
   }
 }
 window.doGoogleSignIn = doGoogleSignIn;
+
+// Photo joueur → localStorage
+window.uploadFcPhoto = function(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+  if (file.size > 3 * 1024 * 1024) { showToast('Photo trop lourde (max 3 Mo)', 'error'); return; }
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    if (currentUser) {
+      localStorage.setItem('cs5_photo_' + currentUser.uid, e.target.result);
+      // Refresh la carte
+      renderScreen('profil');
+    }
+  };
+  reader.readAsDataURL(file);
+};
 
 function tradFirebaseError(code) {
   const m = {
@@ -1977,9 +2086,6 @@ function syncCreneauxFromDOM() {
 function buildCreneauxHtml() {
   const today = new Date().toISOString().split('T')[0];
   return creneauxBuilt.map(c => {
-    const lieuxOpts = LIEUX_DEMO.map(l =>
-      `<option value="${l.nom}"${l.nom === c.lieu ? ' selected' : ''}>${l.nom}</option>`
-    ).join('');
     return `
     <div class="creneau-builder" id="creneau-${c.id}">
       <button class="remove-creneau" onclick="removeCreneau('${c.id}')">✕</button>
@@ -1994,7 +2100,12 @@ function buildCreneauxHtml() {
         </div>
       </div>
       <span class="input-label">Lieu</span>
-      <select class="input-field" id="cd-lieu-${c.id}">${lieuxOpts}</select>
+      <div class="form-group" style="margin-bottom:0">
+        <input class="input-field" type="text" id="cd-lieu-${c.id}" value="${c.lieu}"
+          placeholder="Nom du terrain ou adresse…" style="margin-bottom:6px">
+        <button type="button" class="btn-sm btn-orange" style="width:100%;font-size:12px"
+          onclick="openVenueMap('cd-lieu-${c.id}')">🗺️ Choisir sur la carte</button>
+      </div>
     </div>`;
   }).join('');
 }
@@ -2027,6 +2138,121 @@ window.removeCreneau = function(id) {
   creneauxBuilt = creneauxBuilt.filter(c => c.id !== id);
   const el = document.getElementById('creneaux-list');
   if (el) el.innerHTML = buildCreneauxHtml();
+};
+
+// ===== CARTE SÉLECTION LIEU (Leaflet + Overpass) =====
+let _venueMap = null;
+window.openVenueMap = function(inputId) {
+  const inputEl = document.getElementById(inputId);
+  openModal('📍 Choisir un terrain', `
+    <p style="font-size:12px;color:var(--text-sec);margin-bottom:10px">
+      Localisation autour de Paris. Clique sur un terrain ou saisis le nom manuellement.
+    </p>
+    <div class="venue-map-wrap">
+      <div id="venue-map"></div>
+    </div>
+    <div id="venue-list-container">
+      <div id="venue-list" class="venue-list">
+        <div class="venue-item"><div class="vi-name">Chargement des terrains…</div></div>
+      </div>
+    </div>
+    <div class="map-or-manual">saisie manuelle</div>
+    <input class="input-field" id="venue-manual-input" placeholder="Nom du terrain / adresse…"
+      value="${inputEl?.value || ''}" style="margin-bottom:10px">
+    <button class="btn-primary" onclick="confirmVenueSelection('${inputId}')">
+      CONFIRMER CE LIEU
+    </button>
+  `);
+
+  // Initialise la carte après injection DOM
+  requestAnimationFrame(() => {
+    setTimeout(() => {
+      if (_venueMap) { _venueMap.remove(); _venueMap = null; }
+      const map = L.map('venue-map', { zoomControl:true }).setView([48.8566, 2.3522], 12);
+      _venueMap = map;
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'© OpenStreetMap',
+        maxZoom:19
+      }).addTo(map);
+
+      // Overpass query pour terrains de foot indoor dans un rayon de 15km autour Paris
+      const overpassQuery = `
+        [out:json][timeout:10];
+        (
+          node["sport"="soccer"]["leisure"="pitch"](48.7,2.1,49.0,2.7);
+          node["sport"="soccer"]["building"="yes"](48.7,2.1,49.0,2.7);
+          node["name"~"soccer|foot|five|futsal",i]["leisure"](48.7,2.1,49.0,2.7);
+          way["sport"="soccer"](48.7,2.1,49.0,2.7);
+        );
+        out center 30;
+      `;
+      fetch('https://overpass-api.de/api/interpreter', {
+        method:'POST', body:'data=' + encodeURIComponent(overpassQuery)
+      })
+      .then(r => r.json())
+      .then(data => {
+        const venues = (data.elements || [])
+          .filter(e => e.tags?.name)
+          .map(e => ({
+            name: e.tags.name,
+            lat: e.lat ?? e.center?.lat,
+            lon: e.lon ?? e.center?.lon,
+            addr: [e.tags['addr:street'], e.tags['addr:housenumber'], e.tags['addr:city']].filter(Boolean).join(' ')
+          }))
+          .filter(v => v.lat && v.lon);
+
+        const listEl = document.getElementById('venue-list');
+        if (!listEl) return;
+
+        if (venues.length === 0) {
+          listEl.innerHTML = '<div class="venue-item"><div class="vi-name">Aucun terrain trouvé — saisis l\'adresse manuellement</div></div>';
+          return;
+        }
+
+        listEl.innerHTML = venues.slice(0,20).map((v,i) => `
+          <div class="venue-item" id="vi-${i}" onclick="selectVenueItem(${i})">
+            <div class="vi-name">${v.name}</div>
+            <div class="vi-dist">${v.addr || '📍 ' + v.lat.toFixed(4) + ', ' + v.lon.toFixed(4)}</div>
+          </div>`).join('');
+
+        // Marqueurs sur la carte
+        const icon = L.divIcon({ html:'⚽', className:'', iconSize:[20,20] });
+        venues.slice(0,20).forEach((v,i) => {
+          L.marker([v.lat, v.lon], { icon })
+            .addTo(map)
+            .bindPopup(`<b>${v.name}</b><br>${v.addr || ''}`)
+            .on('click', () => selectVenueItem(i));
+        });
+
+        // Store venues for later
+        window._venueResults = venues;
+      })
+      .catch(() => {
+        const listEl = document.getElementById('venue-list');
+        if (listEl) listEl.innerHTML = '<div class="venue-item"><div class="vi-name">Impossible de charger la carte. Saisis l\'adresse manuellement.</div></div>';
+      });
+    }, 120);
+  });
+};
+
+window._venueTargetInput = null;
+window.selectVenueItem = function(i) {
+  const v = (window._venueResults || [])[i];
+  if (!v) return;
+  document.querySelectorAll('.venue-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('vi-' + i);
+  if (el) el.classList.add('selected');
+  const manualEl = document.getElementById('venue-manual-input');
+  if (manualEl) manualEl.value = v.name + (v.addr ? ' — ' + v.addr : '');
+};
+
+window.confirmVenueSelection = function(inputId) {
+  const manualEl = document.getElementById('venue-manual-input');
+  const val = manualEl?.value?.trim();
+  if (!val) { showToast('Saisis ou sélectionne un lieu.', 'error'); return; }
+  const target = document.getElementById(inputId);
+  if (target) target.value = val;
+  closeModal();
 };
 
 window.submitCreateMatch = async function() {
@@ -2260,14 +2486,14 @@ async function renderProfil() {
   const el = document.getElementById('profil-content');
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
   if (!currentUser) return;
+  const uid = currentUser.uid;
 
-  const snap = await getDoc(doc(db, 'users', currentUser.uid));
+  const snap = await getDoc(doc(db, 'users', uid));
   if (!snap.exists()) return;
   const d = snap.data();
   currentUserData = d;
 
   const rang = getRang(d.xp || 0);
-  const note = noteGlobale(d.atouts);
   const posteData = POSTES.find(p => p.id === d.posteFavori) || POSTES[2];
   const posteLabel = posteData.abbr;
 
@@ -2287,24 +2513,58 @@ async function renderProfil() {
     </div>`;
   }).join('');
 
+  // ===== FUT CARD V3 =====
+  const atoutsMap = { vitesse:'PAC', dribble:'DRI', frappe:'TIR', defense:'DEF', physique:'PHY' };
+  const pas = Math.round(((d.atouts?.vitesse||70) + (d.atouts?.dribble||70)) / 2);
+  const statsOrder = ['vitesse','dribble','frappe','defense','physique'];
+  const noteGlobal = Math.round(
+    ((d.atouts?.vitesse||70)*0.15 + (d.atouts?.dribble||70)*0.2 +
+     (d.atouts?.frappe||70)*0.25 + (d.atouts?.defense||70)*0.15 +
+     (d.atouts?.physique||70)*0.15 + pas*0.1)
+  );
+  const savedPhoto = localStorage.getItem('cs5_photo_' + uid);
+  const photoHtml = savedPhoto
+    ? `<img src="${savedPhoto}" class="fc3-photo" alt="photo">`
+    : `<div class="fc3-photo-placeholder">👤</div>`;
+
+  const futHtml = `
+  <div class="fut-card-wrap">
+    <div class="fut-card-v3 ${noteGlobal >= 80 ? 'rare' : ''}">
+      <div class="fc3-top">
+        <div class="fc3-meta">
+          <div class="fc3-overall">${noteGlobal}</div>
+          <div class="fc3-pos">${posteLabel}</div>
+          <div class="fc3-badge-row">
+            ${clubShield(d.equipePreferee || 'PSG', 22)}
+          </div>
+        </div>
+        <div class="fc3-photo-zone">${photoHtml}</div>
+        <label class="fc3-upload-btn" for="fc-photo-input">📷 Photo</label>
+        <input type="file" id="fc-photo-input" accept="image/*" capture="user"
+          style="display:none" onchange="uploadFcPhoto(this)">
+      </div>
+      <div class="fc3-bottom">
+        <div class="fc3-name">${(d.pseudo || 'JOUEUR').toUpperCase()}</div>
+        <div class="fc3-divider"></div>
+        <div class="fc3-stats">
+          ${statsOrder.map(k => `
+            <div class="fc3-stat">
+              <span class="sn">${d.atouts?.[k] || 70}</span>
+              <span class="sl">${atoutsMap[k]}</span>
+            </div>`).join('')}
+          <div class="fc3-stat">
+            <span class="sn">${pas}</span>
+            <span class="sl">PAS</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+
   el.innerHTML = `
     <div class="rank-badge">${rang.label} · ${d.xp || 0} XP</div>
 
-    <div class="fut-card">
-      <div class="fut-overall">${note}</div>
-      <div class="fut-pos">${posteLabel}</div>
-      <div class="fut-pseudo">${d.pseudo || 'Joueur'}</div>
-      <div class="fut-club-shield">${clubShield(d.equipePreferee || 'PSG', 32)}<span style="font-size:13px;color:#A5D6A7">${d.equipePreferee || '—'}</span></div>
-      <div class="fut-poste-badge">${posteData.icon} ${posteLabel} — ${posteData.label}</div>
-      <div class="fut-divider"></div>
-      <div class="fut-stats">
-        ${atoutsOrder.map(a => `
-          <div class="fut-stat">
-            <div class="fut-stat-val">${d.atouts?.[a.key] ?? 70}</div>
-            <div class="fut-stat-label">${a.label}</div>
-          </div>`).join('')}
-      </div>
-    </div>
+    ${futHtml}
 
     <div class="stats-row">
       <div class="stat-box"><div class="sv">${d.stats?.matchsJoues ?? 0}</div><div class="sl">Matchs joués</div></div>
