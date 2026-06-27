@@ -1473,6 +1473,7 @@ let currentUser = null;       // objet Firebase Auth
 let currentUserData = null;   // données Firestore de l'utilisateur
 let currentScreen = 'home';
 let activeListeners = [];     // pour nettoyer les onSnapshot
+let _matchDetailRenderGen = 0; // incrémenté pour annuler les renderMatchDetail en vol
 
 // ===== GAMIFICATION =====
 const RANGS = [
@@ -2100,15 +2101,11 @@ async function renderHome() {
   const el = document.getElementById('home-content');
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
-  // Après une suppression, forcer un fetch serveur pour éviter le cache Firestore
-  const fetchFn = window._needFreshFetch ? getDocsFromServer : getDocs;
-  window._needFreshFetch = false;
-
   const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'));
-  const snapC = await fetchFn(qConfirme).catch(() => null);
+  const snapC = await getDocsFromServer(qConfirme).catch(() => getDocs(qConfirme).catch(() => null));
 
   const qSondage = query(collection(db, 'matchs'), where('statut', '==', 'sondage'));
-  const snapS = await fetchFn(qSondage).catch(() => null);
+  const snapS = await getDocsFromServer(qSondage).catch(() => getDocs(qSondage).catch(() => null));
 
   let html = '';
 
@@ -2336,11 +2333,12 @@ async function openMatchDetail(matchId) {
   activeListeners.push(unsub);
   // Nettoyer ce listener quand le modal se ferme
   const origClose = window.closeModal;
-  window.closeModal = () => { unsub(); window.closeModal = origClose; origClose(); };
+  window.closeModal = () => { _matchDetailRenderGen++; unsub(); window.closeModal = origClose; origClose(); };
 }
 window.openMatchDetail = openMatchDetail;
 
 async function renderMatchDetail(matchId, m) {
+  const myGen = _matchDetailRenderGen; // snapshot de génération au démarrage
   const uid = currentUser?.uid;
   const votes = m.votes || {};
   const inscrits = m.joueursInscrits || [];
@@ -2352,6 +2350,7 @@ async function renderMatchDetail(matchId, m) {
   let inscritsPseudos = {};
   let inscritsFullData = {};
   for (const u of inscrits) {
+    if (myGen !== _matchDetailRenderGen) return; // annulé
     const d = await getUserData(u);
     inscritsPseudos[u] = d?.pseudo || 'Joueur';
     inscritsFullData[u] = d || {};
@@ -2497,6 +2496,7 @@ async function renderMatchDetail(matchId, m) {
     }
   }
 
+  if (myGen !== _matchDetailRenderGen) return; // annulé entre temps
   document.getElementById('modal-body').innerHTML = html;
 }
 
@@ -3196,7 +3196,7 @@ window.saveEquipes = async function() {
 
 // ===== ANNULER MATCH =====
 window.annulerMatch = async function(matchId) {
-  // Confirmation légère via modal
+  _matchDetailRenderGen++; // invalide tout renderMatchDetail en cours
   openModal('🗑️ Annuler ce match', `
     <p style="font-size:15px;line-height:1.5;margin-bottom:20px;color:var(--text-sec)">
       Ce match sera <strong style="color:var(--red)">définitivement supprimé</strong>.<br>
@@ -3214,10 +3214,14 @@ window.confirmAnnulerMatch = async function(matchId) {
   if (!snap.exists() || snap.data().createurUid !== currentUser.uid) {
     showToast('Action non autorisée.', 'error'); return;
   }
-  await deleteDoc(ref);
+  try {
+    await deleteDoc(ref);
+  } catch (e) {
+    showToast('Erreur : ' + (e.code || e.message), 'error');
+    return;
+  }
   window.closeModal();
   window._canCreateMatch = { can: true };
-  window._needFreshFetch = true; // force getDocsFromServer dans renderHome
   showToast('Match supprimé.', '');
   navigateTo('home');
 };
