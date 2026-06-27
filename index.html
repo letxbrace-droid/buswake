@@ -4220,35 +4220,60 @@ document.getElementById('modal-sheet').addEventListener('touchend', e => {
 
 <!--
 ===== RÈGLES DE SÉCURITÉ FIRESTORE =====
-À copier dans la console Firebase → Firestore → Règles :
+Source de vérité : voir le fichier firestore.rules à la racine du repo.
+À copier dans la console Firebase → Firestore → Règles (ou
+`firebase deploy --only firestore:rules` si tu utilises la CLI) :
 
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Utilisateurs : lecture publique (classement), écriture uniquement sur son propre doc
+    function isSignedIn() { return request.auth != null; }
+    function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
+
+    // Anti-fuite : pseudo = chaîne 1–24 caractères et jamais égal à l'email.
+    function validUserData() {
+      let d = request.resource.data;
+      return (!('pseudo' in d) || (
+                d.pseudo is string &&
+                d.pseudo.size() >= 1 &&
+                d.pseudo.size() <= 24 &&
+                (!('email' in d) || d.pseudo != d.email)
+              ))
+             && (!('email' in d) || d.email is string)
+             && (!('xp' in d) || d.xp is number);
+    }
+
+    // Champs qu'un AUTRE joueur peut modifier (gamification + social) :
+    // XP/badges/stats à la fin d'un match, demandes/listes d'amis.
+    function onlyGamificationAndSocial() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['xp', 'niveau', 'badges', 'stats',
+                  'friends', 'friendRequestsSent', 'friendRequestsReceived']);
+    }
+
+    // Utilisateurs : lecture pour les connectés (classement).
     match /users/{uid} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.auth.uid == uid;
-      allow update: if request.auth != null && request.auth.uid == uid;
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid) && validUserData();
+      // Le propriétaire modifie tout son doc (pseudo, email, atouts... validés).
+      allow update: if isOwner(uid) && validUserData();
+      // Les autres joueurs ne touchent QUE la gamification et le social.
+      allow update: if isSignedIn() && onlyGamificationAndSocial();
+      allow delete: if isOwner(uid);
     }
 
-    // Matchs : lecture pour tous les authentifiés, création pour tout authentifié,
-    // mise à jour pour tout authentifié (votes, inscriptions, résultats)
+    // Matchs : lecture/écriture pour tout authentifié, suppression au créateur.
     match /matchs/{matchId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      // Pour production : restreindre la confirmation/terminaison au créateur :
-      // allow update: if request.auth != null &&
-      //   (request.auth.uid == resource.data.createurUid ||
-      //    request.resource.data.diff(resource.data).affectedKeys()
-      //      .hasOnly(['joueursInscrits','votes']));
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn() && resource.data.createurUid == request.auth.uid;
     }
 
-    // Lieux : lecture pour tous, écriture admin only (à gérer via custom claims)
+    // Lieux : lecture pour tous les connectés, écriture admin only.
     match /lieux/{lieuId} {
-      allow read: if request.auth != null;
+      allow read: if isSignedIn();
       allow write: if false; // Gérer via Firebase Admin SDK
     }
   }

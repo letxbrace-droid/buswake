@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ----- Helpers -----
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    function isOwner(uid) {
+      return request.auth != null && request.auth.uid == uid;
+    }
+
+    // Validation du document utilisateur écrit par son propriétaire.
+    // Ceinture-bretelles contre la fuite de mot de passe dans le pseudo :
+    //  - le pseudo doit être une chaîne de 1 à 24 caractères (le formulaire
+    //    limite déjà à 20) ;
+    //  - le pseudo ne doit jamais être égal à l'email du compte.
+    // Les règles ne peuvent pas comparer au mot de passe Auth (non lisible),
+    // donc la longueur + le garde-fou côté client restent la protection.
+    function validUserData() {
+      let d = request.resource.data;
+      return (!('pseudo' in d) || (
+                d.pseudo is string &&
+                d.pseudo.size() >= 1 &&
+                d.pseudo.size() <= 24 &&
+                (!('email' in d) || d.pseudo != d.email)
+              ))
+             && (!('email' in d) || d.email is string)
+             && (!('xp' in d) || d.xp is number);
+    }
+
+    // Champs qu'un AUTRE joueur a le droit de modifier (gamification + social) :
+    // XP/badges/stats lors de la fin d'un match, demandes/listes d'amis.
+    // Les champs sensibles (pseudo, email, atouts, poste...) restent réservés
+    // au propriétaire du compte.
+    function onlyGamificationAndSocial() {
+      return request.resource.data.diff(resource.data).affectedKeys()
+        .hasOnly(['xp', 'niveau', 'badges', 'stats',
+                  'friends', 'friendRequestsSent', 'friendRequestsReceived']);
+    }
+
+    // Utilisateurs : lecture pour les connectés (classement).
+    match /users/{uid} {
+      allow read: if isSignedIn();
+      allow create: if isOwner(uid) && validUserData();
+      // Le propriétaire modifie tout son doc (avec validation du pseudo).
+      allow update: if isOwner(uid) && validUserData();
+      // Les autres joueurs ne touchent QUE la gamification et le social.
+      allow update: if isSignedIn() && onlyGamificationAndSocial();
+      allow delete: if isOwner(uid);
+    }
+
+    // Matchs : lecture/écriture pour tout authentifié (votes, inscriptions,
+    // résultats). Suppression réservée au créateur du match.
+    match /matchs/{matchId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update: if isSignedIn();
+      allow delete: if isSignedIn()
+        && resource.data.createurUid == request.auth.uid;
+    }
+
+    // Lieux : lecture pour tous les connectés, écriture via Admin SDK only.
+    match /lieux/{lieuId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}
