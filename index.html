@@ -3974,14 +3974,18 @@ window.confirmCleanupAllMatchs = async function() {
   if (!snap) { showToast('Lecture impossible.', 'error'); return; }
   if (snap.empty) { window.closeModal(); showToast('Aucun match à supprimer.', ''); return; }
   showToast(`Suppression de ${snap.size} match(s)…`, '');
-  let ok = 0, fail = 0;
+  let ok = 0, fail = 0, lastErr = '';
   for (const d of snap.docs) {
     try { await deleteDoc(doc(db, 'matchs', d.id)); ok++; }
-    catch (e) { fail++; console.error('cleanup fail', d.id, e.code || e.message); }
+    catch (e) { fail++; lastErr = e.code || e.message; console.error('cleanup fail', d.id, e.code || e.message); }
   }
   window._canCreateMatch = { can: true };
   window.closeModal();
-  showToast(`Nettoyage terminé : ${ok} supprimé(s)${fail ? `, ${fail} échec(s)` : ''}.`, fail ? 'error' : 'success');
+  if (fail && ok === 0) {
+    showToast(`Échec (${lastErr}). Règles Firestore à déployer — voir Console.`, 'error');
+  } else {
+    showToast(`Nettoyage terminé : ${ok} supprimé(s)${fail ? `, ${fail} échec(s) [${lastErr}]` : ''}.`, fail ? 'error' : 'success');
+  }
   navigateTo('home');
 };
 
