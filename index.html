@@ -1969,9 +1969,19 @@ async function renderMatchDetail(matchId, m) {
       </button>`;
 
     if (isCreateur) {
+      const hasTeams = (m.equipes || []).some(eq => (eq.joueurs || []).length > 0);
+      const totalAssigned = (m.equipes || []).reduce((s, eq) => s + (eq.joueurs || []).length, 0);
+      const MIN_PLAYERS = 4;
+      const canStart = hasTeams && totalAssigned >= MIN_PLAYERS;
       html += `
-        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">🎨 Composer les équipes</button>
-        <button class="btn-sm btn-red" style="width:100%" onclick="openTerminerMatch('${matchId}')">🏁 Terminer le match</button>`;
+        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">🎨 Composer les équipes</button>`;
+      if (canStart) {
+        html += `<button class="btn-sm btn-red" style="width:100%" onclick="openTerminerMatch('${matchId}')">🏁 Terminer le match</button>`;
+      } else {
+        html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-top:4px">
+          ⚠️ Compose les équipes avant de pouvoir démarrer le match (min. ${MIN_PLAYERS} joueurs assignés)
+        </div>`;
+      }
     }
   }
 
@@ -2140,23 +2150,21 @@ window.removeCreneau = function(id) {
   if (el) el.innerHTML = buildCreneauxHtml();
 };
 
-// ===== CARTE SÉLECTION LIEU (Leaflet + Overpass) =====
+// ===== CARTE SÉLECTION LIEU (Leaflet + Overpass + Geolocalisation + Recherche ville) =====
 let _venueMap = null;
 window.openVenueMap = function(inputId) {
   const inputEl = document.getElementById(inputId);
   openModal('📍 Choisir un terrain', `
-    <p style="font-size:12px;color:var(--text-sec);margin-bottom:10px">
-      Localisation autour de Paris. Clique sur un terrain ou saisis le nom manuellement.
-    </p>
+    <input class="input-field" id="venue-search-input"
+      placeholder="🔍 Cherche une ville : Orsay, Massy, Paris 13e…"
+      style="margin-bottom:10px">
     <div class="venue-map-wrap">
       <div id="venue-map"></div>
     </div>
-    <div id="venue-list-container">
-      <div id="venue-list" class="venue-list">
-        <div class="venue-item"><div class="vi-name">Chargement des terrains…</div></div>
-      </div>
+    <div id="venue-list" class="venue-list">
+      <div class="venue-item"><div class="vi-name">📡 Géolocalisation en cours…</div></div>
     </div>
-    <div class="map-or-manual">saisie manuelle</div>
+    <div class="map-or-manual">— ou saisie manuelle —</div>
     <input class="input-field" id="venue-manual-input" placeholder="Nom du terrain / adresse…"
       value="${inputEl?.value || ''}" style="margin-bottom:10px">
     <button class="btn-primary" onclick="confirmVenueSelection('${inputId}')">
@@ -2164,73 +2172,107 @@ window.openVenueMap = function(inputId) {
     </button>
   `);
 
-  // Initialise la carte après injection DOM
   requestAnimationFrame(() => {
     setTimeout(() => {
       if (_venueMap) { _venueMap.remove(); _venueMap = null; }
       const map = L.map('venue-map', { zoomControl:true }).setView([48.8566, 2.3522], 12);
       _venueMap = map;
       L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:'© OpenStreetMap',
-        maxZoom:19
+        attribution:'© OpenStreetMap', maxZoom:19
       }).addTo(map);
 
-      // Overpass query pour terrains de foot indoor dans un rayon de 15km autour Paris
-      const overpassQuery = `
-        [out:json][timeout:10];
-        (
-          node["sport"="soccer"]["leisure"="pitch"](48.7,2.1,49.0,2.7);
-          node["sport"="soccer"]["building"="yes"](48.7,2.1,49.0,2.7);
-          node["name"~"soccer|foot|five|futsal",i]["leisure"](48.7,2.1,49.0,2.7);
-          way["sport"="soccer"](48.7,2.1,49.0,2.7);
-        );
-        out center 30;
-      `;
-      fetch('https://overpass-api.de/api/interpreter', {
-        method:'POST', body:'data=' + encodeURIComponent(overpassQuery)
-      })
-      .then(r => r.json())
-      .then(data => {
-        const venues = (data.elements || [])
-          .filter(e => e.tags?.name)
-          .map(e => ({
-            name: e.tags.name,
-            lat: e.lat ?? e.center?.lat,
-            lon: e.lon ?? e.center?.lon,
-            addr: [e.tags['addr:street'], e.tags['addr:housenumber'], e.tags['addr:city']].filter(Boolean).join(' ')
-          }))
-          .filter(v => v.lat && v.lon);
+      function queryVenuesAround(lat, lon, zoom) {
+        map.setView([lat, lon], zoom || 13);
+        // Clear markers
+        map.eachLayer(l => { if (l instanceof L.Marker) map.removeLayer(l); });
+
+        const d = 0.12;
+        const bb = `${lat-d},${lon-d*1.8},${lat+d},${lon+d*1.8}`;
+        const oq = `[out:json][timeout:15];(
+          node["sport"="soccer"]["leisure"="pitch"](${bb});
+          node["sport"="soccer"]["building"](${bb});
+          node["name"~"soccer|foot|five|futsal|urban|sport",i]["leisure"](${bb});
+          way["sport"="soccer"](${bb});
+          way["name"~"foot|five|futsal|urban|sport",i](${bb});
+        );out center 30;`;
 
         const listEl = document.getElementById('venue-list');
-        if (!listEl) return;
+        if (listEl) listEl.innerHTML = '<div class="venue-item"><div class="vi-name">⏳ Chargement des terrains…</div></div>';
 
-        if (venues.length === 0) {
-          listEl.innerHTML = '<div class="venue-item"><div class="vi-name">Aucun terrain trouvé — saisis l\'adresse manuellement</div></div>';
-          return;
-        }
+        fetch('https://overpass-api.de/api/interpreter', {
+          method:'POST', body:'data=' + encodeURIComponent(oq)
+        })
+        .then(r => r.json())
+        .then(data => {
+          const venues = (data.elements || [])
+            .filter(e => e.tags?.name)
+            .map(e => ({
+              name: e.tags.name,
+              lat: e.lat ?? e.center?.lat,
+              lon: e.lon ?? e.center?.lon,
+              addr: [e.tags['addr:street'], e.tags['addr:housenumber'], e.tags['addr:city']].filter(Boolean).join(' ')
+            }))
+            .filter(v => v.lat && v.lon);
 
-        listEl.innerHTML = venues.slice(0,20).map((v,i) => `
-          <div class="venue-item" id="vi-${i}" onclick="selectVenueItem(${i})">
-            <div class="vi-name">${v.name}</div>
-            <div class="vi-dist">${v.addr || '📍 ' + v.lat.toFixed(4) + ', ' + v.lon.toFixed(4)}</div>
-          </div>`).join('');
+          const lEl = document.getElementById('venue-list');
+          if (!lEl) return;
+          if (venues.length === 0) {
+            lEl.innerHTML = '<div class="venue-item"><div class="vi-name">Aucun terrain trouvé — saisis le nom manuellement</div></div>';
+            return;
+          }
+          window._venueResults = venues;
+          lEl.innerHTML = venues.slice(0,25).map((v,i) => `
+            <div class="venue-item" id="vi-${i}" onclick="selectVenueItem(${i})">
+              <div class="vi-name">${v.name}</div>
+              <div class="vi-dist">${v.addr || '📍 ' + v.lat.toFixed(4) + ', ' + v.lon.toFixed(4)}</div>
+            </div>`).join('');
 
-        // Marqueurs sur la carte
-        const icon = L.divIcon({ html:'⚽', className:'', iconSize:[20,20] });
-        venues.slice(0,20).forEach((v,i) => {
-          L.marker([v.lat, v.lon], { icon })
-            .addTo(map)
-            .bindPopup(`<b>${v.name}</b><br>${v.addr || ''}`)
-            .on('click', () => selectVenueItem(i));
+          const icon = L.divIcon({ html:'⚽', className:'', iconSize:[22,22] });
+          venues.slice(0,25).forEach((v,i) => {
+            L.marker([v.lat, v.lon], { icon })
+              .addTo(map)
+              .bindPopup(`<b>${v.name}</b><br>${v.addr || ''}`)
+              .on('click', () => selectVenueItem(i));
+          });
+        })
+        .catch(() => {
+          const lEl = document.getElementById('venue-list');
+          if (lEl) lEl.innerHTML = '<div class="venue-item"><div class="vi-name">Erreur réseau — saisis l\'adresse manuellement.</div></div>';
         });
+      }
+      window._queryVenuesAround = queryVenuesAround;
 
-        // Store venues for later
-        window._venueResults = venues;
-      })
-      .catch(() => {
-        const listEl = document.getElementById('venue-list');
-        if (listEl) listEl.innerHTML = '<div class="venue-item"><div class="vi-name">Impossible de charger la carte. Saisis l\'adresse manuellement.</div></div>';
-      });
+      // 1. Géolocalisation GPS
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          pos => queryVenuesAround(pos.coords.latitude, pos.coords.longitude, 13),
+          ()  => queryVenuesAround(48.8566, 2.3522, 12),
+          { timeout: 6000 }
+        );
+      } else {
+        queryVenuesAround(48.8566, 2.3522, 12);
+      }
+
+      // 2. Recherche par nom de ville (Nominatim)
+      let searchTimer = null;
+      const searchEl = document.getElementById('venue-search-input');
+      if (searchEl) {
+        searchEl.addEventListener('input', function() {
+          clearTimeout(searchTimer);
+          const q = this.value.trim();
+          if (q.length < 3) return;
+          searchTimer = setTimeout(async () => {
+            try {
+              const r = await fetch(
+                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=fr`,
+                { headers: { 'Accept-Language':'fr', 'User-Agent':'CapSaclayFive/1.0' } }
+              );
+              const res = await r.json();
+              if (res.length > 0) queryVenuesAround(parseFloat(res[0].lat), parseFloat(res[0].lon), 13);
+            } catch(e) {}
+          }, 650);
+        });
+      }
     }, 120);
   });
 };
@@ -2540,7 +2582,7 @@ async function renderProfil() {
         </div>
         <div class="fc3-photo-zone">${photoHtml}</div>
         <label class="fc3-upload-btn" for="fc-photo-input">📷 Photo</label>
-        <input type="file" id="fc-photo-input" accept="image/*" capture="user"
+        <input type="file" id="fc-photo-input" accept="image/*"
           style="display:none" onchange="uploadFcPhoto(this)">
       </div>
       <div class="fc3-bottom">
