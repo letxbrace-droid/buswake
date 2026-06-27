@@ -979,6 +979,189 @@
       color:var(--text-muted); font-size:11px; margin:8px 0;
     }
     .map-or-manual::before,.map-or-manual::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* ===== TERRAIN TACTIQUE ===== */
+    .terrain-wrap { display:flex; flex-direction:column; gap:10px; }
+    .terrain-mode-bar {
+      display:flex; gap:8px; align-items:center;
+    }
+    .t-mode-btn {
+      flex:1; padding:10px 6px; border-radius:22px;
+      border:2px solid rgba(0,200,83,.35);
+      background:rgba(0,200,83,.06);
+      color:var(--text-sec); font-family:Oswald,sans-serif;
+      font-size:12px; font-weight:600; cursor:pointer;
+      transition:all .22s; letter-spacing:.3px;
+    }
+    .t-mode-btn.active-auto {
+      border-color:var(--orange); background:var(--orange-glow-soft);
+      color:#fff; box-shadow:0 0 14px var(--orange-glow);
+    }
+    .t-mode-btn.active-draft {
+      border-color:#7c3aed; background:rgba(124,58,237,.15);
+      color:#fff; box-shadow:0 0 14px rgba(124,58,237,.35);
+    }
+    .t-share-btn {
+      width:40px; height:40px; border-radius:10px;
+      border:1px solid var(--border); background:var(--card2);
+      font-size:18px; cursor:pointer; display:flex;
+      align-items:center; justify-content:center; flex-shrink:0;
+    }
+    /* Pitch background */
+    .terrain-field {
+      position:relative; border-radius:14px; overflow:hidden;
+      background:#071a07;
+      border:2px solid rgba(255,255,255,.12);
+    }
+    .terrain-field::after {
+      content:''; position:absolute; inset:0; pointer-events:none; z-index:0;
+      background:
+        repeating-linear-gradient(0deg, transparent 0px, transparent 38px, rgba(255,255,255,.025) 38px, rgba(255,255,255,.025) 39px),
+        repeating-linear-gradient(90deg, transparent 0px, transparent 38px, rgba(255,255,255,.02) 38px, rgba(255,255,255,.02) 39px);
+    }
+    .terrain-half {
+      position:relative; z-index:1;
+      padding:10px 8px 8px; min-height:140px;
+      transition:background .18s;
+    }
+    .terrain-half.drag-over {
+      background:rgba(255,255,255,.06) !important;
+      outline:2px dashed var(--orange); outline-offset:-3px;
+    }
+    .team-banner {
+      display:flex; justify-content:space-between; align-items:center;
+      margin-bottom:8px; padding:5px 8px;
+      background:rgba(0,0,0,.35); border-radius:8px;
+      border-left:3px solid var(--t-color,var(--orange));
+      font-family:Oswald,sans-serif; font-size:13px; font-weight:600;
+    }
+    .team-count {
+      font-size:12px; color:var(--text-sec);
+      background:rgba(255,255,255,.08); padding:2px 9px; border-radius:10px;
+    }
+    /* Center stripe */
+    .terrain-center-line {
+      position:relative; height:34px; z-index:1;
+      display:flex; align-items:center; justify-content:center;
+    }
+    .tcl-line {
+      position:absolute; left:0; right:0; top:50%;
+      height:1px; background:rgba(255,255,255,.4);
+    }
+    .tcl-circle {
+      width:52px; height:52px; border-radius:50%;
+      border:1px solid rgba(255,255,255,.4);
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      background:rgba(7,26,7,.7);
+    }
+    .tcl-dot {
+      width:7px; height:7px; border-radius:50%;
+      background:rgba(255,255,255,.65);
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%); z-index:2;
+    }
+    /* Mini cards */
+    .mini-cards-grid {
+      display:flex; flex-wrap:wrap; gap:7px;
+      justify-content:center; align-items:flex-start; min-height:60px;
+    }
+    .mini-cards-row {
+      display:flex; flex-wrap:nowrap; gap:7px; overflow-x:auto;
+      padding:4px 2px; -webkit-overflow-scrolling:touch;
+    }
+    .drop-hint {
+      font-size:12px; color:rgba(255,255,255,.2);
+      font-style:italic; padding:18px 8px; text-align:center; width:100%;
+    }
+    .mini-card {
+      width:54px; border-radius:7px; overflow:hidden;
+      cursor:pointer; user-select:none; touch-action:none;
+      display:flex; flex-direction:column; align-items:center;
+      padding:4px 3px 4px; gap:2px;
+      transition:transform .14s, box-shadow .14s;
+      position:relative;
+    }
+    .mini-card:active { transform:scale(0.92); }
+    .mini-card.dragging { opacity:0.25; }
+    .mini-card.gold {
+      background:linear-gradient(160deg,#5c3d0e 0%,#b8832a 35%,#e8c55a 55%,#b8832a 75%,#5c3d0e 100%);
+      box-shadow:0 2px 10px rgba(200,151,58,.5);
+    }
+    .mini-card.silver {
+      background:linear-gradient(160deg,#2e2e3e 0%,#7a7a92 35%,#b8b8cc 55%,#7a7a92 75%,#2e2e3e 100%);
+      box-shadow:0 2px 8px rgba(120,120,160,.35);
+    }
+    .mini-card.bronze {
+      background:linear-gradient(160deg,#3c2008 0%,#7a4a18 35%,#b86e30 55%,#7a4a18 75%,#3c2008 100%);
+      box-shadow:0 2px 8px rgba(120,80,30,.35);
+    }
+    .mc-overall {
+      font-family:Oswald,sans-serif; font-size:16px; font-weight:700;
+      color:#fff; line-height:1; text-shadow:0 1px 4px rgba(0,0,0,.6);
+    }
+    .mc-avatar {
+      width:36px; height:36px; border-radius:4px;
+      background:rgba(0,0,0,.3); overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      font-size:12px; font-weight:700; color:#fff;
+    }
+    .mc-name {
+      font-family:Oswald,sans-serif; font-size:9px; font-weight:600;
+      color:rgba(255,255,255,.92); text-align:center;
+      line-height:1; letter-spacing:.3px;
+      white-space:nowrap; overflow:hidden; max-width:50px;
+      text-overflow:ellipsis;
+    }
+    /* Bench */
+    .bench-area {
+      background:var(--card); border:1px dashed var(--border);
+      border-radius:12px; padding:10px 10px 8px;
+    }
+    .bench-area.drag-over { border-color:var(--orange); background:var(--orange-glow-soft); }
+    .bench-label {
+      font-size:11px; color:var(--text-sec); font-weight:600;
+      margin-bottom:8px; letter-spacing:.8px; text-transform:uppercase;
+    }
+    /* Terrain actions */
+    .terrain-actions { display:flex; gap:8px; }
+    .terrain-actions .btn-sm { flex:1; }
+    /* Player detail overlay */
+    .player-detail-popup {
+      position:absolute; inset:0; z-index:200;
+      background:rgba(0,0,0,.72); display:flex;
+      align-items:center; justify-content:center;
+      border-radius:inherit;
+    }
+    .pdp-inner {
+      background:var(--card); border-radius:16px;
+      padding:16px; width:calc(100% - 40px); max-width:300px;
+      border:1px solid var(--border);
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+    }
+    .pdp-header {
+      display:flex; gap:12px; align-items:center; margin-bottom:14px;
+    }
+    .pdp-photo {
+      width:50px; height:50px; border-radius:10px;
+      background:var(--card2); overflow:hidden;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:700; font-size:16px; color:var(--text); flex-shrink:0;
+    }
+    .pdp-name { font-family:Oswald,sans-serif; font-size:18px; font-weight:700; line-height:1.1; }
+    .pdp-ovr-chip {
+      display:inline-block; margin-top:3px;
+      font-size:12px; font-weight:700; padding:2px 10px;
+      border-radius:10px; color:#fff;
+    }
+    .pdp-stat-row {
+      display:grid; grid-template-columns:34px 1fr 28px;
+      gap:8px; align-items:center; margin-bottom:7px;
+    }
+    .pdp-stat-label { font-size:11px; font-weight:700; color:var(--text-sec); text-transform:uppercase; }
+    .pdp-stat-bar { height:6px; background:var(--card2); border-radius:3px; overflow:hidden; }
+    .pdp-stat-bar div { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--orange-dark),var(--orange)); }
+    .pdp-stat-val { font-family:Oswald,sans-serif; font-size:13px; font-weight:700; text-align:right; color:var(--text); }
   </style>
 </head>
 <body>
@@ -1578,6 +1761,19 @@ function tradFirebaseError(code) {
     'auth/unauthorized-domain': 'Domaine non autorisé dans Firebase (ajoute letxbrace-droid.github.io dans Auth > Domaines).',
   };
   return m[code] || 'Erreur : ' + code;
+}
+
+// ===== HELPERS =====
+function calcOverall(d) {
+  if (!d) return 70;
+  const a = d.atouts || {};
+  const pas = Math.round(((a.vitesse||70) + (a.dribble||70)) / 2);
+  return Math.round((a.vitesse||70)*0.15 + (a.dribble||70)*0.2 +
+    (a.frappe||70)*0.25 + (a.defense||70)*0.15 +
+    (a.physique||70)*0.15 + pas*0.1);
+}
+function rarityClass(overall) {
+  return overall >= 80 ? 'gold' : overall >= 70 ? 'silver' : 'bronze';
 }
 
 // ===== NAVIGATION =====
@@ -2362,72 +2558,252 @@ async function openComposerEquipes(matchId) {
   const snap = await getDoc(ref);
   const m = snap.data();
   eqData = m.equipes && m.equipes.length > 0 ? JSON.parse(JSON.stringify(m.equipes)) : [
-    { nom: 'Équipe Rouge', couleur: '#FF6B35', logo: '🔴', joueurs: [] },
-    { nom: 'Équipe Bleue',  couleur: '#3498DB', logo: '🔵', joueurs: [] },
+    { nom: 'Chasubles', couleur: '#FF6B35', logo: '🟠', joueurs: [] },
+    { nom: 'Couleurs',  couleur: '#3498DB', logo: '🔵', joueurs: [] },
   ];
   const inscrits = m.joueursInscrits || [];
   const pseudos = {};
+  const playersData = {};
   for (const u of inscrits) {
     const d = await getUserData(u);
     pseudos[u] = d?.pseudo || 'Joueur';
+    playersData[u] = d;
   }
   window._composerMatchId = matchId;
   window._composerPseudos = pseudos;
   window._composerInscrits = inscrits;
-  renderComposerModal();
+  window._composerPlayersData = playersData;
+  if (!window._composerMode) window._composerMode = 'draft';
+  renderTerrainView();
 }
 window.openComposerEquipes = openComposerEquipes;
 
-function renderComposerModal() {
+function renderTerrainView() {
   const inscrits = window._composerInscrits || [];
   const pseudos = window._composerPseudos || {};
-  const EMOJIS = ['⚽','🔴','🔵','🟢','🟡','🟠','🟣','⚪','🦁','🐯','🦊','🦅','🔥','💎','⚡','🏆'];
+  const playersData = window._composerPlayersData || {};
+  const mode = window._composerMode || 'draft';
 
-  const eqHtml = eqData.map((eq, i) => `
-    <div class="card" style="border-left:3px solid ${eq.couleur};margin-bottom:12px">
-      <div class="eq-header">
-        <div class="eq-emoji" onclick="openEmojiPicker(${i})" title="Changer logo">${eq.logo}</div>
-        <input class="input-field" style="flex:1" type="text" value="${eq.nom}" onchange="eqData[${i}].nom=this.value" placeholder="Nom équipe">
-        <div class="eq-color-dot" style="background:${eq.couleur}" onclick="toggleColorPicker(${i})" title="Couleur"></div>
-      </div>
-      <div id="color-picker-${i}" style="display:none">
-        <div class="color-picker-row">
-          ${COULEURS_EQ.map(c => `<div class="color-dot${eq.couleur===c?' selected':''}" style="background:${c}" onclick="setEqColor(${i},'${c}')"></div>`).join('')}
-        </div>
-      </div>
-      <div id="emoji-picker-${i}" style="display:none">
-        <div class="color-picker-row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
-          ${EMOJIS.map(e => `<span style="font-size:22px;cursor:pointer" onclick="setEqEmoji(${i},'${e}')">${e}</span>`).join('')}
-        </div>
-      </div>
-      <div class="assign-list">
-        ${inscrits.map(uid => `
-          <div class="assign-item">
-            <div class="j-avatar" style="width:24px;height:24px;border-radius:50%;background:${eq.couleur};display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;flex-shrink:0">${initiales(pseudos[uid])}</div>
-            <span style="flex:1">${pseudos[uid]}</span>
-            <select onchange="assignJoueur('${uid}',parseInt(this.value))">
-              <option value="-1" ${!eqData[0].joueurs.includes(uid)&&!eqData[1].joueurs.includes(uid)?'selected':''}>—</option>
-              ${eqData.map((e,j) => `<option value="${j}" ${e.joueurs.includes(uid)?'selected':''}>${e.nom}</option>`).join('')}
-            </select>
-          </div>`).join('')}
-      </div>
-    </div>`).join('');
+  const teamA = eqData[0]?.joueurs || [];
+  const teamB = eqData[1]?.joueurs || [];
+  const bench = inscrits.filter(u => !teamA.includes(u) && !teamB.includes(u));
 
-  openModal('🎨 Composer les équipes', `
-    ${eqHtml}
-    <button class="btn-sm btn-green" style="width:100%" onclick="saveEquipes()">ENREGISTRER LES ÉQUIPES</button>`);
+  function miniCard(uid) {
+    const d = playersData[uid];
+    const ovr = calcOverall(d);
+    const rar = rarityClass(ovr);
+    const ini = initiales(pseudos[uid] || 'J');
+    const name = (pseudos[uid] || 'Joueur').split(' ')[0].toUpperCase().slice(0, 8);
+    const photo = localStorage.getItem('cs5_photo_' + uid);
+    return `<div class="mini-card ${rar}" data-uid="${uid}" onclick="openPlayerDetail('${uid}')">
+      <div class="mc-overall">${ovr}</div>
+      <div class="mc-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:3px">` : ini}</div>
+      <div class="mc-name">${name}</div>
+    </div>`;
+  }
+
+  function teamHalf(idx) {
+    const eq = eqData[idx];
+    const players = eq.joueurs || [];
+    return `<div class="terrain-half drop-zone" data-zone="${idx}" style="--t-color:${eq.couleur}">
+      <div class="team-banner" style="border-left-color:${eq.couleur}">
+        <span>${eq.logo} ${eq.nom}</span>
+        <span class="team-count">${players.length}/5</span>
+      </div>
+      <div class="mini-cards-grid">
+        ${players.map(u => miniCard(u)).join('') || '<div class="drop-hint">Glisse des joueurs ici</div>'}
+      </div>
+    </div>`;
+  }
+
+  const benchHtml = bench.length > 0 ? `
+    <div class="bench-area drop-zone" data-zone="-1">
+      <div class="bench-label">🪑 Remplaçants · ${bench.length} joueur${bench.length>1?'s':''}</div>
+      <div class="mini-cards-row">${bench.map(u => miniCard(u)).join('')}</div>
+    </div>` : '';
+
+  const html = `<div class="terrain-wrap">
+    <div class="terrain-mode-bar">
+      <button class="t-mode-btn${mode==='auto'?' active-auto':''}" onclick="setCompoMode('auto')">⚡ Auto équilibrée</button>
+      <button class="t-mode-btn${mode==='draft'?' active-draft':''}" onclick="setCompoMode('draft')">✋ Draft manuelle</button>
+      <button class="t-share-btn" onclick="shareCompo()" title="Partager la compo">📤</button>
+    </div>
+    <div class="terrain-field">
+      ${teamHalf(0)}
+      <div class="terrain-center-line">
+        <div class="tcl-line"></div>
+        <div class="tcl-circle"></div>
+        <div class="tcl-dot"></div>
+      </div>
+      ${teamHalf(1)}
+    </div>
+    ${benchHtml}
+    <div class="terrain-actions">
+      <button class="btn-sm btn-outline" onclick="swapChasubles()">🔄 Chasubles</button>
+      <button class="btn-sm btn-green" style="flex:2" onclick="saveEquipes()">💾 Enregistrer</button>
+    </div>
+  </div>`;
+
+  openModal('⚽ Terrain', html);
+  requestAnimationFrame(() => setTimeout(initTerrainDnD, 80));
 }
 
-window.toggleColorPicker = (i) => {
-  const el = document.getElementById('color-picker-' + i);
-  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+window.setCompoMode = function(mode) {
+  window._composerMode = mode;
+  if (mode === 'auto') autoBalanceTeams();
+  else renderTerrainView();
 };
-window.openEmojiPicker = (i) => {
-  const el = document.getElementById('emoji-picker-' + i);
-  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+
+function autoBalanceTeams() {
+  const inscrits = window._composerInscrits || [];
+  const playersData = window._composerPlayersData || {};
+  const sorted = [...inscrits].sort((a, b) => calcOverall(playersData[b]) - calcOverall(playersData[a]));
+  eqData[0].joueurs = [];
+  eqData[1].joueurs = [];
+  sorted.slice(0, 10).forEach((uid, i) => {
+    // Snake draft: round 0 → A,B; round 1 → B,A; round 2 → A,B…
+    const round = Math.floor(i / 2);
+    const inRound = i % 2;
+    const toA = round % 2 === 0 ? inRound === 0 : inRound === 1;
+    eqData[toA ? 0 : 1].joueurs.push(uid);
+  });
+  renderTerrainView();
+}
+
+window.swapChasubles = function() {
+  [eqData[0].couleur, eqData[1].couleur] = [eqData[1].couleur, eqData[0].couleur];
+  [eqData[0].logo,    eqData[1].logo]    = [eqData[1].logo,    eqData[0].logo];
+  [eqData[0].nom,     eqData[1].nom]     = [eqData[1].nom,     eqData[0].nom];
+  [eqData[0].joueurs, eqData[1].joueurs] = [eqData[1].joueurs, eqData[0].joueurs];
+  renderTerrainView();
 };
-window.setEqColor = (i, c) => { eqData[i].couleur = c; renderComposerModal(); };
-window.setEqEmoji = (i, e) => { eqData[i].logo = e; renderComposerModal(); };
+
+window.shareCompo = function() {
+  const pseudos = window._composerPseudos || {};
+  const text = `⚽ Cap Saclay Five — Composition\n\n` +
+    eqData.map(eq => `${eq.logo} ${eq.nom} :\n${(eq.joueurs||[]).map(u=>'• '+(pseudos[u]||'?')).join('\n')}`).join('\n\n');
+  if (navigator.share) {
+    navigator.share({ title:'Compo CS Five', text }).catch(() => {});
+  } else {
+    navigator.clipboard?.writeText(text).then(() => showToast('Compo copiée dans le presse-papier 📋', 'success'));
+  }
+};
+
+window.openPlayerDetail = function(uid) {
+  document.getElementById('pdp-overlay')?.remove();
+  const d = (window._composerPlayersData || {})[uid];
+  const pseudo = (window._composerPseudos || {})[uid] || 'Joueur';
+  const a = d?.atouts || {};
+  const ovr = calcOverall(d);
+  const rar = rarityClass(ovr);
+  const rarColors = { gold:'#c8973a', silver:'#8888a0', bronze:'#8b5820' };
+  const photo = localStorage.getItem('cs5_photo_' + uid);
+  const atoutsMap = [
+    ['vitesse','VIT'],['dribble','DRI'],['frappe','TIR'],['defense','DEF'],['physique','PHY']
+  ];
+  const popup = document.createElement('div');
+  popup.id = 'pdp-overlay';
+  popup.className = 'player-detail-popup';
+  popup.innerHTML = `<div class="pdp-inner">
+    <div class="pdp-header">
+      <div class="pdp-photo">${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:8px">` : initiales(pseudo)}</div>
+      <div style="flex:1;min-width:0">
+        <div class="pdp-name">${pseudo.toUpperCase()}</div>
+        <span class="pdp-ovr-chip mini-card ${rar}" style="width:auto;flex-direction:row;padding:3px 10px;border-radius:12px;font-size:12px;gap:4px">
+          ${ovr} OVR
+        </span>
+      </div>
+      <button id="pdp-close" style="background:none;border:none;color:var(--text);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;flex-shrink:0">✕</button>
+    </div>
+    <div>
+      ${atoutsMap.map(([k,l]) => `
+        <div class="pdp-stat-row">
+          <span class="pdp-stat-label">${l}</span>
+          <div class="pdp-stat-bar"><div style="width:${a[k]||70}%"></div></div>
+          <span class="pdp-stat-val">${a[k]||70}</span>
+        </div>`).join('')}
+    </div>
+  </div>`;
+  popup.addEventListener('click', e => { if (e.target === popup) popup.remove(); });
+  document.getElementById('main-modal').appendChild(popup);
+  document.getElementById('pdp-close').addEventListener('click', () => popup.remove());
+};
+
+function initTerrainDnD() {
+  let draggingUid = null;
+  let ghost = null;
+  let sourceZone = null;
+
+  document.querySelectorAll('#modal-body .mini-card').forEach(card => {
+    card.addEventListener('pointerdown', e => {
+      if (e.button !== undefined && e.button > 0) return;
+      e.preventDefault();
+      draggingUid = card.dataset.uid;
+      const zone = card.closest('.drop-zone');
+      sourceZone = zone ? parseInt(zone.dataset.zone) : -1;
+
+      const rect = card.getBoundingClientRect();
+      ghost = card.cloneNode(true);
+      Object.assign(ghost.style, {
+        position:'fixed', zIndex:'9999', pointerEvents:'none',
+        opacity:'0.88', transform:'scale(1.15) rotate(4deg)',
+        transition:'none', borderRadius:'7px',
+        boxShadow:'0 8px 28px rgba(0,0,0,.6)',
+        width: rect.width + 'px',
+        left: rect.left + 'px', top: rect.top + 'px'
+      });
+      document.body.appendChild(ghost);
+      card.classList.add('dragging');
+      card.setPointerCapture(e.pointerId);
+    });
+
+    card.addEventListener('pointermove', e => {
+      if (!ghost) return;
+      e.preventDefault();
+      ghost.style.left = (e.clientX - 27) + 'px';
+      ghost.style.top  = (e.clientY - 40) + 'px';
+      document.querySelectorAll('.drop-zone').forEach(z => {
+        const r = z.getBoundingClientRect();
+        z.classList.toggle('drag-over',
+          e.clientX >= r.left && e.clientX <= r.right &&
+          e.clientY >= r.top  && e.clientY <= r.bottom);
+      });
+    });
+
+    const finishDrag = (e) => {
+      if (!draggingUid) return;
+      if (ghost) { ghost.remove(); ghost = null; }
+      card.classList.remove('dragging');
+
+      let dropped = false;
+      document.querySelectorAll('.drop-zone').forEach(z => {
+        const r = z.getBoundingClientRect();
+        const over = e.clientX >= r.left && e.clientX <= r.right &&
+                     e.clientY >= r.top  && e.clientY <= r.bottom;
+        z.classList.remove('drag-over');
+        if (over) {
+          const zoneIdx = parseInt(z.dataset.zone);
+          if (zoneIdx !== sourceZone) {
+            // Remove from all teams, add to target
+            eqData.forEach((eq, i) => { eq.joueurs = eq.joueurs.filter(u => u !== draggingUid); });
+            if (zoneIdx >= 0) eqData[zoneIdx].joueurs.push(draggingUid);
+            dropped = true;
+          }
+        }
+      });
+      if (dropped) renderTerrainView();
+      draggingUid = null;
+    };
+    card.addEventListener('pointerup',     finishDrag);
+    card.addEventListener('pointercancel', () => {
+      if (ghost) { ghost.remove(); ghost = null; }
+      card.classList.remove('dragging');
+      document.querySelectorAll('.drop-zone').forEach(z => z.classList.remove('drag-over'));
+      draggingUid = null;
+    });
+  });
+}
+
 window.assignJoueur = (uid, eqIdx) => {
   eqData.forEach((eq, i) => {
     eq.joueurs = eq.joueurs.filter(u => u !== uid);
