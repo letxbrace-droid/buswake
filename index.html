@@ -189,9 +189,36 @@
     }
     .form-group input:focus, .form-group select:focus {
       border-color:var(--orange);
-      background:rgba(255,85,0,.04);
-      box-shadow:0 0 0 3px rgba(255,85,0,.14), 0 4px 18px rgba(0,0,0,.25);
+      background:rgba(255,85,0,.05);
+      box-shadow:0 0 0 3px rgba(255,85,0,.18), 0 0 16px rgba(255,85,0,.12), 0 4px 18px rgba(0,0,0,.25);
     }
+    .form-group input:focus::placeholder { opacity:.4; transform:translateX(4px); transition:all .2s; }
+
+    /* ===== MULTI-STEP REGISTRATION ===== */
+    .reg-progress-bar { height:3px; background:var(--border); border-radius:2px; margin-bottom:18px; overflow:hidden; }
+    .reg-progress-fill { height:100%; background:linear-gradient(90deg,var(--orange),var(--orange2)); border-radius:2px; transition:width .4s cubic-bezier(.4,0,.2,1); box-shadow:0 0 8px var(--orange-glow); }
+    .reg-step-labels { display:flex; justify-content:space-between; margin-bottom:20px; }
+    .rsl { font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--text-muted); transition:color .3s; }
+    .rsl.active { color:var(--orange); }
+    .reg-step { animation-fill-mode:both; }
+    @keyframes regSlideInR { from { opacity:0; transform:translateX(36px); } to { opacity:1; transform:none; } }
+    @keyframes regSlideInL { from { opacity:0; transform:translateX(-36px); } to { opacity:1; transform:none; } }
+    .reg-step.slide-in-r { animation:regSlideInR .28s cubic-bezier(.25,.46,.45,.94); }
+    .reg-step.slide-in-l { animation:regSlideInL .28s cubic-bezier(.25,.46,.45,.94); }
+
+    /* Sliders STEP 3 — Premium vert fluo */
+    .reg-stats-list { display:flex; flex-direction:column; gap:14px; margin:14px 0 20px; }
+    .rsi-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
+    .rsi-name { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-sec); }
+    .rsi-val { font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; color:var(--green); min-width:32px; text-align:right; }
+    .reg-stat-slider { -webkit-appearance:none; appearance:none; width:100%; height:5px; border-radius:3px; outline:none; cursor:pointer; }
+    .reg-stat-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 0 0 3px var(--green), 0 0 18px var(--green-glow), 0 2px 8px rgba(0,0,0,.5); cursor:pointer; transition:transform .2s; }
+    .reg-stat-slider::-webkit-slider-thumb:active { transform:scale(1.3); }
+    .reg-stat-slider::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid var(--green); box-shadow:0 0 12px var(--green-glow); }
+
+    /* FUT card mini preview */
+    .reg-fut-preview { display:flex; justify-content:center; margin-bottom:8px; }
+    .reg-fut-preview .fut-card-v3 { transform:scale(.62); transform-origin:top center; margin-bottom:-105px; }
     .form-group select option { background:#111; }
     .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
@@ -865,11 +892,11 @@
     .club-card {
       display:flex; flex-direction:column; align-items:center; gap:4px;
       padding:8px 4px; background:var(--surface);
-      border:1.5px solid var(--border); border-radius:10px;
-      cursor:pointer; transition:all .18s;
+      border:1.5px solid var(--border); border-radius:14px;
+      cursor:pointer; transition:all .22s cubic-bezier(.25,.8,.25,1);
     }
-    .club-card:hover { border-color:rgba(255,255,255,.2); transform:translateY(-1px); }
-    .club-card.selected { border-color:var(--orange); background:var(--orange-glow-soft); box-shadow:0 0 10px var(--orange-glow); }
+    .club-card:hover { border-color:rgba(255,255,255,.22); transform:translateY(-2px); box-shadow:0 4px 12px rgba(0,0,0,.3); }
+    .club-card.selected { border-color:var(--orange); background:var(--orange-glow-soft); box-shadow:0 0 14px var(--orange-glow), 0 0 0 2px var(--orange-glow-soft); transform:scale(1.04); }
     .club-card .cn { font-size:9px; font-weight:700; color:var(--text-sec); letter-spacing:.3px; text-align:center; }
     .club-card.selected .cn { color:var(--orange); }
 
@@ -1228,85 +1255,94 @@
       </button>
     </div>
 
-    <!-- Register -->
+    <!-- Register — 3 étapes -->
     <div id="form-register" style="display:none">
-      <div class="form-group">
-        <label>Email</label>
-        <input type="email" id="reg-email" placeholder="ton@email.com">
+      <!-- Barre de progression -->
+      <div class="reg-progress-bar"><div class="reg-progress-fill" id="reg-progress-fill" style="width:33%"></div></div>
+      <div class="reg-step-labels">
+        <span class="rsl active" id="rsl-1">Identifiants</span>
+        <span class="rsl" id="rsl-2">Profil Foot</span>
+        <span class="rsl" id="rsl-3">Carte FUT</span>
       </div>
-      <div class="form-group">
-        <label>Mot de passe</label>
-        <input type="password" id="reg-pwd" placeholder="Minimum 6 caractères">
-      </div>
-      <div class="form-group">
-        <label>Pseudo</label>
-        <input type="text" id="reg-pseudo" placeholder="Ton surnom sur le terrain" maxlength="20">
-      </div>
-      <div class="form-group">
-        <label>Code postal <span style="font-weight:400;opacity:.6">(pour la distance au terrain)</span></label>
-        <input type="tel" id="reg-cp" placeholder="Ex : 91130" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
-      </div>
-      <div class="form-group">
-        <label>Équipe préférée</label>
-        <input type="hidden" id="reg-equipe" value="PSG">
-        <div class="club-scroll" id="reg-club-grid"></div>
-      </div>
-      <div class="form-group">
-        <label>Ton poste</label>
-        <input type="hidden" id="reg-poste" value="attaquant">
-        <div class="poste-grid" id="reg-poste-grid"></div>
-      </div>
-      <div class="form-group">
-        <label>Tes atouts</label>
-        <div class="atouts-grid">
-          <div class="atout-item form-group">
-            <label>Vitesse <span class="val" id="v-vitesse">70</span></label>
-            <div class="slider-wrap">
-              <div class="s-tooltip" id="st-vitesse">70</div>
-              <input type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncAtout('vitesse',this.value)">
-            </div>
+
+      <!-- Étape 1 — Identifiants -->
+      <div class="reg-step" id="reg-step-1">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="reg-email" placeholder="ton@email.com" autocomplete="email">
           </div>
-          <div class="atout-item form-group">
-            <label>Dribble <span class="val" id="v-dribble">70</span></label>
-            <div class="slider-wrap">
-              <div class="s-tooltip" id="st-dribble">70</div>
-              <input type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncAtout('dribble',this.value)">
-            </div>
-          </div>
-          <div class="atout-item form-group">
-            <label>Frappe <span class="val" id="v-frappe">70</span></label>
-            <div class="slider-wrap">
-              <div class="s-tooltip" id="st-frappe">70</div>
-              <input type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncAtout('frappe',this.value)">
-            </div>
-          </div>
-          <div class="atout-item form-group">
-            <label>Défense <span class="val" id="v-defense">70</span></label>
-            <div class="slider-wrap">
-              <div class="s-tooltip" id="st-defense">70</div>
-              <input type="range" min="20" max="99" value="70" id="a-defense" oninput="syncAtout('defense',this.value)">
-            </div>
-          </div>
-          <div class="atout-item form-group">
-            <label>Physique <span class="val" id="v-physique">70</span></label>
-            <div class="slider-wrap">
-              <div class="s-tooltip" id="st-physique">70</div>
-              <input type="range" min="20" max="99" value="70" id="a-physique" oninput="syncAtout('physique',this.value)">
-            </div>
+          <div class="form-group">
+            <label>Mot de passe</label>
+            <input type="password" id="reg-pwd" placeholder="••••••" autocomplete="new-password">
           </div>
         </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Pseudo</label>
+            <input type="text" id="reg-pseudo" placeholder="Sur le terrain" maxlength="20" autocomplete="username">
+          </div>
+          <div class="form-group">
+            <label>Code postal</label>
+            <input type="tel" id="reg-cp" placeholder="91130" maxlength="5" oninput="this.value=this.value.replace(/[^0-9]/g,'')">
+          </div>
+        </div>
+        <button class="btn-primary" style="margin-top:8px" onclick="regNextStep(2)">Continuer →</button>
+        <div class="or-divider" style="margin:14px 0 10px">ou inscription rapide</div>
+        <button class="btn-google" onclick="doGoogleSignIn()">
+          <svg viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Continuer avec Google
+        </button>
       </div>
-      <button class="btn-primary" onclick="doRegister()">CRÉER MON COMPTE</button>
-      <div class="or-divider">ou inscription rapide</div>
-      <button class="btn-google" onclick="doGoogleSignIn()">
-        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-          <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-          <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" fill="#FBBC05"/>
-          <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/>
-        </svg>
-        S'inscrire avec Google
-      </button>
+
+      <!-- Étape 2 — Profil Foot -->
+      <div class="reg-step" id="reg-step-2" style="display:none">
+        <div class="form-group">
+          <label>Équipe préférée</label>
+          <input type="hidden" id="reg-equipe" value="PSG">
+          <div class="club-scroll" id="reg-club-grid"></div>
+        </div>
+        <div class="form-group" style="margin-top:16px">
+          <label>Ton poste</label>
+          <input type="hidden" id="reg-poste" value="attaquant">
+          <div class="poste-grid" id="reg-poste-grid"></div>
+        </div>
+        <div style="display:flex;gap:10px;margin-top:18px">
+          <button class="btn-sm btn-outline" style="flex:1;padding:14px" onclick="regNextStep(1)">← Retour</button>
+          <button class="btn-primary" style="flex:2;margin-top:0" onclick="regNextStep(3)">Suivant →</button>
+        </div>
+      </div>
+
+      <!-- Étape 3 — Carte FUT (effet Wow) -->
+      <div class="reg-step" id="reg-step-3" style="display:none">
+        <div class="reg-fut-preview" id="reg-fut-preview"></div>
+        <div class="reg-stats-list">
+          <div>
+            <div class="rsi-header"><span class="rsi-name">⚡ VITESSE</span><span class="rsi-val" id="rv-vitesse">70</span></div>
+            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncRegAtout('vitesse',this)">
+          </div>
+          <div>
+            <div class="rsi-header"><span class="rsi-name">🎭 DRIBBLE</span><span class="rsi-val" id="rv-dribble">70</span></div>
+            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncRegAtout('dribble',this)">
+          </div>
+          <div>
+            <div class="rsi-header"><span class="rsi-name">💥 FRAPPE</span><span class="rsi-val" id="rv-frappe">70</span></div>
+            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncRegAtout('frappe',this)">
+          </div>
+          <div>
+            <div class="rsi-header"><span class="rsi-name">🛡️ DÉFENSE</span><span class="rsi-val" id="rv-defense">70</span></div>
+            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-defense" oninput="syncRegAtout('defense',this)">
+          </div>
+          <div>
+            <div class="rsi-header"><span class="rsi-name">💪 PHYSIQUE</span><span class="rsi-val" id="rv-physique">70</span></div>
+            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-physique" oninput="syncRegAtout('physique',this)">
+          </div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="btn-sm btn-outline" style="flex:1;padding:14px" onclick="regNextStep(2)">← Retour</button>
+          <button class="btn-primary" style="flex:2;margin-top:0" onclick="doRegister()">Créer mon compte ⚡</button>
+        </div>
+      </div>
     </div>
 
     <div class="auth-error" id="auth-error"></div>
@@ -1418,7 +1454,7 @@ import {
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs,
-  serverTimestamp, increment, arrayUnion, arrayRemove, deleteField, deleteDoc
+  serverTimestamp, increment, arrayUnion, arrayRemove, deleteField, deleteDoc, getDocsFromServer
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 // ===== INIT =====
@@ -1638,20 +1674,113 @@ function showAuthTab(tab) {
   document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
   document.getElementById('tab-login').classList.toggle('active', tab === 'login');
   document.getElementById('tab-register').classList.toggle('active', tab === 'register');
-  // Animation pill glissante
   const toggle = document.getElementById('auth-toggle');
   if (toggle) toggle.classList.toggle('register', tab === 'register');
   document.getElementById('auth-error').textContent = '';
-  // Initialiser les grilles clubs/postes et sliders
+  // Reset to step 1 when switching to register
   if (tab === 'register') {
-    setTimeout(() => {
-      renderClubGrid('reg-club-grid', 'reg-equipe', document.getElementById('reg-equipe').value || 'PSG');
-      renderPosteGrid('reg-poste-grid', 'reg-poste', document.getElementById('reg-poste').value || 'attaquant');
-      document.querySelectorAll('.atout-item input[type=range]').forEach(r => updateRangeGradient(r));
-    }, 50);
+    _regCurrentStep = 1;
+    document.querySelectorAll('.reg-step').forEach(s => s.style.display = 'none');
+    const s1 = document.getElementById('reg-step-1');
+    if (s1) s1.style.display = 'block';
+    if (document.getElementById('reg-progress-fill')) document.getElementById('reg-progress-fill').style.width = '33%';
+    document.querySelectorAll('.rsl').forEach((el, i) => el.classList.toggle('active', i === 0));
   }
 }
 window.showAuthTab = showAuthTab;
+
+let _regCurrentStep = 1;
+window.regNextStep = function(nextStep) {
+  const dir = nextStep > _regCurrentStep ? 1 : -1;
+  // Validation step 1
+  if (dir > 0 && _regCurrentStep === 1) {
+    const email = document.getElementById('reg-email')?.value.trim();
+    const pwd = document.getElementById('reg-pwd')?.value;
+    const pseudo = document.getElementById('reg-pseudo')?.value.trim();
+    const errEl = document.getElementById('auth-error');
+    if (!email || !pwd || !pseudo) { if(errEl) errEl.textContent = 'Remplis tous les champs obligatoires.'; return; }
+    if (pwd.length < 6) { if(errEl) errEl.textContent = 'Mot de passe : 6 caractères minimum.'; return; }
+    if (errEl) errEl.textContent = '';
+  }
+  const curr = document.getElementById('reg-step-' + _regCurrentStep);
+  const next = document.getElementById('reg-step-' + nextStep);
+  if (!curr || !next) return;
+  curr.style.display = 'none';
+  next.style.display = 'block';
+  next.classList.remove('slide-in-r', 'slide-in-l');
+  void next.offsetWidth;
+  next.classList.add(dir > 0 ? 'slide-in-r' : 'slide-in-l');
+  // Init step 2 grids
+  if (nextStep === 2) {
+    setTimeout(() => {
+      renderClubGrid('reg-club-grid', 'reg-equipe', document.getElementById('reg-equipe').value || 'PSG');
+      renderPosteGrid('reg-poste-grid', 'reg-poste', document.getElementById('reg-poste').value || 'attaquant');
+    }, 30);
+  }
+  // Init step 3 sliders + FUT preview
+  if (nextStep === 3) {
+    setTimeout(() => {
+      document.querySelectorAll('.reg-stat-slider').forEach(r => updateGreenSliderGradient(r));
+      updateRegFutCard();
+    }, 30);
+  }
+  // Update progress bar
+  const pct = { 1: 33, 2: 66, 3: 100 }[nextStep] || 33;
+  const fill = document.getElementById('reg-progress-fill');
+  if (fill) fill.style.width = pct + '%';
+  // Update step labels
+  document.querySelectorAll('.rsl').forEach((el, i) => el.classList.toggle('active', i + 1 <= nextStep));
+  _regCurrentStep = nextStep;
+  navigator.vibrate?.(40);
+};
+
+function updateGreenSliderGradient(input) {
+  const min = +input.min || 20, max = +input.max || 99, val = +input.value || 70;
+  const pct = ((val - min) / (max - min)) * 100;
+  input.style.background = `linear-gradient(90deg, var(--green) ${pct.toFixed(1)}%, rgba(255,255,255,.12) ${pct.toFixed(1)}%)`;
+  input.style.boxShadow = `0 0 10px rgba(0,230,118,.${Math.floor(pct/25)+1})`;
+}
+
+window.syncRegAtout = function(name, input) {
+  const el = document.getElementById('rv-' + name);
+  if (el) el.textContent = input.value;
+  updateGreenSliderGradient(input);
+  updateRegFutCard();
+};
+
+function updateRegFutCard() {
+  const preview = document.getElementById('reg-fut-preview');
+  if (!preview) return;
+  const g = id => +(document.getElementById(id)?.value || 70);
+  const a = { vitesse:g('a-vitesse'), dribble:g('a-dribble'), frappe:g('a-frappe'), defense:g('a-defense'), physique:g('a-physique') };
+  const pas = Math.round((a.vitesse + a.dribble) / 2);
+  const ovr = Math.round(a.vitesse*.15 + a.dribble*.2 + a.frappe*.25 + a.defense*.15 + a.physique*.15 + pas*.1);
+  const name = (document.getElementById('reg-pseudo')?.value || 'JOUEUR').toUpperCase().slice(0,12);
+  const posteId = document.getElementById('reg-poste')?.value || 'attaquant';
+  const posteData = POSTES.find(p => p.id === posteId) || POSTES[2];
+  const equipe = document.getElementById('reg-equipe')?.value || 'PSG';
+  const rarity = ovr >= 85 ? 'gold' : ovr >= 75 ? 'silver' : '';
+  const statsMap = {vitesse:'PAC',dribble:'DRI',frappe:'TIR',defense:'DEF',physique:'PHY'};
+  preview.innerHTML = `
+    <div class="fut-card-v3 ${rarity}">
+      <div class="fc3-top">
+        <div class="fc3-meta">
+          <div class="fc3-overall">${ovr}</div>
+          <div class="fc3-pos">${posteData.abbr}</div>
+          <div class="fc3-badge-row">${clubShield(equipe,22)}</div>
+        </div>
+        <div class="fc3-photo-zone"><div class="fc3-photo-placeholder">👤</div></div>
+      </div>
+      <div class="fc3-bottom">
+        <div class="fc3-name">${name}</div>
+        <div class="fc3-divider"></div>
+        <div class="fc3-stats">
+          ${Object.entries(a).map(([k,v]) => `<div class="fc3-stat"><span class="sn">${v}</span><span class="sl">${statsMap[k]}</span></div>`).join('')}
+          <div class="fc3-stat"><span class="sn">${pas}</span><span class="sl">PAS</span></div>
+        </div>
+      </div>
+    </div>`;
+}
 
 // Met à jour gradient + tooltip du slider
 function updateRangeGradient(input) {
@@ -1713,8 +1842,9 @@ async function doRegister() {
     defense: +document.getElementById('a-defense').value,
     physique: +document.getElementById('a-physique').value,
   };
-  document.getElementById('auth-error').textContent = '';
-  if (!pseudo) { document.getElementById('auth-error').textContent = 'Le pseudo est obligatoire.'; return; }
+  const errEl = document.getElementById('auth-error');
+  if (errEl) errEl.textContent = '';
+  if (!pseudo || !email || !pwd) { if(errEl) errEl.textContent = 'Identifiants manquants — retourne à l\'étape 1.'; return; }
   const regCp = document.getElementById('reg-cp')?.value.trim() || '';
   let cpCoords = {};
   if (/^\d{5}$/.test(regCp)) {
@@ -1733,7 +1863,8 @@ async function doRegister() {
       createdAt: serverTimestamp()
     });
   } catch (e) {
-    document.getElementById('auth-error').textContent = tradFirebaseError(e.code);
+    const errEl2 = document.getElementById('auth-error');
+    if (errEl2) errEl2.textContent = tradFirebaseError(e.code);
   }
 }
 window.doRegister = doRegister;
@@ -1977,13 +2108,15 @@ async function renderHome() {
   const el = document.getElementById('home-content');
   el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
 
-  // Prochain match confirmé (pas d'orderBy pour éviter l'index composite)
-  const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'));
-  const snapC = await getDocs(qConfirme).catch(() => null);
+  // Après une suppression, forcer un fetch serveur pour éviter le cache Firestore
+  const fetchFn = window._needFreshFetch ? getDocsFromServer : getDocs;
+  window._needFreshFetch = false;
 
-  // Sondages en cours
+  const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'));
+  const snapC = await fetchFn(qConfirme).catch(() => null);
+
   const qSondage = query(collection(db, 'matchs'), where('statut', '==', 'sondage'));
-  const snapS = await getDocs(qSondage).catch(() => null);
+  const snapS = await fetchFn(qSondage).catch(() => null);
 
   let html = '';
 
@@ -3090,8 +3223,9 @@ window.confirmAnnulerMatch = async function(matchId) {
     showToast('Action non autorisée.', 'error'); return;
   }
   await deleteDoc(ref);
-  window.closeModal(); // appelle la version surchargée → unsub() + ferme le modal
+  window.closeModal();
   window._canCreateMatch = { can: true };
+  window._needFreshFetch = true; // force getDocsFromServer dans renderHome
   showToast('Match supprimé.', '');
   navigateTo('home');
 };
