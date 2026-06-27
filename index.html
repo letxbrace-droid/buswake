@@ -1615,14 +1615,22 @@ function loadMatchsList(filter) {
   }
   const statutMap = { sondage: 'sondage', confirme: 'confirmé', termine: 'terminé' };
   const statut = statutMap[filter];
-  const q = query(collection(db, 'matchs'), where('statut', '==', statut), orderBy('createdAt', 'desc'));
+  // Pas de orderBy ici — évite l'index composite requis par Firestore.
+  // On trie côté client après réception.
+  const q = query(collection(db, 'matchs'), where('statut', '==', statut));
   const unsub = onSnapshot(q, async snap => {
     if (snap.empty) {
       el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? '📜' : '📅'}</div><p>Aucun match ici pour l'instant.</p></div>`;
       return;
     }
+    // Tri par date de création décroissante côté client
+    const docs = snap.docs.slice().sort((a, b) => {
+      const ta = a.data().createdAt?.toMillis?.() ?? 0;
+      const tb = b.data().createdAt?.toMillis?.() ?? 0;
+      return tb - ta;
+    });
     let html = '';
-    for (const d of snap.docs) {
+    for (const d of docs) {
       const m = d.data();
       const isInscrit = (m.joueursInscrits || []).includes(currentUser?.uid);
       const votesTotal = Object.values(m.votes || {}).reduce((s, v) => s + v.length, 0);
@@ -1647,6 +1655,9 @@ function loadMatchsList(filter) {
         </div>`;
     }
     el.innerHTML = html;
+  }, err => {
+    console.error('Firestore matchs query error:', err);
+    el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erreur de chargement.<br><small style="color:var(--red)">${err.code}</small></p></div>`;
   });
   window._matchsListenerUnsubscribe = unsub;
   activeListeners.push(unsub);
@@ -1863,25 +1874,34 @@ window.confirmerMatch = confirmerMatch;
 
 // ===== CRÉER MATCH =====
 let creneauxBuilt = [];
-function openCreateMatch() {
-  creneauxBuilt = [{ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom }];
-  renderCreateMatchModal();
-}
-window.openCreateMatch = openCreateMatch;
+function genId() { return Math.random().toString(36).substr(2, 9); }
 
-function genId() {
-  return Math.random().toString(36).substr(2, 9);
+// Sauvegarde les valeurs actuelles du DOM dans creneauxBuilt (avant tout re-render)
+function syncCreneauxFromDOM() {
+  creneauxBuilt.forEach(c => {
+    const d = document.getElementById('cd-date-' + c.id);
+    const h = document.getElementById('cd-heure-' + c.id);
+    const l = document.getElementById('cd-lieu-' + c.id);
+    if (d) c.date = d.value;
+    if (h) c.heure = h.value;
+    if (l) c.lieu = l.value;
+  });
 }
 
-function renderCreateMatchModal() {
-  const lieuxOptions = LIEUX_DEMO.map(l => `<option value="${l.nom}">${l.nom}</option>`).join('');
-  const crHtml = creneauxBuilt.map((c, i) => `
+// Construit le HTML des créneaux (avec option selected correcte)
+function buildCreneauxHtml() {
+  const today = new Date().toISOString().split('T')[0];
+  return creneauxBuilt.map(c => {
+    const lieuxOpts = LIEUX_DEMO.map(l =>
+      `<option value="${l.nom}"${l.nom === c.lieu ? ' selected' : ''}>${l.nom}</option>`
+    ).join('');
+    return `
     <div class="creneau-builder" id="creneau-${c.id}">
       <button class="remove-creneau" onclick="removeCreneau('${c.id}')">✕</button>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
         <div>
           <span class="input-label">Date</span>
-          <input class="input-field" type="date" id="cd-date-${c.id}" value="${c.date}" min="${new Date().toISOString().split('T')[0]}">
+          <input class="input-field" type="date" id="cd-date-${c.id}" value="${c.date}" min="${today}">
         </div>
         <div>
           <span class="input-label">Heure</span>
@@ -1889,37 +1909,49 @@ function renderCreateMatchModal() {
         </div>
       </div>
       <span class="input-label">Lieu</span>
-      <select class="input-field" id="cd-lieu-${c.id}">${lieuxOptions}</select>
-    </div>`).join('');
+      <select class="input-field" id="cd-lieu-${c.id}">${lieuxOpts}</select>
+    </div>`;
+  }).join('');
+}
 
+function openCreateMatch() {
+  creneauxBuilt = [{ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom }];
   openModal('Proposer un match', `
     <div class="create-form">
       <div class="section-sub">Créneaux proposés</div>
-      <div id="creneaux-list">${crHtml}</div>
+      <div id="creneaux-list">${buildCreneauxHtml()}</div>
       <button class="add-creneau-btn" onclick="addCreneau()">+ Ajouter un créneau</button>
       <div class="divider"></div>
       <button class="btn-primary" onclick="submitCreateMatch()">PROPOSER LE MATCH</button>
     </div>`);
 }
+window.openCreateMatch = openCreateMatch;
 
+// Ajoute un créneau SANS rouvrir la modal — met à jour seulement #creneaux-list
 window.addCreneau = function() {
+  syncCreneauxFromDOM();
   creneauxBuilt.push({ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom });
-  renderCreateMatchModal();
+  const el = document.getElementById('creneaux-list');
+  if (el) el.innerHTML = buildCreneauxHtml();
 };
 
+// Supprime un créneau SANS rouvrir la modal
 window.removeCreneau = function(id) {
   if (creneauxBuilt.length <= 1) { showToast('Au minimum 1 créneau requis.', 'error'); return; }
+  syncCreneauxFromDOM();
   creneauxBuilt = creneauxBuilt.filter(c => c.id !== id);
-  renderCreateMatchModal();
+  const el = document.getElementById('creneaux-list');
+  if (el) el.innerHTML = buildCreneauxHtml();
 };
 
 window.submitCreateMatch = async function() {
   if (!currentUser) return;
+  syncCreneauxFromDOM(); // sauvegarde les valeurs du formulaire
   const uid = currentUser.uid;
   const creneaux = creneauxBuilt.map(c => {
-    const dateVal = document.getElementById('cd-date-' + c.id)?.value;
-    const heureVal = document.getElementById('cd-heure-' + c.id)?.value;
-    const lieuVal = document.getElementById('cd-lieu-' + c.id)?.value;
+    const dateVal = c.date;
+    const heureVal = c.heure;
+    const lieuVal = c.lieu;
     if (!dateVal) return null;
     const dateObj = new Date(dateVal + 'T' + heureVal + ':00');
     return { id: c.id, date: dateObj, heure: heureVal, lieu: lieuVal };
