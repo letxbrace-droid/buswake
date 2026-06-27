@@ -1212,6 +1212,94 @@
     .pdp-stat-bar { height:6px; background:var(--card2); border-radius:3px; overflow:hidden; }
     .pdp-stat-bar div { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--orange-dark),var(--orange)); }
     .pdp-stat-val { font-family:Oswald,sans-serif; font-size:13px; font-weight:700; text-align:right; color:var(--text); }
+
+    /* ===== ONBOARDING ===== */
+    #onboarding-screen { position:fixed;inset:0;z-index:500;overflow:hidden;background:var(--bg); }
+    #onboarding-screen.hidden { display:none; }
+    .ob-slides-wrap { display:flex;height:100%;transition:transform .4s cubic-bezier(0.22,1,0.36,1); }
+    .ob-slide {
+      min-width:100%;height:100%;display:flex;flex-direction:column;
+      align-items:center;justify-content:center;
+      padding:40px 28px;position:relative;overflow:hidden;
+    }
+    .ob-shape {
+      position:absolute;border-radius:50%;pointer-events:none;
+    }
+    .ob-shape:nth-child(1){width:320px;height:320px;background:var(--orange);opacity:.07;top:-80px;right:-100px;animation:obFloat1 6s ease-in-out infinite;}
+    .ob-shape:nth-child(2){width:200px;height:200px;background:var(--orange2);opacity:.06;bottom:80px;left:-60px;animation:obFloat2 8s ease-in-out infinite;}
+    .ob-shape:nth-child(3){width:140px;height:140px;background:var(--blue);opacity:.05;bottom:200px;right:20px;animation:obFloat3 7s ease-in-out infinite;}
+    @keyframes obFloat1{0%,100%{transform:translateY(0)}50%{transform:translateY(-24px)}}
+    @keyframes obFloat2{0%,100%{transform:translateY(0)}50%{transform:translateY(20px)}}
+    @keyframes obFloat3{0%,100%{transform:translateY(0)}50%{transform:translateY(-16px) rotate(30deg)}}
+    .ob-emoji{font-size:72px;margin-bottom:28px;filter:drop-shadow(0 8px 24px rgba(0,200,83,.4));animation:obBob 2.4s ease-in-out infinite;}
+    @keyframes obBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.06)}}
+    .ob-title{font-family:'Oswald',sans-serif;font-size:clamp(28px,8vw,38px);font-weight:700;color:#fff;text-align:center;line-height:1.15;margin-bottom:14px;text-shadow:0 2px 16px rgba(0,200,83,.25);}
+    .ob-title span{color:var(--orange);}
+    .ob-desc{font-size:15px;color:rgba(255,255,255,.55);text-align:center;line-height:1.6;max-width:280px;}
+    .ob-dots{position:absolute;bottom:116px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+    .ob-dot{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.22);transition:all .3s;cursor:pointer;}
+    .ob-dot.active{width:22px;background:var(--orange);box-shadow:0 0 8px var(--orange-glow);}
+    .ob-next-btn{
+      position:absolute;bottom:44px;left:20px;right:20px;padding:16px;border:none;border-radius:14px;
+      background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;
+      font-size:16px;font-weight:700;font-family:'Oswald',sans-serif;letter-spacing:.5px;
+      cursor:pointer;box-shadow:0 8px 24px var(--orange-glow);transition:transform .15s;
+    }
+    .ob-next-btn:active{transform:scale(.97);}
+    .ob-skip-btn{
+      position:absolute;top:max(env(safe-area-inset-top,0px),16px);right:20px;z-index:10;
+      padding:8px 14px;border:1px solid var(--border-light);border-radius:20px;
+      background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);font-size:13px;cursor:pointer;
+    }
+
+    /* ===== FUT CARD SHIMMER ===== */
+    .fut-card-v3.shimmer-active::after{
+      content:'';position:absolute;inset:0;z-index:10;border-radius:inherit;pointer-events:none;
+      background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
+      background-size:200% 100%;animation:cardShimmer 2s ease-in-out 0.3s 3;
+    }
+    @keyframes cardShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+
+    /* ===== VOTE BARS match cards ===== */
+    .mlc-vote-bars{padding:2px 16px 10px;}
+    .mlc-vb-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+    .mlc-vb-date{font-size:11px;color:var(--text-sec);min-width:60px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+    .mlc-vb-track{flex:1;height:5px;background:var(--card2);border-radius:3px;overflow:hidden;}
+    .mlc-vb-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--orange-dark),var(--orange));transition:width .6s cubic-bezier(0.22,1,0.36,1);}
+    .mlc-vb-fill.best{background:linear-gradient(90deg,#00952F,var(--green));}
+    .mlc-vb-count{font-size:11px;font-weight:700;color:var(--orange);min-width:18px;text-align:right;flex-shrink:0;}
+
+    /* ===== MOTM COMMUNITY VOTE ===== */
+    .motm-vote-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:18px;}
+    .motm-vote-player{
+      display:flex;flex-direction:column;align-items:center;gap:5px;
+      padding:12px 6px;border:2px solid var(--border);border-radius:13px;
+      cursor:pointer;transition:all .2s;background:var(--card);
+    }
+    .motm-vote-player:hover{border-color:rgba(255,200,50,.4);}
+    .motm-vote-player.mvp-sel{border-color:var(--gold);background:rgba(255,215,0,.08);box-shadow:0 0 16px rgba(255,215,0,.2);}
+    .motm-pl-avatar{width:46px;height:46px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#fff;overflow:hidden;}
+    .motm-pl-pseudo{font-size:11px;font-weight:600;text-align:center;color:var(--text);line-height:1.2;}
+    .motm-pl-votes{font-size:10px;color:var(--text-sec);}
+
+    /* ===== AMIS / CONTACTS ===== */
+    .friends-search-wrap{display:flex;gap:8px;margin-bottom:10px;}
+    .friends-search-input{flex:1;padding:10px 12px;background:var(--card);border:1.5px solid var(--border);border-radius:10px;color:var(--text);font-size:14px;outline:none;font-family:'Inter',sans-serif;}
+    .friends-search-input:focus{border-color:var(--orange);}
+    .friends-search-btn{padding:10px 14px;background:var(--orange);border:none;border-radius:10px;color:#fff;font-size:14px;cursor:pointer;}
+    .friend-item{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--border);}
+    .friend-item:last-child{border-bottom:none;}
+    .friend-avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(135deg,var(--orange),var(--orange2));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0;}
+    .friend-info{flex:1;min-width:0;}
+    .friend-pseudo{font-size:14px;font-weight:600;color:var(--text);}
+    .friend-rang{font-size:11px;color:var(--text-sec);}
+    .friend-action-btn{padding:5px 11px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text-sec);font-size:12px;cursor:pointer;transition:all .2s;white-space:nowrap;}
+    .friend-action-btn.fadd{border-color:var(--orange);color:var(--orange);}
+    .friend-action-btn.fadd:hover{background:var(--orange);color:#fff;}
+    .friend-action-btn.faccept{border-color:var(--green);color:var(--green);}
+    .friend-status{font-size:11px;padding:3px 8px;border-radius:10px;background:rgba(0,230,118,.1);color:var(--green);white-space:nowrap;}
+    .friends-empty{font-size:13px;color:var(--text-muted);text-align:center;padding:12px 0;}
+
   </style>
 </head>
 <body>
@@ -1220,6 +1308,37 @@
 <div id="loading-screen">
   <div class="loading-logo">CAP SACLAY<span style="color:#fff"> FIVE</span></div>
   <div class="spinner"></div>
+</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding-screen" class="hidden">
+  <button class="ob-skip-btn" onclick="skipOnboarding()">Passer</button>
+  <div class="ob-slides-wrap" id="ob-slides-wrap">
+    <div class="ob-slide">
+      <div class="ob-shape"></div><div class="ob-shape"></div><div class="ob-shape"></div>
+      <div class="ob-emoji">⚽</div>
+      <div class="ob-title">Trouve ton <span>Five</span></div>
+      <div class="ob-desc">Rejoins les matchs de foot à 5 du dépôt RATP Cap Saclay. Vote pour les créneaux qui t'arrangent.</div>
+    </div>
+    <div class="ob-slide">
+      <div class="ob-shape"></div><div class="ob-shape"></div><div class="ob-shape"></div>
+      <div class="ob-emoji">🛡️</div>
+      <div class="ob-title"><span>Équipes</span> équilibrées</div>
+      <div class="ob-desc">L'IA compose des équipes selon vos atouts FIFA. Glisse et ajuste les joueurs sur le terrain virtuel.</div>
+    </div>
+    <div class="ob-slide">
+      <div class="ob-shape"></div><div class="ob-shape"></div><div class="ob-shape"></div>
+      <div class="ob-emoji">🏆</div>
+      <div class="ob-title">Vote le <span>Boss</span></div>
+      <div class="ob-desc">Après chaque match, élis l'Homme du Match. Gagne des XP, monte en rang et décroche des badges.</div>
+    </div>
+  </div>
+  <div class="ob-dots" id="ob-dots">
+    <div class="ob-dot active" onclick="goObSlide(0)"></div>
+    <div class="ob-dot" onclick="goObSlide(1)"></div>
+    <div class="ob-dot" onclick="goObSlide(2)"></div>
+  </div>
+  <button class="ob-next-btn" id="ob-next-btn" onclick="obNextSlide()">Suivant →</button>
 </div>
 
 <!-- AUTH -->
@@ -2289,6 +2408,29 @@ function loadMatchsList(filter) {
       if (statut === 'sondage') subtitle = `${m.creneauxProposes ? m.creneauxProposes.length : 0} créneaux · ${votesTotal} vote${votesTotal > 1 ? 's' : ''}`;
       else if (statut === 'confirmé') subtitle = `${formatDateShort(m.dateFinale)} · ${m.lieuFinal || ''}`;
       else subtitle = `Score: ${m.scoreA ?? '?'} – ${m.scoreB ?? '?'}`;
+      // Vote bars for sondage cards
+      let voteBarsHtml = '';
+      if (statut === 'sondage') {
+        const creneaux = m.creneauxProposes || [];
+        const vMap = m.votes || {};
+        const maxV = Math.max(1, ...creneaux.map(c => (vMap[c.id]||[]).length));
+        const sortedC = [...creneaux].sort((a,b) => (vMap[b.id]||[]).length - (vMap[a.id]||[]).length);
+        voteBarsHtml = '<div class="mlc-vote-bars">' + sortedC.slice(0,3).map((c,i) => {
+          const cnt = (vMap[c.id]||[]).length;
+          const pct = Math.round((cnt/maxV)*100);
+          return '<div class="mlc-vb-row">' +
+            '<div class="mlc-vb-date">' + formatDateShort(c.date) + '</div>' +
+            '<div class="mlc-vb-track"><div class="mlc-vb-fill' + (i===0&&cnt>0?' best':'') + '" style="width:' + pct + '%"></div></div>' +
+            '<div class="mlc-vb-count">' + cnt + '</div>' +
+          '</div>';
+        }).join('') + '</div>';
+      }
+      // MOTM button for terminated cards
+      const motmVotedMe = statut === 'terminé' && currentUser
+        ? Object.values(m.motmVotes||{}).some(arr=>(arr||[]).includes(currentUser.uid)) : false;
+      const motmBtnHtml = statut === 'terminé'
+        ? `<button class="btn-sm ${motmVotedMe?'btn-outline':'btn-orange'}" style="font-size:11px;padding:5px 10px;margin-left:auto" onclick="event.stopPropagation();window.openMotmVote('${d.id}')">${motmVotedMe?'🏆 Voté':'🏆 MOTM'}</button>`
+        : '';
       html += `
         <div class="match-list-card" onclick="openMatchDetail('${d.id}')">
           <div class="mlc-top">
@@ -2298,9 +2440,11 @@ function loadMatchsList(filter) {
             </div>
             <span class="tag tag-${filter}">${statut}</span>
           </div>
+          ${voteBarsHtml}
           <div class="mlc-bottom">
             <span style="font-size:18px">${isInscrit ? '✅' : '👤'}</span>
             <span class="mlc-creator">${(m.joueursInscrits || []).length} joueur${(m.joueursInscrits || []).length > 1 ? 's' : ''}</span>
+            ${motmBtnHtml}
           </div>
         </div>`;
     }
@@ -2462,6 +2606,10 @@ async function renderMatchDetail(matchId, m) {
 
   // ---- Match terminé ----
   else if (m.statut === 'terminé') {
+    const motmAlreadyVoted = currentUser ? Object.values(m.motmVotes||{}).some(a=>(a||[]).includes(uid)) : false;
+    html += `<button class="btn-sm ${motmAlreadyVoted?'btn-outline':'btn-orange'}" style="width:100%;margin-bottom:14px" onclick="window.openMotmVote('${matchId}')">
+      ${motmAlreadyVoted ? '🏆 Modifier mon vote MOTM' : "🏆 Voter pour l'Homme du Match"}
+    </button>`;
     html += `
       <div class="score-display">
         <div class="score-team">
@@ -3363,7 +3511,7 @@ async function renderProfil() {
 
   const futHtml = `
   <div class="fut-card-wrap">
-    <div class="fut-card-v3 ${noteGlobal >= 80 ? 'rare' : ''}">
+    <div class="fut-card-v3 ${noteGlobal >= 80 ? 'rare' : ''} shimmer-active" id="profile-fut-card">
       <div class="fc3-top">
         <div class="fc3-meta">
           <div class="fc3-overall">${noteGlobal}</div>
@@ -3420,9 +3568,54 @@ async function renderProfil() {
 
     <div class="divider"></div>
     <button class="edit-profile-btn" onclick="openEditProfile()">✏️ Modifier mon profil</button>
+
+    <div class="section-title" style="margin-top:20px">👥 Contacts & Amis</div>
+    <div class="friends-search-wrap">
+      <input class="friends-search-input" id="friends-search-input" type="text"
+        placeholder="Chercher un joueur par pseudo…"
+        onkeydown="if(event.key==='Enter')window.searchFriend()">
+      <button class="friends-search-btn" onclick="window.searchFriend()">🔍</button>
+    </div>
+    <div id="friends-search-results"></div>
+    ${(function() {
+      const myFriends = d.friends || [];
+      const receivedReqs = d.friendRequestsReceived || [];
+      let fh = '';
+      if (receivedReqs.length > 0) {
+        fh += '<div class="section-sub" style="margin-top:12px">Demandes reçues (' + receivedReqs.length + ')</div>';
+        fh += receivedReqs.map(fid =>
+          '<div class="friend-item">' +
+            '<div class="friend-avatar">?</div>' +
+            '<div class="friend-info">' +
+              '<div class="friend-pseudo" id="freq-pseudo-' + fid + '">Chargement…</div>' +
+              '<div class="friend-rang" id="freq-rang-' + fid + '"></div>' +
+            '</div>' +
+            '<button class="friend-action-btn faccept" onclick="window.acceptFriendRequest(\'' + fid + '\')">Accepter</button>' +
+          '</div>').join('');
+      }
+      if (myFriends.length > 0) {
+        fh += '<div class="section-sub" style="margin-top:12px">Mes amis (' + myFriends.length + ')</div>';
+        fh += myFriends.map(fid =>
+          '<div class="friend-item">' +
+            '<div class="friend-avatar" id="favatar-' + fid + '">…</div>' +
+            '<div class="friend-info">' +
+              '<div class="friend-pseudo" id="fpseudo-' + fid + '">Chargement…</div>' +
+              '<div class="friend-rang" id="frang-' + fid + '"></div>' +
+            '</div>' +
+            '<button class="friend-action-btn" onclick="window.removeFriend(\'' + fid + '\')" style="color:var(--red);border-color:rgba(255,23,68,.3)">Retirer</button>' +
+          '</div>').join('');
+      } else if (receivedReqs.length === 0) {
+        fh = '<div class="friends-empty">Aucun ami pour l\'instant.<br>Cherche des joueurs ci-dessus !</div>';
+      }
+      return fh;
+    })()}
+    <div style="height:16px"></div>
   `;
 
   document.getElementById('top-xp-badge').textContent = `${d.xp || 0} XP`;
+  // Load friend names/ranks asynchronously
+  const _pf = d.friends || [], _pr = d.friendRequestsReceived || [];
+  if (_pf.length > 0 || _pr.length > 0) _loadProfileFriends(_pf, _pr);
 }
 
 // ===== ÉDITER PROFIL =====
@@ -3573,6 +3766,190 @@ async function renderClassement() {
 // Appliquer le thème sauvegardé dès le départ
 applyTheme(currentTheme);
 
+// ===== ONBOARDING =====
+let _obSlide = 0;
+const OB_TOTAL = 3;
+function initOnboarding() { _obSlide = 0; _obUpdate(); }
+window.goObSlide = function(idx) { _obSlide = Math.max(0, Math.min(OB_TOTAL-1, idx)); _obUpdate(); };
+function _obUpdate() {
+  const w = document.getElementById('ob-slides-wrap');
+  if (w) w.style.transform = 'translateX(-' + (_obSlide*100) + '%)';
+  document.querySelectorAll('.ob-dot').forEach((d,i) => d.classList.toggle('active', i===_obSlide));
+  const b = document.getElementById('ob-next-btn');
+  if (b) b.textContent = _obSlide === OB_TOTAL-1 ? "C'est parti ! ⚡" : 'Suivant →';
+}
+window.obNextSlide = function() {
+  if (_obSlide < OB_TOTAL-1) { goObSlide(_obSlide+1); } else { skipOnboarding(); }
+};
+window.skipOnboarding = function() {
+  localStorage.setItem('cs5_ob_done', '1');
+  document.getElementById('onboarding-screen').classList.add('hidden');
+  document.getElementById('auth-wrap').classList.remove('hidden');
+};
+(function() {
+  let _sx = 0;
+  const w = document.getElementById('ob-slides-wrap');
+  if (!w) return;
+  w.addEventListener('touchstart', e => { _sx = e.touches[0].clientX; }, { passive: true });
+  w.addEventListener('touchend', e => {
+    const dx = e.changedTouches[0].clientX - _sx;
+    if (dx < -50) obNextSlide();
+    else if (dx > 50 && _obSlide > 0) goObSlide(_obSlide-1);
+  }, { passive: true });
+  document.addEventListener('keydown', e => {
+    const ob = document.getElementById('onboarding-screen');
+    if (!ob || ob.classList.contains('hidden')) return;
+    if (e.key === 'ArrowRight') obNextSlide();
+    else if (e.key === 'ArrowLeft' && _obSlide > 0) goObSlide(_obSlide-1);
+  });
+})();
+
+// ===== MOTM COMMUNITY VOTE =====
+window.openMotmVote = async function(matchId) {
+  openModal('🏆 Vote Homme du Match', '<div class="loader"><div class="spinner"></div></div>');
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const m = snap.data();
+  const inscrits = m.joueursInscrits || [];
+  const motmVotes = m.motmVotes || {};
+  const myVotedUid = Object.keys(motmVotes).find(k => (motmVotes[k]||[]).includes(currentUser?.uid));
+  const players = [];
+  for (const u of inscrits) {
+    const d = await getUserData(u);
+    players.push({ uid: u, pseudo: d?.pseudo || 'Joueur', data: d });
+  }
+  const gridHtml = players.map(p => {
+    const ini = initiales(p.pseudo);
+    const photo = localStorage.getItem('cs5_photo_' + p.uid);
+    const cnt = (motmVotes[p.uid]||[]).length;
+    const isMy = p.uid === myVotedUid;
+    return `<div class="motm-vote-player${isMy?' mvp-sel':''}" onclick="window.selectMotmVote('${matchId}','${p.uid}')">
+      <div class="motm-pl-avatar">${photo ? `<img src="${photo}" style="width:100%;height:100%;object-fit:cover">` : ini}</div>
+      <div class="motm-pl-pseudo">${p.pseudo.split(' ')[0]}</div>
+      <div class="motm-pl-votes">${cnt} vote${cnt!==1?'s':''}${isMy?' 👑':''}</div>
+    </div>`;
+  }).join('');
+  const html = '<p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;line-height:1.5">Qui a été le meilleur selon toi ? <span style="color:var(--gold)">+15 XP</span> pour le vainqueur.</p>' +
+    '<div class="motm-vote-grid">' + gridHtml + '</div>' +
+    (myVotedUid ? '<p style="font-size:12px;color:var(--green);text-align:center">✓ Vote enregistré</p>' : '');
+  document.getElementById('modal-title').textContent = '🏆 Vote Homme du Match';
+  document.getElementById('modal-body').innerHTML = html;
+};
+
+window.selectMotmVote = async function(matchId, votedUid) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const motmVotes = snap.data().motmVotes || {};
+  const oldUid = Object.keys(motmVotes).find(k => (motmVotes[k]||[]).includes(uid));
+  if (oldUid === votedUid) {
+    await updateDoc(ref, { ['motmVotes.' + votedUid]: arrayRemove(uid) });
+    showToast('Vote retiré', '');
+    window.closeModal(); return;
+  }
+  const updates = { ['motmVotes.' + votedUid]: arrayUnion(uid) };
+  if (oldUid) updates['motmVotes.' + oldUid] = arrayRemove(uid);
+  await updateDoc(ref, updates);
+  await addXP(uid, 15);
+  showToast('+15 XP pour ton vote MOTM ! 🏆', 'success');
+  window.closeModal();
+};
+
+// ===== AMIS / CONTACTS =====
+window.searchFriend = async function() {
+  const input = document.getElementById('friends-search-input');
+  const pseudo = (input?.value || '').trim();
+  if (pseudo.length < 2) { showToast('Entre au moins 2 caractères', ''); return; }
+  const resultsEl = document.getElementById('friends-search-results');
+  if (resultsEl) resultsEl.innerHTML = '<div class="friends-empty">Recherche…</div>';
+  try {
+    const q = query(collection(db, 'users'), where('pseudo', '>=', pseudo), where('pseudo', '<=', pseudo + ''));
+    const snap = await getDocs(q);
+    const myData = currentUserData || {};
+    const myFriends = myData.friends || [];
+    const mySent = myData.friendRequestsSent || [];
+    if (snap.empty) {
+      if (resultsEl) resultsEl.innerHTML = '<div class="friends-empty">Aucun joueur trouvé.</div>';
+      return;
+    }
+    let html = '';
+    snap.docs.slice(0, 6).forEach(d => {
+      if (d.id === currentUser?.uid) return;
+      const u = d.data();
+      const isFriend = myFriends.includes(d.id);
+      const sentReq = mySent.includes(d.id);
+      const rang = getRang(u.xp || 0);
+      const actionHtml = isFriend
+        ? '<span class="friend-status">✓ Ami</span>'
+        : sentReq
+          ? '<button class="friend-action-btn" disabled style="opacity:.45">Envoyée</button>'
+          : `<button class="friend-action-btn fadd" onclick="window.sendFriendRequest('${d.id}','${(u.pseudo||'').replace(/'/g, '&#39;')}')">+ Ajouter</button>`;
+      html += '<div class="friend-item">' +
+        '<div class="friend-avatar">' + initiales(u.pseudo||'J') + '</div>' +
+        '<div class="friend-info"><div class="friend-pseudo">' + (u.pseudo||'Joueur') + '</div>' +
+        '<div class="friend-rang">' + rang.label + ' · ' + (u.xp||0) + ' XP</div></div>' +
+        actionHtml + '</div>';
+    });
+    if (resultsEl) resultsEl.innerHTML = html || '<div class="friends-empty">Aucun résultat.</div>';
+  } catch(e) {
+    if (resultsEl) resultsEl.innerHTML = '<div class="friends-empty">Erreur.</div>';
+    console.error(e);
+  }
+};
+
+window.sendFriendRequest = async function(targetUid, targetPseudo) {
+  if (!currentUser) return;
+  await updateDoc(doc(db, 'users', currentUser.uid), { friendRequestsSent: arrayUnion(targetUid) });
+  await updateDoc(doc(db, 'users', targetUid), { friendRequestsReceived: arrayUnion(currentUser.uid) });
+  delete usersCache[currentUser.uid];
+  showToast('Demande envoyée à ' + targetPseudo + ' !', 'success');
+  await window.searchFriend();
+};
+
+window.acceptFriendRequest = async function(fromUid) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  await updateDoc(doc(db, 'users', uid), { friends: arrayUnion(fromUid), friendRequestsReceived: arrayRemove(fromUid) });
+  await updateDoc(doc(db, 'users', fromUid), { friends: arrayUnion(uid), friendRequestsSent: arrayRemove(uid) });
+  delete usersCache[uid]; delete usersCache[fromUid];
+  showToast('Ami ajouté ! 🤜🤛', 'success');
+  renderProfil();
+};
+
+window.removeFriend = async function(friendUid) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  await updateDoc(doc(db, 'users', uid), { friends: arrayRemove(friendUid) });
+  await updateDoc(doc(db, 'users', friendUid), { friends: arrayRemove(uid) });
+  delete usersCache[uid];
+  showToast('Ami retiré.', '');
+  renderProfil();
+};
+
+async function _loadProfileFriends(friends, receivedReqs) {
+  for (const fid of receivedReqs) {
+    const u = await getUserData(fid);
+    if (!u) continue;
+    const ep = document.getElementById('freq-pseudo-' + fid);
+    const er = document.getElementById('freq-rang-' + fid);
+    if (ep) ep.textContent = u.pseudo || 'Joueur';
+    if (er) er.textContent = getRang(u.xp||0).label;
+  }
+  for (const fid of friends) {
+    const u = await getUserData(fid);
+    if (!u) continue;
+    const pa = document.getElementById('favatar-' + fid);
+    const pp = document.getElementById('fpseudo-' + fid);
+    const pr = document.getElementById('frang-' + fid);
+    if (pa) pa.textContent = initiales(u.pseudo||'J');
+    if (pp) pp.textContent = u.pseudo || 'Joueur';
+    if (pr) pr.textContent = getRang(u.xp||0).label + ' · ' + (u.xp||0) + ' XP';
+  }
+}
+
 onAuthStateChanged(auth, async (user) => {
   document.getElementById('loading-screen').classList.add('hidden');
   if (user) {
@@ -3594,7 +3971,12 @@ onAuthStateChanged(auth, async (user) => {
     currentUserData = null;
     cleanupListeners();
     document.getElementById('app').classList.add('hidden');
-    document.getElementById('auth-wrap').classList.remove('hidden');
+    if (!localStorage.getItem('cs5_ob_done')) {
+      document.getElementById('onboarding-screen').classList.remove('hidden');
+      initOnboarding();
+    } else {
+      document.getElementById('auth-wrap').classList.remove('hidden');
+    }
   }
 });
 
