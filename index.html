@@ -1764,6 +1764,26 @@ function tradFirebaseError(code) {
 }
 
 // ===== HELPERS =====
+
+// Règle Métier : titulaire = dans les 10 premiers de joueursInscrits
+// Retourne { can: bool, reason: string }
+async function checkCanCreateMatch(uid) {
+  if (!uid) return { can: false, reason: 'Non connecté' };
+  try {
+    const q = query(collection(db, 'matchs'), where('statut', 'in', ['sondage', 'confirmé']));
+    const snap = await getDocs(q);
+    for (const d of snap.docs) {
+      const titulaires = (d.data().joueursInscrits || []).slice(0, 10);
+      if (titulaires.includes(uid)) {
+        return { can: false, reason: 'Tu es déjà titulaire dans un match actif.' };
+      }
+    }
+    return { can: true };
+  } catch {
+    return { can: true }; // fail open : en cas d'erreur réseau on laisse passer
+  }
+}
+
 function calcOverall(d) {
   if (!d) return 70;
   const a = d.atouts || {};
@@ -1947,10 +1967,23 @@ async function renderHome() {
       </div>`;
   }
 
-  html += `
-    <div style="margin-top:16px">
+  // Règle Métier : vérifier l'éligibilité à créer un match
+  const eligibility = await checkCanCreateMatch(currentUser?.uid);
+  window._canCreateMatch = eligibility;
+
+  if (eligibility.can) {
+    html += `<div style="margin-top:16px">
       <button class="btn-primary" onclick="openCreateMatch()">+ PROPOSER UN MATCH</button>
     </div>`;
+  } else {
+    html += `<div style="margin-top:16px">
+      <button class="btn-primary" style="opacity:.35;filter:grayscale(.5);pointer-events:none;cursor:not-allowed">+ PROPOSER UN MATCH</button>
+      <div style="margin-top:8px;padding:10px 12px;background:rgba(255,85,0,.07);border:1px solid rgba(255,85,0,.25);border-radius:10px;font-size:12px;color:var(--orange);text-align:center;line-height:1.5">
+        ⚠️ Tu es déjà titulaire dans un match actif.<br>
+        <span style="color:var(--text-sec)">Désiste-toi d'abord pour en proposer un nouveau.</span>
+      </div>
+    </div>`;
+  }
 
   el.innerHTML = html;
 }
@@ -1984,10 +2017,12 @@ function getBestCreneau(match) {
 let matchsFilter = 'sondage';
 async function renderMatchs() {
   const el = document.getElementById('matchs-content');
+  const elig = window._canCreateMatch ?? { can: true };
+  const propBtn = elig.can
+    ? `<button class="btn-sm btn-orange" onclick="openCreateMatch()">+ Proposer</button>`
+    : `<button class="btn-sm btn-orange" style="opacity:.35;pointer-events:none;filter:grayscale(.5)" title="Déjà titulaire dans un match actif">+ Proposer</button>`;
   el.innerHTML = `
-    <div class="section-actions">
-      <button class="btn-sm btn-orange" onclick="openCreateMatch()">+ Proposer</button>
-    </div>
+    <div class="section-actions">${propBtn}</div>
     <div class="pill-tabs">
       <button class="pill-tab active" id="filter-sondage" onclick="setMatchFilter('sondage')">Sondages</button>
       <button class="pill-tab" id="filter-confirme" onclick="setMatchFilter('confirme')">Confirmés</button>
@@ -2263,6 +2298,8 @@ async function toggleInscription(matchId, isInscrit) {
     await updateDoc(ref, { joueursInscrits: arrayUnion(uid) });
     showToast('Tu es inscrit ! 🎉', 'success');
   }
+  // Refresh état d'éligibilité après chaque changement d'inscription
+  checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
 }
 window.toggleInscription = toggleInscription;
 
@@ -2327,6 +2364,12 @@ function buildCreneauxHtml() {
 }
 
 function openCreateMatch() {
+  // Vérif locale (UI guard)
+  const check = window._canCreateMatch ?? { can: true };
+  if (!check.can) {
+    showToast('Tu es déjà titulaire dans un match actif. Désiste-toi d\'abord.', 'error');
+    return;
+  }
   creneauxBuilt = [{ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom }];
   openModal('Proposer un match', `
     <div class="create-form">
@@ -2505,6 +2548,15 @@ window.confirmVenueSelection = function(inputId) {
 
 window.submitCreateMatch = async function() {
   if (!currentUser) return;
+  // Double-check serveur (contournement UI impossible)
+  const safetyCheck = await checkCanCreateMatch(currentUser.uid);
+  if (!safetyCheck.can) {
+    showToast('Impossible : tu es déjà titulaire dans un match actif.', 'error');
+    window._canCreateMatch = safetyCheck; // refresh état UI
+    closeModal();
+    renderScreen('home');
+    return;
+  }
   syncCreneauxFromDOM(); // sauvegarde les valeurs du formulaire
   const uid = currentUser.uid;
   const creneaux = creneauxBuilt.map(c => {
