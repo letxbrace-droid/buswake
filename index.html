@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#FF6B35">
+  <meta name="description" content="Organisation de matchs de foot à 5 pour les chauffeurs RATP">
+  <title>InRun Five</title>
+  <link rel="manifest" id="manifest-link">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== VARIABLES ===== */
+    :root {
+      --orange: #FF6B35;
+      --orange-dark: #E55A24;
+      --orange-glow: rgba(255,107,53,0.25);
+      --bg: #08080F;
+      --surface: #111118;
+      --card: #18181F;
+      --card2: #1E1E28;
+      --border: #252530;
+      --border-light: #30303E;
+      --text: #F0F0FF;
+      --text-sec: #8888AA;
+      --text-muted: #44445A;
+      --green: #27AE60;
+      --red: #C0392B;
+      --blue: #2980B9;
+      --gold: #F39C12;
+      --silver: #95A5A6;
+      --bronze: #935116;
+      --nav-h: 68px;
+      --top-h: 56px;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html, body { height:100%; overflow:hidden; }
+    body { font-family:'Inter',sans-serif; background:var(--bg); color:var(--text); display:flex; flex-direction:column; }
+
+    /* ===== SCROLLBAR ===== */
+    ::-webkit-scrollbar { width:4px; }
+    ::-webkit-scrollbar-track { background:transparent; }
+    ::-webkit-scrollbar-thumb { background:var(--border); border-radius:2px; }
+
+    /* ===== AUTH ===== */
+    #auth-wrap { position:fixed; inset:0; z-index:100; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px; overflow-y:auto; }
+    #auth-wrap.hidden { display:none; }
+    .auth-logo { font-family:'Oswald',sans-serif; font-size:42px; font-weight:700; color:var(--orange); letter-spacing:2px; margin-bottom:4px; }
+    .auth-sub { color:var(--text-sec); font-size:13px; margin-bottom:32px; text-align:center; }
+    .auth-card { background:var(--card); border:1px solid var(--border); border-radius:16px; padding:28px 24px; width:100%; max-width:380px; }
+    .auth-title { font-family:'Oswald',sans-serif; font-size:20px; font-weight:600; margin-bottom:20px; color:var(--text); }
+    .auth-tabs { display:flex; gap:4px; background:var(--surface); border-radius:10px; padding:4px; margin-bottom:24px; }
+    .auth-tab { flex:1; padding:10px; border:none; background:transparent; color:var(--text-sec); border-radius:8px; font-family:'Inter',sans-serif; font-size:14px; font-weight:500; cursor:pointer; transition:all .2s; }
+    .auth-tab.active { background:var(--orange); color:#fff; }
+    .form-group { margin-bottom:14px; }
+    .form-group label { display:block; font-size:12px; color:var(--text-sec); margin-bottom:6px; font-weight:500; letter-spacing:.5px; text-transform:uppercase; }
+    .form-group input, .form-group select { width:100%; padding:12px 14px; background:var(--surface); border:1px solid var(--border); border-radius:10px; color:var(--text); font-family:'Inter',sans-serif; font-size:14px; outline:none; transition:border-color .2s; -webkit-appearance:none; }
+    .form-group input:focus, .form-group select:focus { border-color:var(--orange); }
+    .form-group select option { background:var(--card); }
+    .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .btn-primary { width:100%; padding:14px; background:var(--orange); border:none; border-radius:10px; color:#fff; font-family:'Oswald',sans-serif; font-size:16px; font-weight:600; letter-spacing:1px; cursor:pointer; transition:all .2s; margin-top:8px; }
+    .btn-primary:hover { background:var(--orange-dark); }
+    .btn-primary:active { transform:scale(.98); }
+    .auth-error { color:#FF6B6B; font-size:13px; margin-top:12px; text-align:center; min-height:20px; }
+
+    /* Atouts slider setup during register */
+    .atouts-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .atout-item label { display:flex; justify-content:space-between; align-items:center; }
+    .atout-item label span.val { color:var(--orange); font-weight:600; min-width:28px; text-align:right; }
+    .atout-item input[type=range] { width:100%; margin-top:4px; accent-color:var(--orange); }
+
+    /* ===== APP SHELL ===== */
+    #app { display:flex; flex-direction:column; height:100%; }
+    #app.hidden { display:none; }
+    #topbar { height:var(--top-h); background:var(--surface); border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 16px; flex-shrink:0; }
+    .top-logo { font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; color:var(--orange); letter-spacing:1px; }
+    .top-actions { display:flex; gap:8px; align-items:center; }
+    .top-xp { background:var(--orange-glow); border:1px solid var(--orange); border-radius:20px; padding:4px 10px; font-size:11px; font-weight:600; color:var(--orange); }
+    .btn-icon { width:36px; height:36px; border:none; background:var(--card); border-radius:8px; color:var(--text-sec); cursor:pointer; display:flex; align-items:center; justify-content:center; font-size:18px; }
+
+    #screens { flex:1; overflow:hidden; position:relative; }
+    .screen { position:absolute; inset:0; overflow-y:auto; padding:16px 16px calc(var(--nav-h) + 16px); display:none; }
+    .screen.active { display:block; }
+
+    /* ===== BOTTOM NAV ===== */
+    #bottom-nav { height:var(--nav-h); background:var(--surface); border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-around; flex-shrink:0; padding-bottom:env(safe-area-inset-bottom,0); }
+    .nav-btn { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; border:none; background:transparent; color:var(--text-muted); cursor:pointer; padding:10px 0; transition:color .2s; }
+    .nav-btn.active { color:var(--orange); }
+    .nav-btn svg { width:22px; height:22px; fill:currentColor; }
+    .nav-btn span { font-size:10px; font-weight:500; letter-spacing:.5px; text-transform:uppercase; }
+
+    /* ===== COMMON COMPONENTS ===== */
+    .section-title { font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; color:var(--text); margin-bottom:12px; letter-spacing:.5px; display:flex; align-items:center; gap:8px; }
+    .badge-dot { display:inline-flex; align-items:center; justify-content:center; background:var(--orange); color:#fff; border-radius:10px; min-width:18px; height:18px; font-size:10px; font-weight:700; padding:0 5px; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px; margin-bottom:12px; }
+    .card-hover { cursor:pointer; transition:border-color .2s, background .2s; }
+    .card-hover:hover, .card-hover:active { border-color:var(--orange); background:var(--card2); }
+    .tag { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; letter-spacing:.5px; }
+    .tag-sondage { background:rgba(41,128,185,.2); color:#5DADE2; border:1px solid rgba(41,128,185,.3); }
+    .tag-confirme { background:rgba(39,174,96,.2); color:#2ECC71; border:1px solid rgba(39,174,96,.3); }
+    .tag-termine { background:rgba(80,80,100,.2); color:var(--text-sec); border:1px solid var(--border); }
+    .empty-state { text-align:center; padding:40px 20px; color:var(--text-muted); }
+    .empty-state .icon { font-size:48px; margin-bottom:12px; }
+    .empty-state p { font-size:14px; line-height:1.6; }
+    .btn-sm { padding:8px 14px; border:none; border-radius:8px; font-family:'Inter',sans-serif; font-size:13px; font-weight:600; cursor:pointer; transition:all .2s; }
+    .btn-orange { background:var(--orange); color:#fff; }
+    .btn-outline { background:transparent; border:1px solid var(--border); color:var(--text-sec); }
+    .btn-green { background:var(--green); color:#fff; }
+    .btn-red { background:var(--red); color:#fff; }
+    .divider { height:1px; background:var(--border); margin:16px 0; }
+    .loader { display:flex; justify-content:center; padding:40px; }
+    .spinner { width:32px; height:32px; border:3px solid var(--border); border-top-color:var(--orange); border-radius:50%; animation:spin .8s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+
+    /* ===== HOME SCREEN ===== */
+    .hero-match { background:linear-gradient(135deg, #1A1A24, #0F0F18); border:1px solid var(--orange); border-radius:16px; padding:20px; margin-bottom:16px; position:relative; overflow:hidden; }
+    .hero-match::before { content:''; position:absolute; top:-40px; right:-40px; width:150px; height:150px; background:var(--orange-glow); border-radius:50%; pointer-events:none; }
+    .hero-label { font-size:11px; color:var(--orange); font-weight:600; letter-spacing:1.5px; text-transform:uppercase; margin-bottom:8px; }
+    .hero-date { font-family:'Oswald',sans-serif; font-size:28px; font-weight:700; color:var(--text); line-height:1.1; margin-bottom:4px; }
+    .hero-lieu { font-size:14px; color:var(--text-sec); margin-bottom:16px; }
+    .hero-players { display:flex; align-items:center; gap:8px; }
+    .player-avatars { display:flex; }
+    .player-avatar { width:32px; height:32px; border-radius:50%; background:var(--card2); border:2px solid var(--bg); display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; color:var(--orange); font-family:'Oswald',sans-serif; margin-left:-8px; }
+    .player-avatar:first-child { margin-left:0; }
+    .player-count { font-size:13px; color:var(--text-sec); }
+
+    .poll-card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:12px; cursor:pointer; transition:border-color .2s; }
+    .poll-card:hover { border-color:var(--orange); }
+    .poll-card-header { padding:14px 16px 10px; display:flex; justify-content:space-between; align-items:flex-start; }
+    .poll-card-title { font-family:'Oswald',sans-serif; font-size:16px; font-weight:600; }
+    .poll-card-sub { font-size:12px; color:var(--text-sec); margin-top:2px; }
+    .poll-creneaux { padding:0 16px 14px; display:flex; flex-direction:column; gap:6px; }
+    .creneau-preview { display:flex; justify-content:space-between; align-items:center; padding:8px 10px; background:var(--surface); border-radius:8px; font-size:13px; }
+    .creneau-preview .votes { color:var(--orange); font-weight:600; font-size:12px; }
+
+    /* ===== MATCH DETAIL ===== */
+    .modal-overlay { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.85); display:flex; flex-direction:column; }
+    .modal-overlay.hidden { display:none; }
+    .modal-sheet { background:var(--surface); border-radius:20px 20px 0 0; margin-top:auto; max-height:92vh; overflow-y:auto; padding-bottom:env(safe-area-inset-bottom,0); }
+    .modal-handle { width:36px; height:4px; background:var(--border); border-radius:2px; margin:12px auto 0; }
+    .modal-header { padding:16px 20px 0; display:flex; justify-content:space-between; align-items:center; }
+    .modal-title { font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; }
+    .modal-close { width:32px; height:32px; border:none; background:var(--card); border-radius:8px; color:var(--text-sec); cursor:pointer; font-size:18px; display:flex; align-items:center; justify-content:center; }
+    .modal-body { padding:16px 20px 20px; }
+    .section-sub { font-size:12px; color:var(--text-sec); font-weight:500; letter-spacing:.5px; text-transform:uppercase; margin-bottom:10px; }
+
+    /* Vote creneaux */
+    .creneau-vote { background:var(--card); border:2px solid var(--border); border-radius:12px; padding:14px; margin-bottom:8px; cursor:pointer; transition:all .2s; display:flex; justify-content:space-between; align-items:center; }
+    .creneau-vote.voted { border-color:var(--orange); background:rgba(255,107,53,.08); }
+    .creneau-vote.top { border-color:var(--green); background:rgba(39,174,96,.06); }
+    .creneau-vote .info { flex:1; }
+    .creneau-vote .date-str { font-weight:600; font-size:15px; }
+    .creneau-vote .lieu-str { font-size:12px; color:var(--text-sec); margin-top:2px; }
+    .creneau-vote .vote-count { display:flex; flex-direction:column; align-items:center; gap:2px; }
+    .vote-num { font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; color:var(--orange); }
+    .vote-label { font-size:10px; color:var(--text-sec); text-transform:uppercase; letter-spacing:.5px; }
+    .vote-check { width:20px; height:20px; border-radius:50%; background:var(--orange); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:8px; flex-shrink:0; }
+
+    /* Joueurs inscrits */
+    .joueurs-list { display:flex; flex-wrap:wrap; gap:8px; }
+    .joueur-chip { display:flex; align-items:center; gap:6px; background:var(--card); border:1px solid var(--border); border-radius:20px; padding:6px 12px; font-size:13px; }
+    .joueur-chip .j-avatar { width:22px; height:22px; border-radius:50%; background:var(--orange); color:#fff; display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+
+    /* Equipes */
+    .equipe-block { background:var(--card); border-radius:12px; padding:14px; margin-bottom:10px; border-left:4px solid var(--orange); }
+    .equipe-nom { font-family:'Oswald',sans-serif; font-size:18px; font-weight:600; display:flex; align-items:center; gap:8px; }
+    .equipe-joueurs { display:flex; flex-wrap:wrap; gap:6px; margin-top:8px; }
+
+    /* Score */
+    .score-display { display:flex; align-items:center; justify-content:center; gap:16px; margin:16px 0; }
+    .score-team { text-align:center; }
+    .score-num { font-family:'Oswald',sans-serif; font-size:48px; font-weight:700; color:var(--orange); line-height:1; }
+    .score-name { font-size:12px; color:var(--text-sec); margin-top:4px; }
+    .score-sep { font-family:'Oswald',sans-serif; font-size:32px; color:var(--text-muted); }
+
+    /* ===== CREATE MATCH ===== */
+    .create-form { padding:0; }
+    .creneau-builder { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:8px; position:relative; }
+    .remove-creneau { position:absolute; top:10px; right:10px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:18px; }
+    .add-creneau-btn { width:100%; padding:12px; border:2px dashed var(--border); border-radius:10px; background:transparent; color:var(--text-sec); cursor:pointer; font-size:14px; transition:all .2s; }
+    .add-creneau-btn:hover { border-color:var(--orange); color:var(--orange); }
+    .input-field { width:100%; padding:10px 12px; background:var(--surface); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'Inter',sans-serif; font-size:14px; outline:none; }
+    .input-field:focus { border-color:var(--orange); }
+    .input-label { font-size:11px; color:var(--text-sec); font-weight:500; letter-spacing:.5px; text-transform:uppercase; margin-bottom:5px; display:block; }
+
+    /* ===== PROFILE SCREEN ===== */
+    .fut-card { background:linear-gradient(160deg, #1C3B21, #0A1F0E); border:1px solid #2E7D32; border-radius:16px; padding:20px; text-align:center; margin-bottom:20px; position:relative; overflow:hidden; }
+    .fut-card::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse at 50% 0%, rgba(39,174,96,.15), transparent 70%); pointer-events:none; }
+    .fut-overall { font-family:'Oswald',sans-serif; font-size:52px; font-weight:700; color:#2ECC71; line-height:1; }
+    .fut-pos { font-size:11px; color:#81C784; font-weight:600; letter-spacing:1.5px; text-transform:uppercase; margin-top:2px; }
+    .fut-pseudo { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; color:#fff; margin-top:8px; }
+    .fut-equipe { font-size:12px; color:#A5D6A7; margin-top:2px; }
+    .fut-divider { height:1px; background:rgba(46,204,113,.2); margin:16px 0; }
+    .fut-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
+    .fut-stat { display:flex; flex-direction:column; align-items:center; }
+    .fut-stat-val { font-family:'Oswald',sans-serif; font-size:22px; font-weight:700; color:#fff; }
+    .fut-stat-label { font-size:10px; color:#81C784; font-weight:600; letter-spacing:.5px; text-transform:uppercase; margin-top:2px; }
+
+    .atout-bar-wrap { margin-bottom:10px; }
+    .atout-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:4px; }
+    .atout-bar-label span:last-child { color:var(--orange); font-weight:600; }
+    .atout-bar-bg { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+    .atout-bar-fill { height:100%; background:linear-gradient(90deg, var(--orange-dark), var(--orange)); border-radius:3px; transition:width .4s; }
+
+    .rank-badge { display:inline-flex; align-items:center; gap:6px; background:var(--orange-glow); border:1px solid var(--orange); border-radius:20px; padding:6px 14px; font-size:14px; font-weight:600; color:var(--orange); margin-bottom:16px; }
+    .badges-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .badge-item { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:10px 6px; text-align:center; }
+    .badge-item.unlocked { border-color:var(--gold); background:rgba(243,156,18,.08); }
+    .badge-item .b-icon { font-size:24px; margin-bottom:4px; }
+    .badge-item .b-name { font-size:10px; color:var(--text-sec); font-weight:500; }
+    .badge-item.unlocked .b-name { color:var(--gold); }
+    .badge-item.locked { opacity:.35; }
+
+    .stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+    .stat-box { background:var(--card); border:1px solid var(--border); border-radius:10px; padding:12px 8px; text-align:center; }
+    .stat-box .sv { font-family:'Oswald',sans-serif; font-size:24px; font-weight:700; color:var(--orange); }
+    .stat-box .sl { font-size:10px; color:var(--text-sec); font-weight:500; letter-spacing:.3px; margin-top:2px; }
+    .edit-profile-btn { width:100%; padding:12px; background:var(--card2); border:1px solid var(--border); border-radius:10px; color:var(--text-sec); font-family:'Inter',sans-serif; font-size:14px; cursor:pointer; transition:all .2s; margin-top:4px; }
+    .edit-profile-btn:hover { border-color:var(--orange); color:var(--orange); }
+
+    /* ===== CLASSEMENT ===== */
+    .podium { display:flex; align-items:flex-end; justify-content:center; gap:8px; margin-bottom:24px; height:140px; }
+    .podium-item { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; flex:1; max-width:110px; }
+    .podium-avatar { width:44px; height:44px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-family:'Oswald',sans-serif; font-size:18px; font-weight:700; color:#fff; margin-bottom:4px; }
+    .podium-name { font-size:11px; font-weight:600; color:var(--text); text-align:center; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .podium-xp { font-size:10px; color:var(--text-sec); }
+    .podium-block { width:100%; border-radius:8px 8px 0 0; display:flex; align-items:center; justify-content:center; font-family:'Oswald',sans-serif; font-size:28px; font-weight:700; color:#fff; }
+    .podium-1 .podium-block { background:linear-gradient(180deg, #F39C12, #E67E22); height:90px; }
+    .podium-2 .podium-block { background:linear-gradient(180deg, #95A5A6, #7F8C8D); height:70px; }
+    .podium-3 .podium-block { background:linear-gradient(180deg, #935116, #784212); height:55px; }
+    .podium-1 .podium-avatar { background:#F39C12; }
+    .podium-2 .podium-avatar { background:#95A5A6; }
+    .podium-3 .podium-avatar { background:#935116; }
+
+    .leaderboard-list { display:flex; flex-direction:column; gap:8px; }
+    .lb-item { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:12px 14px; display:flex; align-items:center; gap:12px; }
+    .lb-item.me { border-color:var(--orange); background:rgba(255,107,53,.06); }
+    .lb-rank { font-family:'Oswald',sans-serif; font-size:18px; font-weight:700; color:var(--text-muted); min-width:28px; }
+    .lb-avatar { width:38px; height:38px; border-radius:50%; background:var(--card2); display:flex; align-items:center; justify-content:center; font-family:'Oswald',sans-serif; font-size:15px; font-weight:700; color:var(--orange); flex-shrink:0; }
+    .lb-info { flex:1; }
+    .lb-pseudo { font-weight:600; font-size:14px; }
+    .lb-detail { font-size:11px; color:var(--text-sec); margin-top:2px; }
+    .lb-xp { font-family:'Oswald',sans-serif; font-size:16px; font-weight:700; color:var(--orange); }
+
+    /* ===== TOAST ===== */
+    #toast-wrap { position:fixed; top:16px; left:50%; transform:translateX(-50%); z-index:999; display:flex; flex-direction:column; gap:8px; pointer-events:none; width:calc(100% - 32px); max-width:400px; }
+    .toast { background:var(--card2); border:1px solid var(--border); border-radius:12px; padding:12px 16px; font-size:14px; font-weight:500; animation:slideDown .25s ease; display:flex; align-items:center; gap:10px; }
+    .toast.success { border-color:var(--green); background:rgba(39,174,96,.1); }
+    .toast.error { border-color:var(--red); background:rgba(192,57,43,.1); }
+    .toast.levelup { border-color:var(--gold); background:rgba(243,156,18,.15); font-family:'Oswald',sans-serif; font-size:16px; }
+    .toast-icon { font-size:20px; flex-shrink:0; }
+    @keyframes slideDown { from { opacity:0; transform:translateY(-10px); } to { opacity:1; transform:translateY(0); } }
+
+    /* ===== LOADING OVERLAY ===== */
+    #loading-screen { position:fixed; inset:0; z-index:300; background:var(--bg); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:16px; }
+    #loading-screen.hidden { display:none; }
+    .loading-logo { font-family:'Oswald',sans-serif; font-size:38px; font-weight:700; color:var(--orange); letter-spacing:2px; }
+
+    /* ===== MISC ===== */
+    .pill-tabs { display:flex; gap:8px; margin-bottom:14px; overflow-x:auto; padding-bottom:4px; }
+    .pill-tab { padding:7px 16px; border:1px solid var(--border); border-radius:20px; background:transparent; color:var(--text-sec); font-size:13px; font-weight:500; cursor:pointer; white-space:nowrap; transition:all .2s; }
+    .pill-tab.active { background:var(--orange); border-color:var(--orange); color:#fff; }
+    .match-list-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:0; overflow:hidden; margin-bottom:10px; cursor:pointer; transition:border-color .2s; }
+    .match-list-card:hover { border-color:var(--orange); }
+    .mlc-top { padding:14px 16px 10px; display:flex; justify-content:space-between; align-items:flex-start; }
+    .mlc-title { font-family:'Oswald',sans-serif; font-size:17px; font-weight:600; }
+    .mlc-sub { font-size:12px; color:var(--text-sec); margin-top:3px; }
+    .mlc-bottom { padding:10px 16px; background:var(--surface); display:flex; align-items:center; gap:10px; }
+    .mlc-creator { font-size:12px; color:var(--text-sec); }
+    .progress-bar { height:3px; background:var(--border); }
+    .progress-fill { height:100%; background:var(--orange); }
+    .input-row { display:flex; gap:8px; }
+    .input-row input { flex:1; }
+    .section-actions { display:flex; gap:8px; margin-bottom:14px; }
+
+    /* ===== PROFILE EDIT MODAL ===== */
+    #profile-edit-modal { position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.85); display:flex; flex-direction:column; }
+    #profile-edit-modal.hidden { display:none; }
+
+    /* homme du match voter */
+    .hdm-list { display:flex; flex-direction:column; gap:6px; }
+    .hdm-item { display:flex; align-items:center; gap:10px; padding:10px 12px; background:var(--card); border:2px solid var(--border); border-radius:10px; cursor:pointer; transition:all .2s; }
+    .hdm-item.selected { border-color:var(--gold); background:rgba(243,156,18,.08); }
+    .hdm-item .hdm-pseudo { flex:1; font-weight:500; }
+    .hdm-crown { color:var(--gold); font-size:18px; }
+
+    /* Equipe builder */
+    .eq-header { display:flex; gap:8px; align-items:center; margin-bottom:10px; }
+    .eq-emoji { font-size:24px; cursor:pointer; }
+    .eq-color-dot { width:20px; height:20px; border-radius:50%; cursor:pointer; border:2px solid var(--border); flex-shrink:0; }
+    .color-picker-row { display:flex; gap:8px; flex-wrap:wrap; margin-top:6px; }
+    .color-dot { width:26px; height:26px; border-radius:50%; cursor:pointer; border:2px solid transparent; transition:border-color .15s; }
+    .color-dot.selected { border-color:#fff; }
+    .assign-list { display:flex; flex-direction:column; gap:4px; margin-top:10px; }
+    .assign-item { display:flex; align-items:center; gap:8px; padding:8px 10px; background:var(--surface); border-radius:8px; font-size:13px; }
+    .assign-item select { margin-left:auto; background:var(--card); border:1px solid var(--border); color:var(--text); border-radius:6px; padding:4px 8px; font-size:12px; outline:none; }
+
+    @media (min-width: 480px) {
+      .screen { padding:20px 20px calc(var(--nav-h) + 20px); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Chargement -->
+<div id="loading-screen">
+  <div class="loading-logo">INRUN<span style="color:#fff">5</span></div>
+  <div class="spinner"></div>
+</div>
+
+<!-- AUTH -->
+<div id="auth-wrap" class="hidden">
+  <div class="auth-logo">INRUN<span style="color:#fff">5</span></div>
+  <div class="auth-sub">Organisation de matchs · Dépôt RATP</div>
+  <div class="auth-card">
+    <div class="auth-tabs">
+      <button class="auth-tab active" id="tab-login" onclick="showAuthTab('login')">Connexion</button>
+      <button class="auth-tab" id="tab-register" onclick="showAuthTab('register')">Inscription</button>
+    </div>
+
+    <!-- Login -->
+    <div id="form-login">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="login-email" placeholder="ton@email.com">
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="login-pwd" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">SE CONNECTER</button>
+    </div>
+
+    <!-- Register -->
+    <div id="form-register" style="display:none">
+      <div class="form-group">
+        <label>Email</label>
+        <input type="email" id="reg-email" placeholder="ton@email.com">
+      </div>
+      <div class="form-group">
+        <label>Mot de passe</label>
+        <input type="password" id="reg-pwd" placeholder="Minimum 6 caractères">
+      </div>
+      <div class="form-group">
+        <label>Pseudo</label>
+        <input type="text" id="reg-pseudo" placeholder="Ton surnom sur le terrain" maxlength="20">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Équipe préférée</label>
+          <select id="reg-equipe">
+            <option>PSG</option><option>OM</option><option>OL</option><option>Monaco</option>
+            <option>Barcelone</option><option>Real Madrid</option><option>Bayern</option>
+            <option>Man City</option><option>Liverpool</option><option>Chelsea</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Poste</label>
+          <select id="reg-poste">
+            <option value="gardien">Gardien</option>
+            <option value="defenseur">Défenseur</option>
+            <option value="milieu">Milieu</option>
+            <option value="attaquant">Attaquant</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Tes atouts (distribue les points)</label>
+        <div class="atouts-grid">
+          <div class="atout-item form-group">
+            <label>Vitesse <span class="val" id="v-vitesse">70</span></label>
+            <input type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncAtout('vitesse',this.value)">
+          </div>
+          <div class="atout-item form-group">
+            <label>Dribble <span class="val" id="v-dribble">70</span></label>
+            <input type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncAtout('dribble',this.value)">
+          </div>
+          <div class="atout-item form-group">
+            <label>Frappe <span class="val" id="v-frappe">70</span></label>
+            <input type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncAtout('frappe',this.value)">
+          </div>
+          <div class="atout-item form-group">
+            <label>Défense <span class="val" id="v-defense">70</span></label>
+            <input type="range" min="20" max="99" value="70" id="a-defense" oninput="syncAtout('defense',this.value)">
+          </div>
+          <div class="atout-item form-group">
+            <label>Physique <span class="val" id="v-physique">70</span></label>
+            <input type="range" min="20" max="99" value="70" id="a-physique" oninput="syncAtout('physique',this.value)">
+          </div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="doRegister()">CRÉER MON COMPTE</button>
+    </div>
+
+    <div class="auth-error" id="auth-error"></div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="hidden">
+  <!-- Topbar -->
+  <header id="topbar">
+    <div class="top-logo">INRUN<span style="color:#fff">5</span></div>
+    <div class="top-actions">
+      <span class="top-xp" id="top-xp-badge">0 XP</span>
+      <button class="btn-icon" onclick="doLogout()" title="Déconnexion">⎋</button>
+    </div>
+  </header>
+
+  <!-- Screens -->
+  <div id="screens">
+    <!-- ACCUEIL -->
+    <section id="screen-home" class="screen active">
+      <div id="home-content"></div>
+    </section>
+
+    <!-- MATCHS -->
+    <section id="screen-matchs" class="screen">
+      <div id="matchs-content"></div>
+    </section>
+
+    <!-- PROFIL -->
+    <section id="screen-profil" class="screen">
+      <div id="profil-content"></div>
+    </section>
+
+    <!-- CLASSEMENT -->
+    <section id="screen-classement" class="screen">
+      <div id="classement-content"></div>
+    </section>
+  </div>
+
+  <!-- Bottom nav -->
+  <nav id="bottom-nav">
+    <button class="nav-btn active" data-screen="home" onclick="navigateTo('home')">
+      <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+      <span>Accueil</span>
+    </button>
+    <button class="nav-btn" data-screen="matchs" onclick="navigateTo('matchs')">
+      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 14H9V8h2v8zm4 0h-2V8h2v8z"/></svg>
+      <span>Matchs</span>
+    </button>
+    <button class="nav-btn" data-screen="profil" onclick="navigateTo('profil')">
+      <svg viewBox="0 0 24 24"><path d="M12 12c2.7 0 4.8-2.1 4.8-4.8S14.7 2.4 12 2.4 7.2 4.5 7.2 7.2 9.3 12 12 12zm0 2.4c-3.2 0-9.6 1.6-9.6 4.8v2.4h19.2v-2.4c0-3.2-6.4-4.8-9.6-4.8z"/></svg>
+      <span>Profil</span>
+    </button>
+    <button class="nav-btn" data-screen="classement" onclick="navigateTo('classement')">
+      <svg viewBox="0 0 24 24"><path d="M7 17h2v-7H7zm4 0h2V7h-2zm4 0h2v-4h-2zM5 21h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2z"/></svg>
+      <span>Classement</span>
+    </button>
+  </nav>
+</div>
+
+<!-- Modal principal (match détail / créer match) -->
+<div id="main-modal" class="modal-overlay hidden">
+  <div class="modal-sheet" id="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="modal-title">Détail</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Toast container -->
+<div id="toast-wrap"></div>
+
+<script type="module">
+// ============================================================
+// FIREBASE CONFIG — remplis ces valeurs avec tes clés Firebase
+// ============================================================
+const firebaseConfig = {
+  apiKey: "REMPLACE_PAR_TA_API_KEY",
+  authDomain: "REMPLACE_PAR_TON_AUTH_DOMAIN",
+  projectId: "REMPLACE_PAR_TON_PROJECT_ID",
+  storageBucket: "REMPLACE_PAR_TON_STORAGE_BUCKET",
+  messagingSenderId: "REMPLACE_PAR_TON_SENDER_ID",
+  appId: "REMPLACE_PAR_TON_APP_ID"
+};
+
+// ===== IMPORTS FIREBASE ESM v10 =====
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import {
+  getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword,
+  onAuthStateChanged, signOut
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
+import {
+  getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
+  collection, query, where, orderBy, onSnapshot, getDocs,
+  serverTimestamp, increment, arrayUnion, arrayRemove, deleteField
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+// ===== INIT =====
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+
+// ===== PWA MANIFEST =====
+const iconSvg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="40" fill="#FF6B35"/>
+  <text x="96" y="140" font-family="Arial Black" font-size="110" font-weight="900" fill="#fff" text-anchor="middle">IN</text>
+</svg>`;
+const iconBlob = new Blob([iconSvg], { type: 'image/svg+xml' });
+const iconUrl = URL.createObjectURL(iconBlob);
+const manifest = {
+  name: 'InRun Five', short_name: 'InRun5',
+  description: 'Organisation de matchs de foot à 5 · Dépôt RATP',
+  start_url: '.', display: 'standalone',
+  background_color: '#08080F', theme_color: '#FF6B35',
+  icons: [
+    { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' }
+  ]
+};
+const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/json' });
+document.getElementById('manifest-link').href = URL.createObjectURL(manifestBlob);
+
+// ===== ÉTAT GLOBAL =====
+let currentUser = null;       // objet Firebase Auth
+let currentUserData = null;   // données Firestore de l'utilisateur
+let currentScreen = 'home';
+let activeListeners = [];     // pour nettoyer les onSnapshot
+
+// ===== GAMIFICATION =====
+const RANGS = [
+  { min: 0,    label: '🟤 Recrue',   emoji: '🟤' },
+  { min: 200,  label: '⚪ Stagiaire', emoji: '⚪' },
+  { min: 500,  label: '🔵 Titulaire', emoji: '🔵' },
+  { min: 1000, label: '🟢 Cadre',     emoji: '🟢' },
+  { min: 2000, label: '🟡 Capitaine', emoji: '🟡' },
+  { min: 4000, label: '🔴 Légende',   emoji: '🔴' },
+];
+const BADGES_DEF = [
+  { id: 'premier_match', icon: '⚽', name: '1er match' },
+  { id: 'cinq_matchs',   icon: '🎯', name: '5 matchs'  },
+  { id: 'dix_matchs',    icon: '💎', name: '10 matchs' },
+  { id: 'hdm',           icon: '🏆', name: 'Homme du match' },
+  { id: 'organisateur',  icon: '📋', name: 'Organisateur' },
+  { id: 'assidu',        icon: '🔥', name: 'Assidu' },
+];
+const XP = { participer: 100, voter: 10, creer: 50, hdm: 200 };
+
+// Calcule la note globale FUT (moyenne pondérée des atouts)
+function noteGlobale(atouts) {
+  if (!atouts) return 70;
+  const { vitesse=70, dribble=70, frappe=70, defense=70, physique=70 } = atouts;
+  return Math.round((vitesse + dribble + frappe + defense + physique) / 5);
+}
+
+// Retourne le rang pour un niveau d'XP
+function getRang(xp) {
+  let rang = RANGS[0];
+  for (const r of RANGS) { if (xp >= r.min) rang = r; }
+  return rang;
+}
+
+// Vérifie et attribue les badges
+async function checkBadges(uid, userData) {
+  const badges = userData.badges || [];
+  const stats = userData.stats || {};
+  const matchsJoues = stats.matchsJoues || 0;
+  const newBadges = [];
+
+  if (matchsJoues >= 1 && !badges.includes('premier_match')) newBadges.push('premier_match');
+  if (matchsJoues >= 5 && !badges.includes('cinq_matchs')) newBadges.push('cinq_matchs');
+  if (matchsJoues >= 10 && !badges.includes('dix_matchs')) newBadges.push('dix_matchs');
+  if (stats.hommeDuMatch >= 1 && !badges.includes('hdm')) newBadges.push('hdm');
+
+  if (newBadges.length > 0) {
+    await updateDoc(doc(db, 'users', uid), { badges: arrayUnion(...newBadges) });
+    newBadges.forEach(b => {
+      const def = BADGES_DEF.find(x => x.id === b);
+      if (def) showToast(`Badge débloqué : ${def.icon} ${def.name}`, 'success');
+    });
+  }
+}
+
+// Ajoute de l'XP et notifie le level-up
+async function addXP(uid, amount) {
+  const ref = doc(db, 'users', uid);
+  const snap = await getDoc(ref);
+  const data = snap.data();
+  const oldXP = data.xp || 0;
+  const newXP = oldXP + amount;
+  const oldRang = getRang(oldXP);
+  const newRang = getRang(newXP);
+  await updateDoc(ref, { xp: increment(amount) });
+  if (newRang.min > oldRang.min) {
+    showToast(`🎉 Level up ! Tu es maintenant ${newRang.label}`, 'levelup');
+  }
+}
+
+// ===== LIEUX PAR DÉFAUT (démo) =====
+const LIEUX_DEMO = [
+  { id: 'l1', nom: 'Urban Soccer Nation', adresse: '10 Rue Léon Frot, Paris 11e', type: 'indoor' },
+  { id: 'l2', nom: 'MyCamp Paris 19', adresse: '12 Ave Corentin Cariou, Paris 19e', type: 'indoor' },
+  { id: 'l3', nom: 'Five Paris Porte de la Villette', adresse: '39 Av. Corentin Cariou, Paris 19e', type: 'indoor' },
+  { id: 'l4', nom: 'Soccer Park Ivry', adresse: 'Ivry-sur-Seine, 94200', type: 'indoor' },
+  { id: 'l5', nom: 'Terrain libre (à préciser)', adresse: '', type: 'stade' },
+];
+
+// ===== AUTH HELPERS =====
+function showAuthTab(tab) {
+  document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
+  document.getElementById('form-register').style.display = tab === 'register' ? '' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', tab === 'login');
+  document.getElementById('tab-register').classList.toggle('active', tab === 'register');
+  document.getElementById('auth-error').textContent = '';
+}
+window.showAuthTab = showAuthTab;
+
+function syncAtout(name, val) {
+  document.getElementById('v-' + name).textContent = val;
+}
+window.syncAtout = syncAtout;
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pwd = document.getElementById('login-pwd').value;
+  document.getElementById('auth-error').textContent = '';
+  try {
+    await signInWithEmailAndPassword(auth, email, pwd);
+  } catch (e) {
+    document.getElementById('auth-error').textContent = tradFirebaseError(e.code);
+  }
+}
+window.doLogin = doLogin;
+
+async function doRegister() {
+  const email = document.getElementById('reg-email').value.trim();
+  const pwd = document.getElementById('reg-pwd').value;
+  const pseudo = document.getElementById('reg-pseudo').value.trim();
+  const equipe = document.getElementById('reg-equipe').value;
+  const poste = document.getElementById('reg-poste').value;
+  const atouts = {
+    vitesse: +document.getElementById('a-vitesse').value,
+    dribble: +document.getElementById('a-dribble').value,
+    frappe:  +document.getElementById('a-frappe').value,
+    defense: +document.getElementById('a-defense').value,
+    physique: +document.getElementById('a-physique').value,
+  };
+  document.getElementById('auth-error').textContent = '';
+  if (!pseudo) { document.getElementById('auth-error').textContent = 'Le pseudo est obligatoire.'; return; }
+  try {
+    const cred = await createUserWithEmailAndPassword(auth, email, pwd);
+    await setDoc(doc(db, 'users', cred.user.uid), {
+      email, pseudo, equipePreferee: equipe, posteFavori: poste, atouts,
+      xp: 0, niveau: 1, badges: [],
+      stats: { matchsJoues: 0, victoires: 0, hommeDuMatch: 0 },
+      createdAt: serverTimestamp()
+    });
+  } catch (e) {
+    document.getElementById('auth-error').textContent = tradFirebaseError(e.code);
+  }
+}
+window.doRegister = doRegister;
+
+async function doLogout() {
+  cleanupListeners();
+  await signOut(auth);
+}
+window.doLogout = doLogout;
+
+function tradFirebaseError(code) {
+  const m = {
+    'auth/invalid-email': 'Email invalide.',
+    'auth/user-not-found': 'Aucun compte avec cet email.',
+    'auth/wrong-password': 'Mot de passe incorrect.',
+    'auth/email-already-in-use': 'Cet email est déjà utilisé.',
+    'auth/weak-password': 'Mot de passe trop court (6 car. min).',
+    'auth/invalid-credential': 'Email ou mot de passe incorrect.',
+    'auth/too-many-requests': 'Trop de tentatives. Réessaie plus tard.',
+    'auth/network-request-failed': 'Problème réseau. Vérifie ta connexion.',
+  };
+  return m[code] || 'Une erreur est survenue : ' + code;
+}
+
+// ===== NAVIGATION =====
+function navigateTo(screen) {
+  currentScreen = screen;
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.screen === screen);
+  });
+  renderScreen(screen);
+}
+window.navigateTo = navigateTo;
+
+function renderScreen(screen) {
+  if (screen === 'home') renderHome();
+  else if (screen === 'matchs') renderMatchs();
+  else if (screen === 'profil') renderProfil();
+  else if (screen === 'classement') renderClassement();
+}
+
+// ===== LISTENERS CLEANUP =====
+function cleanupListeners() {
+  activeListeners.forEach(u => u());
+  activeListeners = [];
+}
+
+// ===== TOAST =====
+function showToast(msg, type = '') {
+  const wrap = document.getElementById('toast-wrap');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  const icons = { success: '✅', error: '❌', levelup: '🚀', '': 'ℹ️' };
+  t.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+  wrap.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+window.showToast = showToast;
+
+// ===== FORMAT DATE =====
+function formatDate(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' })
+    + ' à ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+}
+function formatDateShort(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' })
+    + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
+}
+
+// Retourne les initiales d'un pseudo
+function initiales(pseudo) {
+  if (!pseudo) return '?';
+  return pseudo.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+}
+
+// Cache local des users pour éviter des lectures répétées
+const usersCache = {};
+async function getUserData(uid) {
+  if (usersCache[uid]) return usersCache[uid];
+  const snap = await getDoc(doc(db, 'users', uid));
+  if (snap.exists()) { usersCache[uid] = snap.data(); return snap.data(); }
+  return null;
+}
+
+// ===== MODAL =====
+function openModal(title, bodyHtml) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').innerHTML = bodyHtml;
+  document.getElementById('main-modal').classList.remove('hidden');
+}
+function closeModal() {
+  document.getElementById('main-modal').classList.add('hidden');
+  document.getElementById('modal-body').innerHTML = '';
+}
+window.closeModal = closeModal;
+
+// Empêcher la fermeture du modal en cliquant sur l'overlay
+document.getElementById('main-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+// ===== ÉCRAN ACCUEIL =====
+async function renderHome() {
+  const el = document.getElementById('home-content');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+  // Prochain match confirmé
+  const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'), orderBy('dateFinale', 'asc'));
+  const snapC = await getDocs(qConfirme).catch(() => null);
+
+  // Sondages en cours
+  const qSondage = query(collection(db, 'matchs'), where('statut', '==', 'sondage'), orderBy('createdAt', 'desc'));
+  const snapS = await getDocs(qSondage).catch(() => null);
+
+  let html = '';
+
+  // Prochain match confirmé
+  const confirmes = snapC ? snapC.docs.filter(d => {
+    const dFin = d.data().dateFinale;
+    if (!dFin) return false;
+    return (dFin.toDate ? dFin.toDate() : new Date(dFin)) > new Date();
+  }) : [];
+
+  if (confirmes.length > 0) {
+    const m = confirmes[0].data();
+    const joueursCount = (m.joueursInscrits || []).length;
+    html += `
+      <div class="hero-match card-hover" onclick="openMatchDetail('${confirmes[0].id}')">
+        <div class="hero-label">⚽ Prochain match confirmé</div>
+        <div class="hero-date">${formatDate(m.dateFinale)}</div>
+        <div class="hero-lieu">📍 ${m.lieuFinal || 'Lieu à définir'}</div>
+        <div class="hero-players">
+          <div class="player-avatars" id="home-avatars-${confirmes[0].id}"></div>
+          <div class="player-count">${joueursCount} joueur${joueursCount>1?'s':''} inscrit${joueursCount>1?'s':''}</div>
+        </div>
+      </div>`;
+    // Charger avatars async
+    renderAvatarsAsync(confirmes[0].id, m.joueursInscrits || [], 'home-avatars-' + confirmes[0].id);
+  }
+
+  // Sondages
+  const sondages = snapS ? snapS.docs : [];
+  if (sondages.length > 0) {
+    html += `<div class="section-title">🗳️ Sondages en cours <span class="badge-dot">${sondages.length}</span></div>`;
+    for (const d of sondages.slice(0, 3)) {
+      const m = d.data();
+      const votes = m.votes || {};
+      const bestCreneau = getBestCreneau(m);
+      html += `
+        <div class="poll-card" onclick="openMatchDetail('${d.id}')">
+          <div class="poll-card-header">
+            <div>
+              <div class="poll-card-title">Match du ${m.creneauxProposes && m.creneauxProposes.length > 0 ? formatDateShort(m.creneauxProposes[0].date) : '?'}</div>
+              <div class="poll-card-sub">${m.creneauxProposes ? m.creneauxProposes.length : 0} créneaux proposés</div>
+            </div>
+            <span class="tag tag-sondage">Sondage</span>
+          </div>
+          <div class="poll-creneaux">
+            ${(m.creneauxProposes || []).slice(0, 2).map(c => {
+              const voteCount = (votes[c.id] || []).length;
+              const hasVoted = (votes[c.id] || []).includes(currentUser?.uid);
+              return `<div class="creneau-preview">
+                <span>${formatDateShort(c.date)} – ${c.lieu}</span>
+                <span class="votes">${voteCount} vote${voteCount>1?'s':''}${hasVoted?' ✓':''}</span>
+              </div>`;
+            }).join('')}
+          </div>
+        </div>`;
+    }
+  }
+
+  if (!confirmes.length && !sondages.length) {
+    html += `
+      <div class="empty-state">
+        <div class="icon">⚽</div>
+        <p>Aucun match en cours.<br>Sois le premier à en proposer un !</p>
+      </div>`;
+  }
+
+  html += `
+    <div style="margin-top:16px">
+      <button class="btn-primary" onclick="openCreateMatch()">+ PROPOSER UN MATCH</button>
+    </div>`;
+
+  el.innerHTML = html;
+}
+
+// Charge les avatars de joueurs en asynchrone
+async function renderAvatarsAsync(matchId, uids, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
+  let avatarHtml = '';
+  for (const uid of uids.slice(0, 5)) {
+    const u = await getUserData(uid);
+    const ini = initiales(u ? u.pseudo : '?');
+    avatarHtml += `<div class="player-avatar">${ini}</div>`;
+  }
+  if (uids.length > 5) avatarHtml += `<div class="player-avatar">+${uids.length - 5}</div>`;
+  container.innerHTML = avatarHtml;
+}
+
+function getBestCreneau(match) {
+  const votes = match.votes || {};
+  const creneaux = match.creneauxProposes || [];
+  let best = null, max = -1;
+  creneaux.forEach(c => {
+    const n = (votes[c.id] || []).length;
+    if (n > max) { max = n; best = c; }
+  });
+  return best;
+}
+
+// ===== ÉCRAN MATCHS =====
+let matchsFilter = 'sondage';
+async function renderMatchs() {
+  const el = document.getElementById('matchs-content');
+  el.innerHTML = `
+    <div class="section-actions">
+      <button class="btn-sm btn-orange" onclick="openCreateMatch()">+ Proposer</button>
+    </div>
+    <div class="pill-tabs">
+      <button class="pill-tab active" id="filter-sondage" onclick="setMatchFilter('sondage')">Sondages</button>
+      <button class="pill-tab" id="filter-confirme" onclick="setMatchFilter('confirme')">Confirmés</button>
+      <button class="pill-tab" id="filter-termine" onclick="setMatchFilter('termine')">Historique</button>
+    </div>
+    <div id="matchs-list"><div class="loader"><div class="spinner"></div></div></div>`;
+  loadMatchsList(matchsFilter);
+}
+window.setMatchFilter = function(f) {
+  matchsFilter = f;
+  ['sondage','confirme','termine'].forEach(x => {
+    const el = document.getElementById('filter-' + x);
+    if (el) el.classList.toggle('active', x === f);
+  });
+  loadMatchsList(f);
+};
+
+function loadMatchsList(filter) {
+  const el = document.getElementById('matchs-list');
+  if (!el) return;
+  // Nettoyer l'ancien listener de cette liste
+  if (window._matchsListenerUnsubscribe) {
+    window._matchsListenerUnsubscribe();
+    window._matchsListenerUnsubscribe = null;
+  }
+  const statutMap = { sondage: 'sondage', confirme: 'confirmé', termine: 'terminé' };
+  const statut = statutMap[filter];
+  const q = query(collection(db, 'matchs'), where('statut', '==', statut), orderBy('createdAt', 'desc'));
+  const unsub = onSnapshot(q, async snap => {
+    if (snap.empty) {
+      el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? '📜' : '📅'}</div><p>Aucun match ici pour l'instant.</p></div>`;
+      return;
+    }
+    let html = '';
+    for (const d of snap.docs) {
+      const m = d.data();
+      const isInscrit = (m.joueursInscrits || []).includes(currentUser?.uid);
+      const votesTotal = Object.values(m.votes || {}).reduce((s, v) => s + v.length, 0);
+      const best = getBestCreneau(m);
+      let subtitle = '';
+      if (statut === 'sondage') subtitle = `${m.creneauxProposes ? m.creneauxProposes.length : 0} créneaux · ${votesTotal} vote${votesTotal > 1 ? 's' : ''}`;
+      else if (statut === 'confirmé') subtitle = `${formatDateShort(m.dateFinale)} · ${m.lieuFinal || ''}`;
+      else subtitle = `Score: ${m.scoreA ?? '?'} – ${m.scoreB ?? '?'}`;
+      html += `
+        <div class="match-list-card" onclick="openMatchDetail('${d.id}')">
+          <div class="mlc-top">
+            <div>
+              <div class="mlc-title">${statut === 'confirmé' ? '⚽' : statut === 'sondage' ? '🗳️' : '📋'} Match du ${best ? formatDateShort(best.date) : (m.dateFinale ? formatDateShort(m.dateFinale) : '?')}</div>
+              <div class="mlc-sub">${subtitle}</div>
+            </div>
+            <span class="tag tag-${filter}">${statut}</span>
+          </div>
+          <div class="mlc-bottom">
+            <span style="font-size:18px">${isInscrit ? '✅' : '👤'}</span>
+            <span class="mlc-creator">${(m.joueursInscrits || []).length} joueur${(m.joueursInscrits || []).length > 1 ? 's' : ''}</span>
+          </div>
+        </div>`;
+    }
+    el.innerHTML = html;
+  });
+  window._matchsListenerUnsubscribe = unsub;
+  activeListeners.push(unsub);
+}
+
+// ===== DÉTAIL MATCH =====
+async function openMatchDetail(matchId) {
+  openModal('Chargement…', '<div class="loader"><div class="spinner"></div></div>');
+  // Écoute temps réel du match
+  const matchRef = doc(db, 'matchs', matchId);
+  let firstLoad = true;
+  const unsub = onSnapshot(matchRef, async snap => {
+    if (!snap.exists()) { closeModal(); return; }
+    const m = snap.data();
+    if (firstLoad) {
+      firstLoad = false;
+      document.getElementById('modal-title').textContent =
+        m.statut === 'sondage' ? '🗳️ Sondage créneau' :
+        m.statut === 'confirmé' ? '⚽ Match confirmé' : '📋 Match terminé';
+    }
+    await renderMatchDetail(matchId, m);
+  });
+  activeListeners.push(unsub);
+  // Nettoyer ce listener quand le modal se ferme
+  const origClose = window.closeModal;
+  window.closeModal = () => { unsub(); window.closeModal = origClose; origClose(); };
+}
+window.openMatchDetail = openMatchDetail;
+
+async function renderMatchDetail(matchId, m) {
+  const uid = currentUser?.uid;
+  const votes = m.votes || {};
+  const inscrits = m.joueursInscrits || [];
+  const isInscrit = inscrits.includes(uid);
+  const isCreateur = m.createurUid === uid;
+  const best = getBestCreneau(m);
+
+  // Charger les pseudos des inscrits
+  let inscritsPseudos = {};
+  for (const u of inscrits) {
+    const d = await getUserData(u);
+    inscritsPseudos[u] = d?.pseudo || 'Joueur';
+  }
+
+  let html = '';
+
+  // ---- Sondage actif ----
+  if (m.statut === 'sondage') {
+    html += `<div class="section-sub">Choisis ton/tes créneaux</div>`;
+    html += (m.creneauxProposes || []).map(c => {
+      const voteCount = (votes[c.id] || []).length;
+      const hasVoted = (votes[c.id] || []).includes(uid);
+      const isTop = best && c.id === best.id && voteCount > 0;
+      return `
+        <div class="creneau-vote${hasVoted ? ' voted' : ''}${isTop ? ' top' : ''}" onclick="voterCreneau('${matchId}','${c.id}')">
+          <div class="info">
+            <div class="date-str">${formatDate(c.date)}</div>
+            <div class="lieu-str">📍 ${c.lieu}${isTop ? ' <strong style="color:var(--green)">· Plus voté</strong>' : ''}</div>
+          </div>
+          <div class="vote-count">
+            <div class="vote-num">${voteCount}</div>
+            <div class="vote-label">vote${voteCount>1?'s':''}</div>
+          </div>
+          ${hasVoted ? '<div class="vote-check">✓</div>' : ''}
+        </div>`;
+    }).join('');
+
+    if (isCreateur && best) {
+      html += `<div class="divider"></div>
+        <div class="section-sub">Action créateur</div>
+        <p style="font-size:13px;color:var(--text-sec);margin-bottom:12px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>
+        <button class="btn-sm btn-green" style="width:100%" onclick="confirmerMatch('${matchId}','${best.id}')">✅ CONFIRMER CE MATCH</button>`;
+    }
+
+    html += `<div class="divider"></div>
+      <div class="section-sub">Joueurs inscrits (${inscrits.length})</div>
+      <div class="joueurs-list">
+        ${inscrits.map(u => `<div class="joueur-chip"><div class="j-avatar">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('') || '<span style="color:var(--text-muted);font-size:13px">Personne encore.</span>'}
+      </div>
+      <div class="divider"></div>
+      <button class="btn-sm ${isInscrit ? 'btn-outline' : 'btn-orange'}" style="width:100%" onclick="toggleInscription('${matchId}', ${isInscrit})">
+        ${isInscrit ? '❌ Me désinscrire' : '✅ M\'inscrire au match'}
+      </button>`;
+  }
+
+  // ---- Match confirmé ----
+  else if (m.statut === 'confirmé') {
+    html += `
+      <div style="background:var(--card);border:1px solid var(--green);border-radius:12px;padding:14px;margin-bottom:14px">
+        <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Créneau confirmé</div>
+        <div style="font-size:17px;font-weight:600">${formatDate(m.dateFinale)}</div>
+        <div style="font-size:13px;color:var(--text-sec);margin-top:2px">📍 ${m.lieuFinal || '—'}</div>
+      </div>`;
+
+    // Équipes
+    if (m.equipes && m.equipes.length > 0) {
+      html += `<div class="section-sub">Équipes</div>`;
+      html += m.equipes.map(eq => `
+        <div class="equipe-block" style="border-left-color:${eq.couleur || 'var(--orange)'}">
+          <div class="equipe-nom">${eq.logo || '⚽'} ${eq.nom}</div>
+          <div class="equipe-joueurs">
+            ${(eq.joueurs || []).map(u => `<div class="joueur-chip"><div class="j-avatar" style="background:${eq.couleur||'var(--orange)'}">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+
+    html += `<div class="divider"></div>
+      <div class="section-sub">Joueurs inscrits (${inscrits.length})</div>
+      <div class="joueurs-list">
+        ${inscrits.map(u => `<div class="joueur-chip"><div class="j-avatar">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('') || '<span style="color:var(--text-muted);font-size:13px">Aucun joueur.</span>'}
+      </div>
+      <div class="divider"></div>
+      <button class="btn-sm ${isInscrit ? 'btn-outline' : 'btn-orange'}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}', ${isInscrit})">
+        ${isInscrit ? '❌ Me désinscrire' : '✅ M\'inscrire au match'}
+      </button>`;
+
+    if (isCreateur) {
+      html += `
+        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">🎨 Composer les équipes</button>
+        <button class="btn-sm btn-red" style="width:100%" onclick="openTerminerMatch('${matchId}')">🏁 Terminer le match</button>`;
+    }
+  }
+
+  // ---- Match terminé ----
+  else if (m.statut === 'terminé') {
+    html += `
+      <div class="score-display">
+        <div class="score-team">
+          <div class="score-num">${m.scoreA ?? '?'}</div>
+          <div class="score-name">${m.equipes?.[0]?.nom || 'Équipe A'}</div>
+        </div>
+        <div class="score-sep">–</div>
+        <div class="score-team">
+          <div class="score-num">${m.scoreB ?? '?'}</div>
+          <div class="score-name">${m.equipes?.[1]?.nom || 'Équipe B'}</div>
+        </div>
+      </div>`;
+
+    if (m.hommeDuMatchUid) {
+      const hdmData = await getUserData(m.hommeDuMatchUid);
+      html += `
+        <div style="background:rgba(243,156,18,.1);border:1px solid var(--gold);border-radius:12px;padding:12px;text-align:center;margin-bottom:14px">
+          <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px">🏆 HOMME DU MATCH</div>
+          <div style="font-size:20px;font-family:Oswald;font-weight:700;margin-top:4px">${hdmData?.pseudo || 'Inconnu'}</div>
+        </div>`;
+    }
+
+    if (m.equipes && m.equipes.length > 0) {
+      html += `<div class="section-sub">Équipes</div>`;
+      html += m.equipes.map(eq => `
+        <div class="equipe-block" style="border-left-color:${eq.couleur || 'var(--orange)'}">
+          <div class="equipe-nom">${eq.logo || '⚽'} ${eq.nom}</div>
+          <div class="equipe-joueurs">
+            ${(eq.joueurs || []).map(u => `<div class="joueur-chip">${inscritsPseudos[u]}</div>`).join('')}
+          </div>
+        </div>`).join('');
+    }
+  }
+
+  document.getElementById('modal-body').innerHTML = html;
+}
+
+// ===== VOTE CRÉNEAU =====
+async function voterCreneau(matchId, creneauId) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  const votes = snap.data().votes || {};
+  const crVotes = votes[creneauId] || [];
+  const hasVoted = crVotes.includes(uid);
+  const update = {};
+  if (hasVoted) {
+    update[`votes.${creneauId}`] = arrayRemove(uid);
+  } else {
+    update[`votes.${creneauId}`] = arrayUnion(uid);
+    await addXP(uid, XP.voter);
+    showToast('+10 XP pour ton vote !', 'success');
+  }
+  await updateDoc(ref, update);
+}
+window.voterCreneau = voterCreneau;
+
+// ===== INSCRIPTION MATCH =====
+async function toggleInscription(matchId, isInscrit) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const ref = doc(db, 'matchs', matchId);
+  if (isInscrit) {
+    await updateDoc(ref, { joueursInscrits: arrayRemove(uid) });
+    showToast('Tu t\'es désinscrit du match.', '');
+  } else {
+    await updateDoc(ref, { joueursInscrits: arrayUnion(uid) });
+    showToast('Tu es inscrit ! 🎉', 'success');
+  }
+}
+window.toggleInscription = toggleInscription;
+
+// ===== CONFIRMER MATCH =====
+async function confirmerMatch(matchId, creneauId) {
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  const m = snap.data();
+  const creneau = (m.creneauxProposes || []).find(c => c.id === creneauId);
+  if (!creneau) return;
+  await updateDoc(ref, {
+    statut: 'confirmé',
+    dateFinale: creneau.date,
+    lieuFinal: creneau.lieu,
+  });
+  showToast('Match confirmé ! ⚽', 'success');
+}
+window.confirmerMatch = confirmerMatch;
+
+// ===== CRÉER MATCH =====
+let creneauxBuilt = [];
+function openCreateMatch() {
+  creneauxBuilt = [{ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom }];
+  renderCreateMatchModal();
+}
+window.openCreateMatch = openCreateMatch;
+
+function genId() {
+  return Math.random().toString(36).substr(2, 9);
+}
+
+function renderCreateMatchModal() {
+  const lieuxOptions = LIEUX_DEMO.map(l => `<option value="${l.nom}">${l.nom}</option>`).join('');
+  const crHtml = creneauxBuilt.map((c, i) => `
+    <div class="creneau-builder" id="creneau-${c.id}">
+      <button class="remove-creneau" onclick="removeCreneau('${c.id}')">✕</button>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
+        <div>
+          <span class="input-label">Date</span>
+          <input class="input-field" type="date" id="cd-date-${c.id}" value="${c.date}" min="${new Date().toISOString().split('T')[0]}">
+        </div>
+        <div>
+          <span class="input-label">Heure</span>
+          <input class="input-field" type="time" id="cd-heure-${c.id}" value="${c.heure}">
+        </div>
+      </div>
+      <span class="input-label">Lieu</span>
+      <select class="input-field" id="cd-lieu-${c.id}">${lieuxOptions}</select>
+    </div>`).join('');
+
+  openModal('Proposer un match', `
+    <div class="create-form">
+      <div class="section-sub">Créneaux proposés</div>
+      <div id="creneaux-list">${crHtml}</div>
+      <button class="add-creneau-btn" onclick="addCreneau()">+ Ajouter un créneau</button>
+      <div class="divider"></div>
+      <button class="btn-primary" onclick="submitCreateMatch()">PROPOSER LE MATCH</button>
+    </div>`);
+}
+
+window.addCreneau = function() {
+  creneauxBuilt.push({ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom });
+  renderCreateMatchModal();
+};
+
+window.removeCreneau = function(id) {
+  if (creneauxBuilt.length <= 1) { showToast('Au minimum 1 créneau requis.', 'error'); return; }
+  creneauxBuilt = creneauxBuilt.filter(c => c.id !== id);
+  renderCreateMatchModal();
+};
+
+window.submitCreateMatch = async function() {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const creneaux = creneauxBuilt.map(c => {
+    const dateVal = document.getElementById('cd-date-' + c.id)?.value;
+    const heureVal = document.getElementById('cd-heure-' + c.id)?.value;
+    const lieuVal = document.getElementById('cd-lieu-' + c.id)?.value;
+    if (!dateVal) return null;
+    const dateObj = new Date(dateVal + 'T' + heureVal + ':00');
+    return { id: c.id, date: dateObj, heure: heureVal, lieu: lieuVal };
+  }).filter(Boolean);
+
+  if (creneaux.length === 0) { showToast('Ajoute au moins une date valide.', 'error'); return; }
+
+  const votes = {};
+  creneaux.forEach(c => { votes[c.id] = []; });
+
+  await addDoc(collection(db, 'matchs'), {
+    createurUid: uid,
+    statut: 'sondage',
+    creneauxProposes: creneaux,
+    votes,
+    joueursInscrits: [uid],
+    equipes: [],
+    hommeDuMatchUid: null,
+    scoreA: null, scoreB: null,
+    lieuFinal: null, dateFinale: null,
+    createdAt: serverTimestamp()
+  });
+
+  await addXP(uid, XP.creer);
+  // Badge organisateur
+  const ud = await getUserData(uid);
+  if (ud && !(ud.badges || []).includes('organisateur')) {
+    await updateDoc(doc(db, 'users', uid), { badges: arrayUnion('organisateur') });
+    showToast('Badge débloqué : 📋 Organisateur', 'success');
+  }
+  showToast('Match proposé ! +50 XP 🎉', 'success');
+  closeModal();
+  navigateTo('matchs');
+};
+
+// ===== COMPOSER ÉQUIPES =====
+const COULEURS_EQ = ['#FF6B35','#3498DB','#2ECC71','#9B59B6','#E74C3C','#F39C12','#1ABC9C','#E91E63'];
+let eqData = [
+  { nom: 'Équipe Rouge', couleur: '#FF6B35', logo: '🔴', joueurs: [] },
+  { nom: 'Équipe Bleue',  couleur: '#3498DB', logo: '🔵', joueurs: [] },
+];
+
+async function openComposerEquipes(matchId) {
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  const m = snap.data();
+  eqData = m.equipes && m.equipes.length > 0 ? JSON.parse(JSON.stringify(m.equipes)) : [
+    { nom: 'Équipe Rouge', couleur: '#FF6B35', logo: '🔴', joueurs: [] },
+    { nom: 'Équipe Bleue',  couleur: '#3498DB', logo: '🔵', joueurs: [] },
+  ];
+  const inscrits = m.joueursInscrits || [];
+  const pseudos = {};
+  for (const u of inscrits) {
+    const d = await getUserData(u);
+    pseudos[u] = d?.pseudo || 'Joueur';
+  }
+  window._composerMatchId = matchId;
+  window._composerPseudos = pseudos;
+  window._composerInscrits = inscrits;
+  renderComposerModal();
+}
+window.openComposerEquipes = openComposerEquipes;
+
+function renderComposerModal() {
+  const inscrits = window._composerInscrits || [];
+  const pseudos = window._composerPseudos || {};
+  const EMOJIS = ['⚽','🔴','🔵','🟢','🟡','🟠','🟣','⚪','🦁','🐯','🦊','🦅','🔥','💎','⚡','🏆'];
+
+  const eqHtml = eqData.map((eq, i) => `
+    <div class="card" style="border-left:3px solid ${eq.couleur};margin-bottom:12px">
+      <div class="eq-header">
+        <div class="eq-emoji" onclick="openEmojiPicker(${i})" title="Changer logo">${eq.logo}</div>
+        <input class="input-field" style="flex:1" type="text" value="${eq.nom}" onchange="eqData[${i}].nom=this.value" placeholder="Nom équipe">
+        <div class="eq-color-dot" style="background:${eq.couleur}" onclick="toggleColorPicker(${i})" title="Couleur"></div>
+      </div>
+      <div id="color-picker-${i}" style="display:none">
+        <div class="color-picker-row">
+          ${COULEURS_EQ.map(c => `<div class="color-dot${eq.couleur===c?' selected':''}" style="background:${c}" onclick="setEqColor(${i},'${c}')"></div>`).join('')}
+        </div>
+      </div>
+      <div id="emoji-picker-${i}" style="display:none">
+        <div class="color-picker-row" style="flex-wrap:wrap;gap:6px;margin-top:8px">
+          ${EMOJIS.map(e => `<span style="font-size:22px;cursor:pointer" onclick="setEqEmoji(${i},'${e}')">${e}</span>`).join('')}
+        </div>
+      </div>
+      <div class="assign-list">
+        ${inscrits.map(uid => `
+          <div class="assign-item">
+            <div class="j-avatar" style="width:24px;height:24px;border-radius:50%;background:${eq.couleur};display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700;flex-shrink:0">${initiales(pseudos[uid])}</div>
+            <span style="flex:1">${pseudos[uid]}</span>
+            <select onchange="assignJoueur('${uid}',parseInt(this.value))">
+              <option value="-1" ${!eqData[0].joueurs.includes(uid)&&!eqData[1].joueurs.includes(uid)?'selected':''}>—</option>
+              ${eqData.map((e,j) => `<option value="${j}" ${e.joueurs.includes(uid)?'selected':''}>${e.nom}</option>`).join('')}
+            </select>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+
+  openModal('🎨 Composer les équipes', `
+    ${eqHtml}
+    <button class="btn-sm btn-green" style="width:100%" onclick="saveEquipes()">ENREGISTRER LES ÉQUIPES</button>`);
+}
+
+window.toggleColorPicker = (i) => {
+  const el = document.getElementById('color-picker-' + i);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+};
+window.openEmojiPicker = (i) => {
+  const el = document.getElementById('emoji-picker-' + i);
+  if (el) el.style.display = el.style.display === 'none' ? '' : 'none';
+};
+window.setEqColor = (i, c) => { eqData[i].couleur = c; renderComposerModal(); };
+window.setEqEmoji = (i, e) => { eqData[i].logo = e; renderComposerModal(); };
+window.assignJoueur = (uid, eqIdx) => {
+  eqData.forEach((eq, i) => {
+    eq.joueurs = eq.joueurs.filter(u => u !== uid);
+    if (i === eqIdx) eq.joueurs.push(uid);
+  });
+};
+
+window.saveEquipes = async function() {
+  const matchId = window._composerMatchId;
+  if (!matchId) return;
+  await updateDoc(doc(db, 'matchs', matchId), { equipes: eqData });
+  showToast('Équipes enregistrées ! 🎨', 'success');
+  closeModal();
+  openMatchDetail(matchId);
+};
+
+// ===== TERMINER MATCH =====
+async function openTerminerMatch(matchId) {
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  const m = snap.data();
+  const inscrits = m.joueursInscrits || [];
+  const pseudos = {};
+  for (const u of inscrits) {
+    const d = await getUserData(u);
+    pseudos[u] = d?.pseudo || 'Joueur';
+  }
+  const nomA = m.equipes?.[0]?.nom || 'Équipe A';
+  const nomB = m.equipes?.[1]?.nom || 'Équipe B';
+
+  openModal('🏁 Terminer le match', `
+    <div class="section-sub">Score final</div>
+    <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:20px">
+      <div>
+        <div style="font-size:12px;color:var(--text-sec);text-align:center;margin-bottom:4px">${nomA}</div>
+        <input class="input-field" type="number" id="score-a" min="0" max="99" value="0" style="text-align:center;font-size:24px;font-family:Oswald;font-weight:700;padding:12px">
+      </div>
+      <div style="font-family:Oswald;font-size:24px;color:var(--text-muted)">–</div>
+      <div>
+        <div style="font-size:12px;color:var(--text-sec);text-align:center;margin-bottom:4px">${nomB}</div>
+        <input class="input-field" type="number" id="score-b" min="0" max="99" value="0" style="text-align:center;font-size:24px;font-family:Oswald;font-weight:700;padding:12px">
+      </div>
+    </div>
+    <div class="section-sub">Homme du match</div>
+    <div class="hdm-list" id="hdm-list">
+      ${inscrits.map(u => `
+        <div class="hdm-item" id="hdm-${u}" onclick="selectHdm('${u}')">
+          <div class="j-avatar" style="width:32px;height:32px;border-radius:50%;background:var(--orange);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff">${initiales(pseudos[u])}</div>
+          <div class="hdm-pseudo">${pseudos[u]}</div>
+        </div>`).join('')}
+    </div>
+    <div class="divider"></div>
+    <button class="btn-primary" onclick="terminerMatch('${matchId}')">VALIDER LE RÉSULTAT</button>`);
+
+  window._hdmSelected = null;
+}
+window.openTerminerMatch = openTerminerMatch;
+
+window.selectHdm = function(uid) {
+  window._hdmSelected = uid;
+  document.querySelectorAll('.hdm-item').forEach(el => el.classList.remove('selected'));
+  const el = document.getElementById('hdm-' + uid);
+  if (el) { el.classList.add('selected'); el.querySelector('.hdm-crown')?.remove(); el.innerHTML += '<span class="hdm-crown">👑</span>'; }
+};
+
+window.terminerMatch = async function(matchId) {
+  const scoreA = parseInt(document.getElementById('score-a')?.value ?? 0);
+  const scoreB = parseInt(document.getElementById('score-b')?.value ?? 0);
+  const hdmUid = window._hdmSelected;
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  const m = snap.data();
+  const inscrits = m.joueursInscrits || [];
+
+  await updateDoc(ref, {
+    statut: 'terminé', scoreA, scoreB,
+    hommeDuMatchUid: hdmUid || null
+  });
+
+  // XP pour tous les participants
+  for (const uid of inscrits) {
+    await addXP(uid, XP.participer);
+    await updateDoc(doc(db, 'users', uid), {
+      'stats.matchsJoues': increment(1)
+    });
+  }
+  // XP HDM
+  if (hdmUid) {
+    await addXP(hdmUid, XP.hdm);
+    await updateDoc(doc(db, 'users', hdmUid), {
+      'stats.hommeDuMatch': increment(1)
+    });
+    showToast('🏆 Homme du match élu !', 'success');
+  }
+  // Vérif badges pour tous
+  for (const uid of inscrits) {
+    const d = await getUserData(uid);
+    if (d) await checkBadges(uid, { ...d, stats: { ...d.stats, matchsJoues: (d.stats?.matchsJoues || 0) + 1 } });
+  }
+
+  showToast('Match terminé ! +100 XP pour tous 🎉', 'success');
+  closeModal();
+  if (currentScreen === 'matchs') renderMatchs();
+};
+
+// ===== ÉCRAN PROFIL =====
+async function renderProfil() {
+  const el = document.getElementById('profil-content');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  if (!currentUser) return;
+
+  const snap = await getDoc(doc(db, 'users', currentUser.uid));
+  if (!snap.exists()) return;
+  const d = snap.data();
+  currentUserData = d;
+
+  const rang = getRang(d.xp || 0);
+  const note = noteGlobale(d.atouts);
+  const postes = { gardien: 'GK', defenseur: 'DEF', milieu: 'MIL', attaquant: 'ATT' };
+  const posteLabel = postes[d.posteFavori] || d.posteFavori || 'MIL';
+
+  const atoutsOrder = [
+    { key: 'vitesse', label: 'Vitesse' },
+    { key: 'dribble', label: 'Dribble' },
+    { key: 'frappe', label: 'Frappe' },
+    { key: 'defense', label: 'Défense' },
+    { key: 'physique', label: 'Physique' },
+  ];
+
+  const badgesHtml = BADGES_DEF.map(b => {
+    const unlocked = (d.badges || []).includes(b.id);
+    return `<div class="badge-item ${unlocked ? 'unlocked' : 'locked'}">
+      <div class="b-icon">${b.icon}</div>
+      <div class="b-name">${b.name}</div>
+    </div>`;
+  }).join('');
+
+  el.innerHTML = `
+    <div class="rank-badge">${rang.label} · ${d.xp || 0} XP</div>
+
+    <div class="fut-card">
+      <div class="fut-overall">${note}</div>
+      <div class="fut-pos">${posteLabel}</div>
+      <div class="fut-pseudo">${d.pseudo || 'Joueur'}</div>
+      <div class="fut-equipe">🏟️ ${d.equipePreferee || '—'}</div>
+      <div class="fut-divider"></div>
+      <div class="fut-stats">
+        ${atoutsOrder.map(a => `
+          <div class="fut-stat">
+            <div class="fut-stat-val">${d.atouts?.[a.key] ?? 70}</div>
+            <div class="fut-stat-label">${a.label}</div>
+          </div>`).join('')}
+      </div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat-box"><div class="sv">${d.stats?.matchsJoues ?? 0}</div><div class="sl">Matchs joués</div></div>
+      <div class="stat-box"><div class="sv">${d.stats?.victoires ?? 0}</div><div class="sl">Victoires</div></div>
+      <div class="stat-box"><div class="sv">${d.stats?.hommeDuMatch ?? 0}</div><div class="sl">Homme du match</div></div>
+    </div>
+
+    <div class="section-title" style="margin-top:8px">Atouts</div>
+    ${atoutsOrder.map(a => {
+      const val = d.atouts?.[a.key] ?? 70;
+      return `<div class="atout-bar-wrap">
+        <div class="atout-bar-label"><span>${a.label}</span><span>${val}</span></div>
+        <div class="atout-bar-bg"><div class="atout-bar-fill" style="width:${val}%"></div></div>
+      </div>`;
+    }).join('')}
+
+    <div class="section-title" style="margin-top:16px">Badges</div>
+    <div class="badges-grid">${badgesHtml}</div>
+
+    <div class="divider"></div>
+    <button class="edit-profile-btn" onclick="openEditProfile()">✏️ Modifier mon profil</button>
+  `;
+
+  document.getElementById('top-xp-badge').textContent = `${d.xp || 0} XP`;
+}
+
+// ===== ÉDITER PROFIL =====
+function openEditProfile() {
+  const d = currentUserData;
+  if (!d) return;
+  const atoutsOrder = ['vitesse','dribble','frappe','defense','physique'];
+  openModal('✏️ Modifier mon profil', `
+    <div class="form-group">
+      <label class="input-label">Pseudo</label>
+      <input class="input-field" id="ep-pseudo" value="${d.pseudo || ''}">
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label class="input-label">Équipe préférée</label>
+      <select class="input-field" id="ep-equipe">
+        ${['PSG','OM','OL','Monaco','Barcelone','Real Madrid','Bayern','Man City','Liverpool','Chelsea'].map(e =>
+          `<option${e === d.equipePreferee ? ' selected' : ''}>${e}</option>`).join('')}
+      </select>
+    </div>
+    <div class="form-group" style="margin-top:10px">
+      <label class="input-label">Poste</label>
+      <select class="input-field" id="ep-poste">
+        ${[['gardien','Gardien'],['defenseur','Défenseur'],['milieu','Milieu'],['attaquant','Attaquant']].map(([v,l]) =>
+          `<option value="${v}"${v === d.posteFavori ? ' selected' : ''}>${l}</option>`).join('')}
+      </select>
+    </div>
+    <div style="margin-top:14px">
+      <label class="input-label">Atouts</label>
+      ${atoutsOrder.map(a => `
+        <div class="atout-item form-group" style="margin-top:8px">
+          <label style="display:flex;justify-content:space-between"><span style="text-transform:capitalize">${a}</span><span id="epv-${a}" style="color:var(--orange);font-weight:600">${d.atouts?.[a] ?? 70}</span></label>
+          <input type="range" min="20" max="99" value="${d.atouts?.[a] ?? 70}" id="epa-${a}" oninput="document.getElementById('epv-${a}').textContent=this.value" style="width:100%;accent-color:var(--orange)">
+        </div>`).join('')}
+    </div>
+    <button class="btn-primary" style="margin-top:16px" onclick="saveProfile()">ENREGISTRER</button>`);
+}
+window.openEditProfile = openEditProfile;
+
+window.saveProfile = async function() {
+  if (!currentUser) return;
+  const atoutsOrder = ['vitesse','dribble','frappe','defense','physique'];
+  const atouts = {};
+  atoutsOrder.forEach(a => { atouts[a] = +document.getElementById('epa-' + a).value; });
+  await updateDoc(doc(db, 'users', currentUser.uid), {
+    pseudo: document.getElementById('ep-pseudo').value.trim(),
+    equipePreferee: document.getElementById('ep-equipe').value,
+    posteFavori: document.getElementById('ep-poste').value,
+    atouts,
+  });
+  delete usersCache[currentUser.uid];
+  showToast('Profil mis à jour ! ✅', 'success');
+  closeModal();
+  renderProfil();
+};
+
+// ===== CLASSEMENT =====
+async function renderClassement() {
+  const el = document.getElementById('classement-content');
+  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+
+  const q = query(collection(db, 'users'), orderBy('xp', 'desc'));
+  const snap = await getDocs(q);
+  const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  if (users.length === 0) {
+    el.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Aucun joueur encore inscrit.</p></div>';
+    return;
+  }
+
+  const top3 = users.slice(0, 3);
+  const rest = users.slice(3);
+
+  // Podium
+  let podiumHtml = '<div class="podium">';
+  const podiumOrder = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
+  const podiumClass = ['podium-2', 'podium-1', 'podium-3'];
+  const podiumLabel = ['2', '1', '3'];
+  podiumOrder.forEach((u, i) => {
+    const isMe = u.id === currentUser?.uid;
+    const rang = getRang(u.xp || 0);
+    podiumHtml += `
+      <div class="podium-item ${podiumClass[i]}">
+        <div class="podium-avatar${isMe ? '" style="border:2px solid var(--orange)' : ''}">${initiales(u.pseudo)}</div>
+        <div class="podium-name">${u.pseudo}${isMe ? ' 👋' : ''}</div>
+        <div class="podium-xp">${u.xp || 0} XP</div>
+        <div class="podium-block">${podiumLabel[i]}</div>
+      </div>`;
+  });
+  podiumHtml += '</div>';
+
+  // Liste
+  let listHtml = '<div class="leaderboard-list">';
+  users.forEach((u, i) => {
+    const isMe = u.id === currentUser?.uid;
+    const rang = getRang(u.xp || 0);
+    const rankColor = i === 0 ? 'var(--gold)' : i === 1 ? 'var(--silver)' : i === 2 ? 'var(--bronze)' : 'var(--text-muted)';
+    listHtml += `
+      <div class="lb-item${isMe ? ' me' : ''}">
+        <div class="lb-rank" style="color:${rankColor}">${i + 1}</div>
+        <div class="lb-avatar">${initiales(u.pseudo)}</div>
+        <div class="lb-info">
+          <div class="lb-pseudo">${u.pseudo}${isMe ? ' 👋' : ''}</div>
+          <div class="lb-detail">${rang.label} · ${u.stats?.matchsJoues ?? 0} matchs · ${u.stats?.hommeDuMatch ?? 0} 🏆</div>
+        </div>
+        <div class="lb-xp">${u.xp || 0} XP</div>
+      </div>`;
+  });
+  listHtml += '</div>';
+
+  el.innerHTML = `
+    <div class="section-title">🏆 Classement XP</div>
+    ${podiumHtml}
+    <div class="section-title" style="margin-top:4px">Tous les joueurs</div>
+    ${listHtml}`;
+}
+
+// ===== AUTH STATE =====
+onAuthStateChanged(auth, async (user) => {
+  document.getElementById('loading-screen').classList.add('hidden');
+  if (user) {
+    currentUser = user;
+    // Charger les données utilisateur
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    currentUserData = snap.exists() ? snap.data() : null;
+    // Mettre à jour le badge XP dans la topbar
+    if (currentUserData) {
+      document.getElementById('top-xp-badge').textContent = `${currentUserData.xp || 0} XP`;
+    }
+    // Afficher l'app
+    document.getElementById('auth-wrap').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    renderHome();
+  } else {
+    currentUser = null;
+    currentUserData = null;
+    cleanupListeners();
+    document.getElementById('app').classList.add('hidden');
+    document.getElementById('auth-wrap').classList.remove('hidden');
+  }
+});
+
+// Écoute temps réel de l'utilisateur courant (pour XP live)
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    const unsub = onSnapshot(doc(db, 'users', user.uid), (snap) => {
+      if (snap.exists()) {
+        currentUserData = snap.data();
+        document.getElementById('top-xp-badge').textContent = `${currentUserData.xp || 0} XP`;
+      }
+    });
+    activeListeners.push(unsub);
+  }
+});
+
+// ===== TOUCH SWIPE sur les modals =====
+let startY = 0;
+document.getElementById('modal-sheet').addEventListener('touchstart', e => { startY = e.touches[0].clientY; }, { passive: true });
+document.getElementById('modal-sheet').addEventListener('touchend', e => {
+  const dy = e.changedTouches[0].clientY - startY;
+  if (dy > 80) closeModal();
+}, { passive: true });
+
+</script>
+
+<!--
+===== RÈGLES DE SÉCURITÉ FIRESTORE =====
+À copier dans la console Firebase → Firestore → Règles :
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Utilisateurs : lecture publique (classement), écriture uniquement sur son propre doc
+    match /users/{uid} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null && request.auth.uid == uid;
+      allow update: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // Matchs : lecture pour tous les authentifiés, création pour tout authentifié,
+    // mise à jour pour tout authentifié (votes, inscriptions, résultats)
+    match /matchs/{matchId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      // Pour production : restreindre la confirmation/terminaison au créateur :
+      // allow update: if request.auth != null &&
+      //   (request.auth.uid == resource.data.createurUid ||
+      //    request.resource.data.diff(resource.data).affectedKeys()
+      //      .hasOnly(['joueursInscrits','votes']));
+    }
+
+    // Lieux : lecture pour tous, écriture admin only (à gérer via custom claims)
+    match /lieux/{lieuId} {
+      allow read: if request.auth != null;
+      allow write: if false; // Gérer via Firebase Admin SDK
+    }
+  }
+}
+
+===== DÉPLOIEMENT GITHUB PAGES =====
+1. Va dans Settings → Pages de ce repo
+2. Source : Deploy from a branch → main (ou master) → / (root)
+3. Ton app sera disponible sur https://<username>.github.io/<repo>/
+
+===== CONFIGURATION FIREBASE =====
+1. Crée un projet sur https://console.firebase.google.com
+2. Active Authentication → Email/Password
+3. Crée une base Firestore en mode production
+4. Récupère la config Web (Project Settings → General → Your apps)
+5. Remplis le objet firebaseConfig en haut du <script>
+6. Copie les règles Firestore ci-dessus dans l'onglet Rules
+-->
+</body>
+</html>
