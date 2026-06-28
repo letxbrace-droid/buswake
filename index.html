@@ -1706,6 +1706,16 @@
     .ob-floue svg { width:var(--s,32px); height:var(--s,32px); display:block; color:#fff; }
     .obt-dot { width:13px; height:13px; border-radius:50%; display:inline-block; flex-shrink:0; box-shadow:0 0 8px currentColor; }
 
+    /* ===== ONBOARDING — équilibrage équipes ===== */
+    .ob-balance { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:2px; }
+    .obb-side { display:flex; flex-direction:column; align-items:center; gap:3px; background:var(--card); border:1px solid var(--border-light); border-radius:16px; padding:14px 20px; min-width:108px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px rgba(0,0,0,.5); }
+    .obb-dot { width:12px; height:12px; border-radius:50%; box-shadow:0 0 10px currentColor; }
+    .obb-note { font-family:'Anton',sans-serif; font-size:30px; line-height:1; }
+    .obb-lbl { font-size:11px; color:var(--text-sec); font-weight:600; letter-spacing:.5px; }
+    .obb-vs { font-family:'Anton',sans-serif; color:var(--text-muted); font-size:16px; }
+    .ob-balance-tag { display:inline-flex; align-items:center; gap:6px; margin-top:14px; font-size:12.5px; font-weight:700; color:var(--orange); background:rgba(0,216,138,.1); border:1px solid rgba(0,216,138,.32); padding:6px 14px; border-radius:99px; }
+    .ob-balance-tag svg { width:15px; height:15px; }
+
   </style>
 </head>
 <body>
@@ -1754,11 +1764,12 @@
     <div class="ob-slide">
       <svg class="ob-hero-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="9.5" cy="8" r="3.3"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.7-3.4"/><path d="M15.5 5.1a3.3 3.3 0 0 1 0 5.8"/></svg>
       <div class="ob-title">Composez vos <span>équipes</span></div>
-      <div class="ob-vs">
-        <div class="ob-team"><span class="obt-dot" style="background:#FF6A00"></span> CHASUBLES</div>
-        <div class="ob-vs-sep">VS</div>
-        <div class="ob-team"><span class="obt-dot" style="background:#00D88A"></span> VERTS</div>
+      <div class="ob-balance">
+        <div class="obb-side"><span class="obb-dot" style="background:#FF6A00"></span><span class="obb-note" style="color:#FF8A3D">77.4</span><span class="obb-lbl">Équipe A</span></div>
+        <div class="obb-vs">VS</div>
+        <div class="obb-side"><span class="obb-dot" style="background:#00D88A"></span><span class="obb-note" style="color:#00E89A">77.2</span><span class="obb-lbl">Équipe B</span></div>
       </div>
+      <div class="ob-balance-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Équipes équilibrées</div>
       <div class="ob-copy">L'algo répartit les forces <b>à la note près</b>.</div>
       <div class="ob-desc">Deux camps, un terrain.<br>Que le meilleur gagne.</div>
     </div>
