@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#0B0E12">
+  <meta name="theme-color" content="#000000">
   <meta name="description" content="Organisation de matchs de foot à 5 — Cap Saclay · Dépôt RATP">
   <title>Cap Saclay Five</title>
   <link rel="manifest" href="./manifest.json">
@@ -22,8 +22,8 @@
       --orange-glow: rgba(0,216,138,.4);
       --orange-glow-soft: rgba(0,216,138,.12);
       --chasuble: #FF6A00;
-      --bg: #0B0E12;
-      --surface: #151821;
+      --bg: #000000;
+      --surface: #0B0D12;
       --card: #141821;
       --card2: #1B2030;
       --border: #20242F;
@@ -1445,6 +1445,90 @@
     .venue-opt:hover { background:rgba(0,216,138,.09); }
     .vo-name { display:block; font-size:13.5px; font-weight:600; color:var(--text); }
     .vo-meta { display:block; font-size:11px; color:var(--text-sec); margin-top:2px; }
+
+    /* ================================================== */
+    /* ===== OLED · iOS SLIDERS · 3D BLOCKS (override) ==== */
+    /* ================================================== */
+
+    /* --- Fond OLED : noir pur, halo discret en haut --- */
+    body { background:#000; }
+    body::before {
+      background:
+        radial-gradient(620px 420px at 50% -8%, rgba(0,216,138,.07) 0%, transparent 62%),
+        radial-gradient(900px 680px at 50% -14%, rgba(20,28,40,.55) 0%, transparent 60%);
+    }
+
+    /* --- Blocs 3D : élévation + reflet interne + halo doux --- */
+    .match-list-card, .poll-card, .stat-box, .hero-match, .equipe-block,
+    .badge-item, .ob-mini-card, .ob-team, .pitch, .creneau-vote,
+    .club-card, .poste-btn, .friend-item, .seg, .reg-fut-preview {
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,.06),
+        0 2px 6px rgba(0,0,0,.6),
+        0 14px 30px rgba(0,0,0,.55);
+    }
+    .modal-sheet {
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 -10px 50px rgba(0,0,0,.7);
+    }
+    .fut-card-v3 {
+      box-shadow: 0 22px 60px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.07),
+                  inset 0 2px 0 rgba(255,255,255,.4);
+    }
+    /* Cartes : léger dégradé interne pour le relief */
+    .match-list-card, .poll-card, .stat-box, .hero-match, .ob-mini-card {
+      background-image: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0) 46%);
+    }
+
+    /* --- SLIDERS iOS (unifiés) --- */
+    input[type=range] {
+      -webkit-appearance:none; appearance:none;
+      width:100%; height:7px; border-radius:99px;
+      background:rgba(255,255,255,.13);
+      outline:none; cursor:pointer;
+      box-shadow: inset 0 1px 2px rgba(0,0,0,.5);
+    }
+    input[type=range]::-webkit-slider-runnable-track { height:7px; border-radius:99px; background:transparent; }
+    input[type=range]::-moz-range-track { height:7px; border-radius:99px; background:rgba(255,255,255,.13); }
+    input[type=range]::-moz-range-progress { height:7px; border-radius:99px; background:linear-gradient(90deg,var(--orange-dark),var(--orange)); }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance:none; appearance:none;
+      width:26px; height:26px; border-radius:50%;
+      background:radial-gradient(circle at 35% 30%, #ffffff, #e9edf2);
+      border:none; margin-top:-10px;
+      box-shadow:
+        0 0 0 1px rgba(0,0,0,.12),
+        0 4px 10px rgba(0,0,0,.6),
+        0 0 0 0 var(--orange-glow);
+      transition: box-shadow .18s var(--ease,ease), transform .12s var(--ease,ease);
+    }
+    input[type=range]:hover::-webkit-slider-thumb {
+      box-shadow: 0 0 0 1px rgba(0,0,0,.12), 0 4px 10px rgba(0,0,0,.6), 0 0 0 9px rgba(0,216,138,.14);
+    }
+    input[type=range]:active::-webkit-slider-thumb,
+    input[type=range]:focus-visible::-webkit-slider-thumb {
+      transform: scale(1.04);
+      box-shadow: 0 0 0 1px rgba(0,0,0,.12), 0 5px 14px rgba(0,0,0,.65), 0 0 0 14px rgba(0,216,138,.20);
+    }
+    input[type=range]::-moz-range-thumb {
+      width:24px; height:24px; border:none; border-radius:50%;
+      background:#fff; box-shadow:0 4px 10px rgba(0,0,0,.6);
+    }
+    input[type=range]:active::-moz-range-thumb { box-shadow:0 4px 12px rgba(0,0,0,.65), 0 0 0 12px rgba(0,216,138,.2); }
+
+    /* --- Barres de vote / progression : rail iOS lumineux --- */
+    .mlc-vb-track, .vote-track, .atout-bar-bg, .ovr-bar, .pdp-stat-bar, .reg-progress-bar {
+      border-radius:99px !important; background:rgba(255,255,255,.12) !important;
+    }
+    .mlc-vb-fill, .vote-fill, .atout-bar-fill, .ovr-bar i, .pdp-stat-bar div, .reg-progress-fill {
+      border-radius:99px !important;
+      background:linear-gradient(90deg, var(--orange-dark), var(--orange)) !important;
+      box-shadow:0 0 10px var(--orange-glow);
+    }
+
+    /* --- Hiérarchie typo/couleur --- */
+    .section-title { color:#fff; font-weight:700; }
+    .section-sub, .input-label, .rsi-name { color:var(--text-sec); }
+    .rsi-val { color:var(--orange); }
 
   </style>
 </head>
