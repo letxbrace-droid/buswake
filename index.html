@@ -1309,14 +1309,15 @@
     .ob-title{font-family:'Anton',sans-serif;font-size:clamp(28px,8vw,38px);font-weight:700;color:#fff;text-align:center;line-height:1.15;margin-bottom:14px;text-shadow:0 2px 16px rgba(0,216,138,.25);}
     .ob-title span{color:var(--orange);}
     .ob-desc{font-size:15px;color:rgba(255,255,255,.55);text-align:center;line-height:1.6;max-width:280px;}
-    .ob-dots{position:absolute;bottom:116px;left:50%;transform:translateX(-50%);display:flex;gap:8px;}
+    .ob-dots{position:absolute;bottom:max(env(safe-area-inset-bottom,0px),18px);bottom:calc(94px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:5;}
     .ob-dot{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.22);transition:all .3s;cursor:pointer;}
     .ob-dot.active{width:22px;background:var(--orange);box-shadow:0 0 8px var(--orange-glow);}
     .ob-next-btn{
       position:absolute;bottom:44px;left:20px;right:20px;padding:16px;border:none;border-radius:14px;
       background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;
       font-size:16px;font-weight:700;font-family:'Anton',sans-serif;letter-spacing:.5px;
-      cursor:pointer;box-shadow:0 8px 24px var(--orange-glow);transition:transform .15s;
+      cursor:pointer;box-shadow:0 8px 24px var(--orange-glow);transition:transform .15s;z-index:5;
+      bottom:calc(34px + env(safe-area-inset-bottom,0px));
     }
     .ob-next-btn:active{transform:scale(.97);}
     .ob-skip-btn{
@@ -1420,7 +1421,7 @@
     .ob-bg { position:absolute; inset:0; pointer-events:none; z-index:0; overflow:hidden; }
     .ob-floue { position:absolute; left:var(--x); top:var(--y); font-size:var(--s,32px); opacity:.10; filter:saturate(.7); animation:obFloue var(--d,8s) ease-in-out infinite; }
     @keyframes obFloue { 0%,100%{transform:translateY(0) rotate(0)} 50%{transform:translateY(-22px) rotate(12deg)} }
-    #onboarding-screen .ob-slides-wrap, #onboarding-screen .ob-skip-btn, #onboarding-screen .ob-dots, #onboarding-screen .ob-next-btn { position:relative; z-index:2; }
+    #onboarding-screen .ob-slides-wrap { position:relative; z-index:1; }
     .ob-emoji-hero { font-size:84px; line-height:1; margin-bottom:22px; filter:drop-shadow(0 14px 30px var(--orange-glow)); animation:obBob 2.6s ease-in-out infinite; }
     .ob-brand { font-family:'Anton',sans-serif; font-size:clamp(36px,12vw,54px); line-height:.9; letter-spacing:1px; text-align:center; color:#fff; }
     .ob-brand span { color:var(--orange); display:block; text-shadow:0 0 26px var(--orange-glow); }
@@ -1678,6 +1679,28 @@
     .btn-wa svg { width:17px; height:17px; }
     .btn-wa:active { transform:translateY(1px) scale(.99); }
 
+    /* ===== ONBOARDING RESPONSIVE FIX ===== */
+    #onboarding-screen .ob-skip-btn { position:absolute; z-index:6; }
+    .ob-slide {
+      padding:calc(env(safe-area-inset-top,0px) + 56px) 24px calc(150px + env(safe-area-inset-bottom,0px)) !important;
+      justify-content:center; overflow-y:auto; overflow-x:hidden;
+    }
+    .ob-emoji-hero { font-size:clamp(60px, 17vw, 82px); margin-bottom:clamp(14px,4vw,22px); }
+    .ob-logo-img { width:clamp(108px, 32vw, 144px); height:auto; }
+    .ob-brand { font-size:clamp(32px, 11.5vw, 52px); }
+    .ob-tag { font-size:clamp(14px, 4vw, 16px); }
+    .ob-mini-card { width:100%; max-width:min(300px, 86vw); }
+    .ob-team { font-size:clamp(13px, 4vw, 16px); padding:10px 14px; }
+    .ob-copy { margin-top:18px; font-size:15px; color:rgba(255,255,255,.8); text-align:center; max-width:300px; line-height:1.5; }
+    .ob-copy b { color:var(--orange); font-weight:700; }
+    /* écrans courts : on resserre */
+    @media (max-height: 720px) {
+      .ob-emoji-hero { font-size:60px; margin-bottom:12px; }
+      .ob-logo-img { width:104px; }
+      .ob-mini-card { padding:12px; }
+      .ob-vote-row { margin-bottom:9px; }
+    }
+
   </style>
 </head>
 <body>
@@ -1730,8 +1753,8 @@
         <div class="ob-vs-sep">VS</div>
         <div class="ob-team"><span>🟠</span> LES CONDUCTEURS</div>
       </div>
-      <div class="ob-squad"><b>12</b> joueurs inscrits<div class="obs-line">2 🧤 · 4 🛡️ · 4 ⚡ · 2 🎯</div></div>
-      <div class="ob-desc">Équipes équilibrées automatiquement.</div>
+      <div class="ob-copy">L'algo répartit les forces <b>à la note près</b>.</div>
+      <div class="ob-desc">Deux camps, un terrain.<br>Que le meilleur gagne. ⚽</div>
     </div>
 
   </div>
