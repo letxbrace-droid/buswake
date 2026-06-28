@@ -1633,6 +1633,38 @@
     #matchs-list .match-list-card:nth-child(5) { animation-delay:.24s; }
     .leaderboard-list .lb-item:nth-child(n+6) { animation-delay:.3s; }
 
+    /* ===== NOTATION JOUEURS ===== */
+    .rate-row { display:flex; align-items:center; gap:11px; padding:9px 0; border-bottom:1px solid var(--border); }
+    .rate-row:last-of-type { border-bottom:none; }
+    .rate-av { width:36px; height:36px; border-radius:50%; overflow:hidden; background:linear-gradient(135deg,var(--orange-dark),var(--orange)); display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; color:#0B0E12; flex-shrink:0; }
+    .rate-name { flex:1; font-size:14px; font-weight:600; }
+    .rate-stars { display:flex; gap:3px; }
+    .rate-star { font-size:22px; color:var(--border-light); cursor:pointer; transition:transform .1s, color .15s; }
+    .rate-star:active { transform:scale(1.25); }
+    .rate-star.on { color:var(--gold); text-shadow:0 0 10px rgba(255,215,0,.5); }
+
+    /* ===== HERO SPECTACULAIRE (terrain + chrome animé) ===== */
+    .hero-match {
+      background:
+        repeating-linear-gradient(115deg, rgba(255,255,255,.016) 0 26px, transparent 26px 52px),
+        radial-gradient(120% 90% at 50% -20%, rgba(0,216,138,.10), transparent 60%),
+        linear-gradient(135deg, #15211b 0%, #0a1410 100%) !important;
+      border:1px solid rgba(0,216,138,.5) !important;
+      box-shadow:0 0 34px rgba(0,216,138,.12), inset 0 1px 0 rgba(0,216,138,.25) !important;
+    }
+    .hero-match::after {
+      content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none; z-index:1;
+      background:linear-gradient(120deg, transparent 36%, rgba(0,255,157,.16) 50%, transparent 64%);
+      background-size:260% 100%; animation:heroSheen 5.5s ease-in-out infinite;
+    }
+    @keyframes heroSheen { 0%{background-position:165% 0} 60%,100%{background-position:-65% 0} }
+    .hero-match > * { position:relative; z-index:2; }
+    .hero-date { text-shadow:0 0 18px rgba(0,216,138,.25); }
+
+    /* ===== TRANSITIONS ENTRE ONGLETS ===== */
+    @keyframes screenIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:none; } }
+    .screen.active { animation:screenIn .32s cubic-bezier(.22,1,.36,1); }
+
   </style>
 </head>
 <body>
@@ -2574,8 +2606,8 @@ window.viewPlayerCard = async function(uid) {
     </div>
     <div class="stats-row">
       <div class="stat-box"><div class="sv">${d.stats?.matchsJoues ?? 0}</div><div class="sl">Matchs</div></div>
+      <div class="stat-box"><div class="sv">${d.noteCount ? (d.noteSum/d.noteCount).toFixed(1) : '—'}</div><div class="sl">⭐ Note</div></div>
       <div class="stat-box"><div class="sv">${d.stats?.hommeDuMatch ?? 0}</div><div class="sl">MOTM</div></div>
-      <div class="stat-box"><div class="sv">${d.xp ?? 0}</div><div class="sl">XP</div></div>
     </div>
     <div class="section-title" style="margin-top:8px">Atouts</div>
     ${labels.map(([k,lab]) => { const v = a[k] ?? 70; return `<div class="atout-bar-wrap"><div class="atout-bar-label"><span>${lab}</span><span>${v}</span></div><div class="atout-bar-bg"><div class="atout-bar-fill" style="width:${v}%"></div></div></div>`; }).join('')}
@@ -2635,6 +2667,14 @@ function rarityClass(overall) {
 }
 
 // ===== NAVIGATION =====
+// ===== HAPTIQUE (vibration légère, Android) =====
+function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {} }
+window.haptic = haptic;
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('.btn-primary,.btn-orange,.btn-green,.btn-red,.nav-btn,.creneau-vote,.motm-vote-player,.rate-star,.profile-action-btn,.delete-account-btn,.pill-tab,.fadd,.faccept,.ob-next-btn');
+  if (t) haptic(12);
+}, true);
+
 function navigateTo(screen) {
   currentScreen = screen;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
@@ -3193,9 +3233,15 @@ async function renderMatchDetail(matchId, m) {
   // ---- Match terminé ----
   else if (m.statut === 'terminé') {
     const motmAlreadyVoted = currentUser ? Object.values(m.motmVotes||{}).some(a=>(a||[]).includes(uid)) : false;
-    html += `<button class="btn-sm ${motmAlreadyVoted?'btn-outline':'btn-orange'}" style="width:100%;margin-bottom:14px" onclick="window.openMotmVote('${matchId}')">
-      ${motmAlreadyVoted ? '🏆 Modifier mon vote MOTM' : "🏆 Voter pour l'Homme du Match"}
-    </button>`;
+    const iRated = currentUser && m.ratings && m.ratings[uid];
+    html += `<div style="display:flex;gap:8px;margin-bottom:14px">
+      <button class="btn-sm ${motmAlreadyVoted?'btn-outline':'btn-orange'}" style="flex:1" onclick="window.openMotmVote('${matchId}')">
+        ${motmAlreadyVoted ? '🏆 MOTM ✓' : '🏆 Vote MOTM'}
+      </button>
+      <button class="btn-sm ${iRated?'btn-outline':'btn-green'}" style="flex:1" onclick="window.openRatePlayers('${matchId}')">
+        ${iRated ? '⭐ Noté ✓' : '⭐ Noter les joueurs'}
+      </button>
+    </div>`;
     html += `
       <div class="score-display">
         <div class="score-team">
@@ -4153,7 +4199,7 @@ async function renderProfil() {
 
     <div class="stats-row">
       <div class="stat-box"><div class="sv">${d.stats?.matchsJoues ?? 0}</div><div class="sl">Matchs joués</div></div>
-      <div class="stat-box"><div class="sv">${d.stats?.victoires ?? 0}</div><div class="sl">Victoires</div></div>
+      <div class="stat-box"><div class="sv">${d.noteCount ? (d.noteSum/d.noteCount).toFixed(1) : '—'}</div><div class="sl">⭐ Note (${d.noteCount||0})</div></div>
       <div class="stat-box"><div class="sv">${d.stats?.hommeDuMatch ?? 0}</div><div class="sl">Homme du match</div></div>
     </div>
 
@@ -4601,6 +4647,70 @@ window.skipOnboarding = function() {
   });
 })();
 
+// ===== NOTATION ENTRE JOUEURS (post-match) =====
+window.openRatePlayers = async function(matchId) {
+  openModal('⭐ Noter les joueurs', '<div class="loader"><div class="spinner"></div></div>');
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const m = snap.data();
+  const uid = currentUser?.uid;
+  const others = (m.joueursInscrits || []).filter(u => u !== uid);
+  const already = (m.ratings && m.ratings[uid]) || null;
+  const rows = [];
+  for (const u of others) {
+    const d = await getUserData(u);
+    rows.push({ uid: u, pseudo: d?.pseudo || 'Joueur', photo: (d && d.photo) || localStorage.getItem('cs5_photo_' + u) });
+  }
+  window._rateState = {};
+  const html = `
+    <p style="font-size:13px;color:var(--text-sec);margin-bottom:14px;line-height:1.5">
+      ${already ? 'Tu as déjà noté ce match. Merci !' : 'Donne une note à chaque joueur. <span style="color:var(--orange)">+10 XP</span>.'}
+    </p>
+    ${rows.map(r => {
+      const pre = already ? (already[r.uid] || 0) : 0;
+      return `<div class="rate-row">
+        <div class="rate-av">${r.photo ? `<img src="${r.photo}" style="width:100%;height:100%;object-fit:cover">` : initiales(r.pseudo)}</div>
+        <div class="rate-name">${r.pseudo}</div>
+        <div class="rate-stars" data-uid="${r.uid}">
+          ${[1,2,3,4,5].map(s => `<span class="rate-star${pre>=s?' on':''}" data-s="${s}" onclick="window.setRate('${r.uid}',${s})">★</span>`).join('')}
+        </div>
+      </div>`;
+    }).join('')}
+    ${already ? '' : `<button class="btn-primary" style="margin-top:16px" onclick="window.submitRatings('${matchId}')">Valider mes notes</button>`}`;
+  document.getElementById('modal-title').textContent = '⭐ Noter les joueurs';
+  document.getElementById('modal-body').innerHTML = html;
+  if (already) Object.assign(window._rateState, already);
+};
+window.setRate = function(ratedUid, stars) {
+  window._rateState[ratedUid] = stars;
+  const wrap = document.querySelector(`.rate-stars[data-uid="${ratedUid}"]`);
+  if (wrap) wrap.querySelectorAll('.rate-star').forEach(el => el.classList.toggle('on', +el.dataset.s <= stars));
+};
+window.submitRatings = async function(matchId) {
+  if (!currentUser) return;
+  const uid = currentUser.uid;
+  const ratings = window._rateState || {};
+  if (!Object.keys(ratings).length) { showToast('Note au moins un joueur.', 'error'); return; }
+  const ref = doc(db, 'matchs', matchId);
+  const snap = await getDoc(ref);
+  if (snap.exists() && snap.data().ratings && snap.data().ratings[uid]) {
+    showToast('Tu as déjà noté ce match.', ''); window.closeModal(); return;
+  }
+  try {
+    await updateDoc(ref, { [`ratings.${uid}`]: ratings });
+    for (const [rated, stars] of Object.entries(ratings)) {
+      await updateDoc(doc(db, 'users', rated), { noteSum: increment(stars), noteCount: increment(1) });
+      delete usersCache[rated];
+    }
+    await addXP(uid, 10);
+    showToast('Notes enregistrées ! +10 XP ⭐', 'success');
+    window.closeModal();
+  } catch (e) {
+    showToast('Échec (' + (e.code || e.message) + ').', 'error');
+  }
+};
+
 // ===== MOTM COMMUNITY VOTE =====
 window.openMotmVote = async function(matchId) {
   openModal('🏆 Vote Homme du Match', '<div class="loader"><div class="spinner"></div></div>');
@@ -4843,7 +4953,7 @@ service cloud.firestore {
     // XP/badges/stats à la fin d'un match, demandes/listes d'amis.
     function onlyGamificationAndSocial() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['xp', 'niveau', 'badges', 'stats',
+        .hasOnly(['xp', 'niveau', 'badges', 'stats', 'noteSum', 'noteCount',
                   'friends', 'friendRequestsSent', 'friendRequestsReceived']);
     }
 
