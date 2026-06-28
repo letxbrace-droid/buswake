@@ -2082,6 +2082,20 @@ if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
 
+// ===== DEEP-LINK D'INVITATION (#j=matchId ou ?j=matchId) =====
+let _pendingMatch = null;
+(function() {
+  const h = (location.hash || '').match(/[#&]j=([A-Za-z0-9_-]+)/);
+  const q = new URLSearchParams(location.search).get('j');
+  _pendingMatch = (h && h[1]) || q || null;
+})();
+function consumePendingMatch() {
+  if (!_pendingMatch) return;
+  const id = _pendingMatch; _pendingMatch = null;
+  try { history.replaceState(null, '', location.pathname); } catch (_) {}
+  setTimeout(() => { try { openMatchDetail(id); } catch (_) {} }, 400);
+}
+
 // ===== NOTIFICATIONS PUSH (FCM) =====
 // 1) Console Firebase -> Cloud Messaging -> "Certificats Web Push" -> copie la clé publique ici.
 const VAPID_KEY = 'BPk6nFFz8nWw1Zbypxn4q_qYYtjxTa-OsScNO1dCVscjn5IB6Sk3oSqHsWa-kvchj2EnL8qxxQhVbWPLQu0d2NQ';
@@ -4858,16 +4872,18 @@ window.shareMatchWA = async function(matchId) {
   const snap = await getDoc(doc(db, 'matchs', matchId));
   if (!snap.exists()) return;
   const m = snap.data();
-  const url = location.origin + location.pathname;
+  const link = location.origin + location.pathname + '#j=' + matchId;
   const n = (m.joueursInscrits || []).length;
+  const places = Math.max(0, 10 - n);
+  const placesTxt = places > 0 ? `${places} place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'complet';
   let txt;
   if (m.statut === 'sondage') {
     const cr = (m.creneauxProposes || []).map(c => `• ${formatDate(c.date)} — ${c.lieu}`).join('\n');
-    txt = `⚽ *CAP SACLAY FIVE* — Sondage\n\nOn cherche nos dispos pour le prochain foot à 5 :\n${cr}\n\n👥 ${n}/10 inscrits\n👉 Vote ici : ${url}`;
+    txt = `⚽ *CAP SACLAY FIVE* — Sondage\n\nOn cherche nos dispos pour le prochain foot à 5 :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
   } else if (m.statut === 'confirmé') {
-    txt = `⚽ *CAP SACLAY FIVE* — Match confirmé ✅\n\n📅 ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 inscrits\n\n👉 Rejoins : ${url}`;
+    txt = `⚽ *CAP SACLAY FIVE* — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
   } else {
-    txt = `⚽ *CAP SACLAY FIVE* — Résultat\n${m.equipes?.[0]?.nom || 'A'} ${m.scoreA ?? '?'} — ${m.scoreB ?? '?'} ${m.equipes?.[1]?.nom || 'B'}\n👉 ${url}`;
+    txt = `⚽ *CAP SACLAY FIVE* — Résultat\n${m.equipes?.[0]?.nom || 'A'} ${m.scoreA ?? '?'} — ${m.scoreB ?? '?'} ${m.equipes?.[1]?.nom || 'B'}\n👉 ${link}`;
   }
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 };
@@ -5110,6 +5126,7 @@ onAuthStateChanged(auth, async (user) => {
     document.getElementById('app').classList.remove('hidden');
     renderThemeDots();
     renderHome();
+    consumePendingMatch();
   } else {
     currentUser = null;
     currentUserData = null;
