@@ -1742,6 +1742,24 @@
     .ob-flow-link { flex:0 0 16px; height:52px; display:flex; align-items:center; }
     .ob-flow-link::before { content:''; width:100%; height:2px; border-radius:2px; background:linear-gradient(90deg, rgba(0,216,138,.55), rgba(0,216,138,.12)); }
 
+    /* ===== PRÉSENCES (terminer match) ===== */
+    .att-list { display:flex; flex-direction:column; gap:6px; }
+    .att-item { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:11px; border:1.5px solid var(--border); cursor:pointer; transition:all .18s; }
+    .att-pseudo { flex:1; font-size:13px; font-weight:600; }
+    .att-tag { font-size:11px; font-weight:700; padding:3px 9px; border-radius:99px; }
+    .att-item.present { border-color:rgba(0,216,138,.4); background:rgba(0,216,138,.06); }
+    .att-item.present .att-tag { background:rgba(0,216,138,.15); color:var(--green); }
+    .att-item.absent { border-color:rgba(255,23,68,.4); background:rgba(255,23,68,.06); opacity:.85; }
+    .att-item.absent .att-tag { background:rgba(255,23,68,.15); color:var(--red); }
+    .att-item.absent .att-pseudo { text-decoration:line-through; color:var(--text-sec); }
+    /* ===== CHIP FIABILITÉ ===== */
+    .rel-row { display:flex; gap:8px; justify-content:center; margin:8px 0 4px; flex-wrap:wrap; }
+    .rel-chip { font-size:12px; font-weight:700; padding:5px 12px; border-radius:99px; border:1px solid; }
+    .rel-good { color:var(--green); border-color:rgba(0,216,138,.4); background:rgba(0,216,138,.08); }
+    .rel-mid  { color:#FFB020; border-color:rgba(255,176,32,.4); background:rgba(255,176,32,.08); }
+    .rel-bad  { color:var(--red); border-color:rgba(255,23,68,.4); background:rgba(255,23,68,.08); }
+    .rel-streak { color:#FF7A1A; border-color:rgba(255,122,26,.4); background:rgba(255,122,26,.08); }
+
   </style>
 </head>
 <body>
@@ -2709,6 +2727,7 @@ window.viewPlayerCard = async function(uid) {
     <div style="text-align:center;margin-bottom:4px">
       <span class="rank-badge">${rang.label} · ${d.xp||0} XP${d.codePostal ? ` · 📍 ${d.codePostal}` : ''}</span>
     </div>
+    ${relChipHTML(d)}
     <div class="fut-card-wrap">
       <div class="fut-card-v3 ${tier} shimmer-active fut-tilt">
         <div class="fc3-top">
@@ -2789,6 +2808,17 @@ function calcOverall(d) {
 }
 function rarityClass(overall) {
   return overall >= 80 ? 'gold' : overall >= 70 ? 'silver' : 'bronze';
+}
+function relChipHTML(d) {
+  const tot = (d.presences || 0) + (d.lapins || 0);
+  let h = '';
+  if (tot >= 1) {
+    const rel = Math.round((d.presences || 0) / tot * 100);
+    const cls = rel >= 85 ? 'rel-good' : rel >= 60 ? 'rel-mid' : 'rel-bad';
+    h += `<span class="rel-chip ${cls}">🛡️ Fiabilité ${rel}%</span>`;
+  }
+  if ((d.streak || 0) >= 2) h += `<span class="rel-chip rel-streak">🔥 ${d.streak}</span>`;
+  return h ? `<div class="rel-row">${h}</div>` : '';
 }
 
 // ===== NAVIGATION =====
@@ -4193,10 +4223,34 @@ async function openTerminerMatch(matchId) {
         </div>`).join('')}
     </div>
     <div class="divider"></div>
+    <div class="section-sub">Présences <span style="font-weight:400;color:var(--text-muted);font-size:10px;text-transform:none;letter-spacing:0">· tape pour marquer absent</span></div>
+    <div class="att-list" id="att-list">
+      ${inscrits.map(u => `
+        <div class="att-item present" id="att-${u}" onclick="toggleAtt('${u}')">
+          <div class="j-avatar" style="width:30px;height:30px;border-radius:50%;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--text)">${initiales(pseudos[u])}</div>
+          <div class="att-pseudo">${pseudos[u]}</div>
+          <span class="att-tag">Présent</span>
+        </div>`).join('')}
+    </div>
+    <div class="divider"></div>
     <button class="btn-primary" onclick="terminerMatch('${matchId}')">VALIDER LE RÉSULTAT</button>`);
 
   window._hdmSelected = null;
+  window._attendance = {};
+  inscrits.forEach(u => { window._attendance[u] = true; });
 }
+window.toggleAtt = function(uid) {
+  const present = !(window._attendance[uid] !== false);
+  window._attendance[uid] = present;
+  const el = document.getElementById('att-' + uid);
+  if (el) {
+    el.classList.toggle('present', present);
+    el.classList.toggle('absent', !present);
+    const tag = el.querySelector('.att-tag');
+    if (tag) tag.textContent = present ? 'Présent' : 'Absent';
+  }
+  if (window.haptic) haptic(8);
+};
 window.openTerminerMatch = openTerminerMatch;
 
 window.selectHdm = function(uid) {
@@ -4215,16 +4269,31 @@ window.terminerMatch = async function(matchId) {
   const m = snap.data();
   const inscrits = m.joueursInscrits || [];
 
+  const att = window._attendance || {};
+  const present = inscrits.filter(u => att[u] !== false);
+  const absent = inscrits.filter(u => att[u] === false);
+
   await updateDoc(ref, {
     statut: 'terminé', scoreA, scoreB,
-    hommeDuMatchUid: hdmUid || null
+    hommeDuMatchUid: hdmUid || null,
+    attendance: att
   });
 
-  // XP pour tous les participants
-  for (const uid of inscrits) {
+  // Présents : +XP, match compté, présence + streak
+  for (const uid of present) {
     await addXP(uid, XP.participer);
     await updateDoc(doc(db, 'users', uid), {
-      'stats.matchsJoues': increment(1)
+      'stats.matchsJoues': increment(1),
+      presences: increment(1),
+      streak: increment(1)
+    });
+  }
+  // Absents (lapin) : malus XP, streak remis à zéro
+  for (const uid of absent) {
+    await updateDoc(doc(db, 'users', uid), {
+      xp: increment(-15),
+      lapins: increment(1),
+      streak: 0
     });
   }
   // XP HDM
@@ -4235,13 +4304,15 @@ window.terminerMatch = async function(matchId) {
     });
     showToast('🏆 Homme du match élu !', 'success');
   }
-  // Vérif badges pour tous
-  for (const uid of inscrits) {
+  // Vérif badges pour les présents
+  for (const uid of present) {
+    delete usersCache[uid];
     const d = await getUserData(uid);
     if (d) await checkBadges(uid, { ...d, stats: { ...d.stats, matchsJoues: (d.stats?.matchsJoues || 0) + 1 } });
   }
+  absent.forEach(uid => delete usersCache[uid]);
 
-  showToast('Match terminé ! +100 XP pour tous 🎉', 'success');
+  showToast(`Match terminé · ${present.length} présent${present.length>1?'s':''}${absent.length?` · ${absent.length} absent${absent.length>1?'s':''}`:''}`, 'success');
   closeModal();
   if (currentScreen === 'matchs') renderMatchs();
 };
@@ -4328,6 +4399,7 @@ async function renderProfil() {
 
   el.innerHTML = `
     <div style="text-align:center"><span class="rank-badge">${rang.label} · ${d.xp || 0} XP${d.codePostal ? ` · 📍 ${d.codePostal}` : ''}</span></div>
+    ${relChipHTML(d)}
 
     ${futHtml}
 
@@ -5107,6 +5179,7 @@ service cloud.firestore {
     function onlyGamificationAndSocial() {
       return request.resource.data.diff(resource.data).affectedKeys()
         .hasOnly(['xp', 'niveau', 'badges', 'stats', 'noteSum', 'noteCount',
+                  'presences', 'lapins', 'streak',
                   'friends', 'friendRequestsSent', 'friendRequestsReceived']);
     }
 
