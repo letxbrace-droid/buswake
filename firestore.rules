@@ -69,6 +69,18 @@ service cloud.firestore {
             || resource.data.createurUid == request.auth.uid);
     }
 
+    // Chat éphémère par match : texte court, créé par son auteur.
+    match /matchs/{matchId}/messages/{msgId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500;
+      allow update: if false;
+      allow delete: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
+    }
+
     // Lieux : lecture pour tous les connectés, écriture via Admin SDK only.
     match /lieux/{lieuId} {
       allow read: if isSignedIn();

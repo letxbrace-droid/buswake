@@ -1764,6 +1764,21 @@
     .players-chip { display:inline-flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border-light); border-radius:99px; padding:7px 14px; font-size:13px; font-weight:700; margin-bottom:10px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
     .players-chip .pc-wait { color:#FFB020; }
 
+    /* ===== CHAT ÉPHÉMÈRE ===== */
+    .chat-sheet { display:flex; flex-direction:column; height:82vh; }
+    .chat-msgs { flex:1; overflow-y:auto; padding:14px 16px; display:flex; flex-direction:column; gap:8px; }
+    .chat-bubble { max-width:80%; padding:8px 12px; border-radius:15px; font-size:14px; line-height:1.35; word-break:break-word; box-shadow:0 2px 6px rgba(0,0,0,.3); }
+    .cb-author { font-size:11px; font-weight:700; color:var(--text-sec); margin-bottom:2px; }
+    .chat-mine { align-self:flex-end; background:linear-gradient(135deg,var(--orange-dark),var(--orange)); color:#06210f; border-bottom-right-radius:5px; }
+    .chat-other { align-self:flex-start; background:var(--card2); border:1px solid var(--border); border-bottom-left-radius:5px; color:var(--text); }
+    .chat-time { font-size:9px; opacity:.6; margin-top:3px; text-align:right; }
+    .chat-empty { margin:auto; text-align:center; color:var(--text-muted); font-size:13px; line-height:1.6; }
+    .chat-inputbar { display:flex; gap:8px; padding:12px 14px calc(12px + env(safe-area-inset-bottom,0px)); border-top:1px solid var(--border); }
+    .chat-input { flex:1; background:var(--card); border:1px solid var(--border-light); border-radius:22px; padding:11px 16px; color:var(--text); font-size:14px; outline:none; font-family:'Space Grotesk',sans-serif; }
+    .chat-input:focus { border-color:var(--orange); }
+    .chat-send { width:44px; height:44px; flex-shrink:0; border:none; border-radius:50%; background:linear-gradient(135deg,var(--orange),var(--orange2)); color:#06210f; font-size:17px; font-weight:700; cursor:pointer; }
+    .chat-send:disabled, .chat-input:disabled { opacity:.5; cursor:not-allowed; }
+
   </style>
 </head>
 <body>
@@ -2040,6 +2055,22 @@
       <button class="modal-close" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<!-- Chat éphémère du match -->
+<div id="chat-modal" class="modal-overlay hidden">
+  <div class="modal-sheet chat-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title" id="chat-title">💬 Discussion</div>
+      <button class="modal-close" onclick="closeChatModal()">✕</button>
+    </div>
+    <div class="chat-msgs" id="chat-msgs"></div>
+    <div class="chat-inputbar">
+      <input id="chat-input" class="chat-input" type="text" maxlength="500" placeholder="Écris un message…" onkeydown="if(event.key==='Enter')window.sendChatMsg()">
+      <button id="chat-send" class="chat-send" onclick="window.sendChatMsg()" aria-label="Envoyer">➤</button>
+    </div>
   </div>
 </div>
 
@@ -2877,6 +2908,7 @@ function renderScreen(screen) {
 function cleanupListeners() {
   activeListeners.forEach(u => u());
   activeListeners = [];
+  if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
 }
 
 // ===== TOAST =====
@@ -2980,6 +3012,9 @@ function closeModal() {
 window.closeModal = closeModal;
 
 // Empêcher la fermeture du modal en cliquant sur l'overlay
+document.getElementById('chat-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeChatModal();
+});
 document.getElementById('main-modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
@@ -3294,7 +3329,8 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords) {
     ${buildJoueursListHtml(joueursAvecDist)}
     <div class="divider"></div>
     <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
-    <button class="btn-sm btn-wa" style="width:100%;margin-bottom:8px" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager sur WhatsApp</button>`;
+    <button class="btn-sm btn-wa" style="width:100%;margin-bottom:8px" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager sur WhatsApp</button>
+    <button class="btn-sm btn-outline" style="width:100%" onclick="window.openMatchChat('${matchId}')">💬 Discussion du match</button>`;
 }
 
 async function renderMatchDetail(matchId, m) {
@@ -4904,6 +4940,73 @@ window.skipOnboarding = function() {
   });
 })();
 
+// ===== CHAT ÉPHÉMÈRE DU MATCH =====
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
+let _chatUnsub = null;
+function _matchTime(m) {
+  return (m.dateFinale && m.dateFinale.toMillis && m.dateFinale.toMillis())
+    || (m.creneauxProposes && m.creneauxProposes[0] && m.creneauxProposes[0].date && m.creneauxProposes[0].date.toMillis && m.creneauxProposes[0].date.toMillis())
+    || null;
+}
+window.openMatchChat = async function(matchId) {
+  const cm = document.getElementById('chat-modal');
+  const box = document.getElementById('chat-msgs');
+  const inp = document.getElementById('chat-input');
+  const btn = document.getElementById('chat-send');
+  box.innerHTML = '<div class="chat-empty">Chargement…</div>';
+  cm.classList.remove('hidden');
+  window._chatMatchId = matchId;
+  let m = {};
+  try { const s = await getDoc(doc(db, 'matchs', matchId)); m = s.exists() ? s.data() : {}; } catch (_) {}
+  const mt = _matchTime(m);
+  const archived = mt ? (Date.now() > mt + 24 * 3600 * 1000) : false;
+  window._chatExpire = (mt ? mt : Date.now()) + 24 * 3600 * 1000;
+  inp.disabled = archived; btn.disabled = archived;
+  inp.placeholder = archived ? 'Discussion archivée' : 'Écris un message…';
+  if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+  const qy = query(collection(db, 'matchs', matchId, 'messages'), orderBy('createdAt', 'asc'));
+  _chatUnsub = onSnapshot(qy, snap => {
+    const b = document.getElementById('chat-msgs'); if (!b) return;
+    if (snap.empty) { b.innerHTML = '<div class="chat-empty">Aucun message.<br>Lance la discussion ! 💬</div>'; return; }
+    let html = '';
+    snap.docs.forEach(d => {
+      const msg = d.data();
+      const mine = msg.uid === currentUser?.uid;
+      const t = msg.createdAt && msg.createdAt.toDate ? msg.createdAt.toDate() : null;
+      const time = t ? t.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
+      html += `<div class="chat-bubble ${mine ? 'chat-mine' : 'chat-other'}">${mine ? '' : `<div class="cb-author">${escapeHtml(msg.pseudo || 'Joueur')}</div>`}${escapeHtml(msg.text || '')}<div class="chat-time">${time}</div></div>`;
+    });
+    b.innerHTML = html;
+    b.scrollTop = b.scrollHeight;
+  }, () => {});
+};
+window.closeChatModal = function() {
+  if (_chatUnsub) { _chatUnsub(); _chatUnsub = null; }
+  document.getElementById('chat-modal').classList.add('hidden');
+  document.getElementById('chat-msgs').innerHTML = '';
+};
+window.sendChatMsg = async function() {
+  const inp = document.getElementById('chat-input');
+  const txt = (inp.value || '').trim();
+  const mid = window._chatMatchId;
+  if (!txt || !mid || !currentUser) return;
+  if (txt.length > 500) { showToast('Message trop long (500 max).', 'error'); return; }
+  inp.value = '';
+  try {
+    await addDoc(collection(db, 'matchs', mid, 'messages'), {
+      uid: currentUser.uid,
+      pseudo: currentUserData?.pseudo || 'Joueur',
+      text: txt,
+      createdAt: serverTimestamp(),
+      expireAt: new Date(window._chatExpire || (Date.now() + 7 * 24 * 3600 * 1000))
+    });
+  } catch (e) {
+    showToast('Échec envoi (' + (e.code || e.message) + ').', 'error');
+  }
+};
+
 // ===== PARTAGE WHATSAPP =====
 window.shareMatchWA = async function(matchId) {
   const snap = await getDoc(doc(db, 'matchs', matchId));
@@ -5257,6 +5360,18 @@ service cloud.firestore {
         && (isAdmin()
             || !('createurUid' in resource.data)
             || resource.data.createurUid == request.auth.uid);
+    }
+
+    // Chat éphémère par match : texte court, créé par son auteur.
+    match /matchs/{matchId}/messages/{msgId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() > 0
+        && request.resource.data.text.size() <= 500;
+      allow update: if false;
+      allow delete: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
     // Lieux : lecture pour tous les connectés, écriture admin only.
