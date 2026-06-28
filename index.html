@@ -1907,6 +1907,7 @@ const BADGES_DEF = [
   { id: 'assidu',        icon: '🔥', name: 'Assidu' },
 ];
 const XP = { participer: 100, voter: 10, creer: 50, hdm: 200 };
+const MIN_CONFIRM = 10; // joueurs inscrits minimum pour confirmer un match (foot à 5 = 2×5)
 
 // ===== DONNÉES CLUBS — VRAIS ÉCUSSONS =====
 // Logos : crests.football-data.org (PNG publics, sans clé API)
@@ -2897,10 +2898,18 @@ async function renderMatchDetail(matchId, m) {
     }).join('');
 
     if (isCreateur) {
+      const enoughPlayers = inscrits.length >= MIN_CONFIRM;
       html += `<div class="divider"></div><div class="section-sub">Actions créateur</div>`;
       if (best) {
-        html += `<p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>
-          <button class="btn-sm btn-green" style="width:100%;margin-bottom:8px" onclick="confirmerMatch('${matchId}','${best.id}')">✅ CONFIRMER CE MATCH</button>`;
+        html += `<p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>`;
+        if (enoughPlayers) {
+          html += `<button class="btn-sm btn-green" style="width:100%;margin-bottom:8px" onclick="confirmerMatch('${matchId}','${best.id}')">✅ CONFIRMER CE MATCH</button>`;
+        } else {
+          html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-bottom:8px;line-height:1.5">
+            ⚠️ Il faut <strong>${MIN_CONFIRM} joueurs</strong> inscrits pour confirmer le match.<br>
+            <span style="color:var(--text-sec)">Actuellement ${inscrits.length}/${MIN_CONFIRM} — encore ${MIN_CONFIRM - inscrits.length} joueur${MIN_CONFIRM - inscrits.length > 1 ? 's' : ''}.</span>
+          </div>`;
+        }
       }
       html += `<button class="btn-sm btn-red" style="width:100%;opacity:.7" onclick="annulerMatch('${matchId}')">🗑️ Annuler ce match</button>`;
     }
@@ -3092,6 +3101,10 @@ async function confirmerMatch(matchId, creneauId) {
   const m = snap.data();
   const creneau = (m.creneauxProposes || []).find(c => c.id === creneauId);
   if (!creneau) return;
+  if ((m.joueursInscrits || []).length < MIN_CONFIRM) {
+    showToast(`Il faut ${MIN_CONFIRM} joueurs inscrits pour confirmer (${(m.joueursInscrits || []).length}/${MIN_CONFIRM}).`, 'error');
+    return;
+  }
   await updateDoc(ref, {
     statut: 'confirmé',
     dateFinale: creneau.date,
