@@ -1,0 +1,13 @@
+{
+  "name": "cap-saclay-five-functions",
+  "description": "Notifications push (FCM) pour Cap Saclay Five",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-admin": "^12.6.0",
+    "firebase-functions": "^5.1.0"
+  },
+  "private": true
+}

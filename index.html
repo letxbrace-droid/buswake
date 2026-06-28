@@ -1370,6 +1370,48 @@
     .friend-status{font-size:11px;padding:3px 8px;border-radius:10px;background:rgba(0,230,118,.1);color:var(--green);white-space:nowrap;}
     .friends-empty{font-size:13px;color:var(--text-muted);text-align:center;padding:12px 0;}
 
+    /* ===== DEPTH, 3D & COLOR POLISH ===== */
+    body { background:#07090c; }
+    .match-list-card, .poll-card, .stat-box, .badge-item, .equipe-block,
+    .creneau-vote, .hero-match, .jd-row, .friend-item, .modal-sheet, .seg, .pill-tab {
+      box-shadow: 0 1px 0 rgba(255,255,255,.04) inset, 0 2px 6px rgba(0,0,0,.32), 0 16px 34px rgba(0,0,0,.30);
+    }
+    .match-list-card, .poll-card, .stat-box, .badge-item, .equipe-block, .creneau-vote {
+      background-image: linear-gradient(180deg, rgba(255,255,255,.028), rgba(255,255,255,0) 42%);
+      border-color: var(--border-light);
+    }
+    .match-list-card:hover, .poll-card:hover, .hero-match:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 6px 14px rgba(0,0,0,.4), 0 22px 46px rgba(0,0,0,.42), 0 0 0 1px var(--orange-glow-soft);
+    }
+    /* Boutons : relief + halo */
+    .btn-primary, .btn-orange, .btn-green {
+      box-shadow: 0 1px 0 rgba(255,255,255,.35) inset, 0 -2px 6px rgba(0,0,0,.18) inset,
+                  0 8px 22px var(--orange-glow), 0 4px 10px rgba(0,0,0,.42);
+    }
+    .btn-primary:active, .btn-orange:active, .btn-green:active {
+      transform: translateY(1px) scale(.99);
+      box-shadow: 0 1px 0 rgba(255,255,255,.25) inset, 0 4px 12px var(--orange-glow), 0 2px 6px rgba(0,0,0,.4);
+    }
+    .btn-green { color:#06210f; }
+    /* Chips joueurs : relief 3D */
+    .pitch-chip { box-shadow: 0 1px 0 rgba(255,255,255,.4) inset, 0 8px 20px rgba(0,0,0,.4), 0 2px 4px rgba(0,0,0,.3); }
+    .chip-orange { background:linear-gradient(165deg,#ffa14d 0%,#ff7a1a 45%,#e85d00 100%); }
+    .chip-green  { background:linear-gradient(165deg,#3cf2af 0%,#00E89A 45%,#00b876 100%); }
+    /* Pastille rang + tags : un poil plus vivants */
+    .rank-badge { box-shadow: 0 0 18px var(--orange-glow-soft), 0 4px 12px rgba(0,0,0,.4); }
+    .stat-box .sv { text-shadow: 0 0 16px var(--orange-glow); }
+    /* Nav : élévation */
+    #bottom-nav { box-shadow: 0 -8px 30px rgba(0,0,0,.5); }
+    /* Inputs : profondeur */
+    .input-field, .friends-search-input, .csf-input, input, select, textarea {
+      box-shadow: 0 2px 5px rgba(0,0,0,.25) inset;
+    }
+    /* FUT card : relief accru */
+    .fut-card-v3 { box-shadow: 0 18px 50px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.06), inset 0 2px 0 rgba(255,255,255,.35); }
+    /* Halo derrière le bouton proposer */
+    .btn-primary { position:relative; }
+
   </style>
 </head>
 <body>
@@ -1688,6 +1730,9 @@ import {
   collection, query, where, orderBy, onSnapshot, getDocs,
   serverTimestamp, increment, arrayUnion, arrayRemove, deleteField, deleteDoc, getDocsFromServer
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import {
+  getMessaging, getToken, onMessage, isSupported
+} from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging.js';
 
 // ===== INIT =====
 const app = initializeApp(firebaseConfig);
@@ -1698,6 +1743,43 @@ const db = getFirestore(app);
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js').catch(() => {}));
 }
+
+// ===== NOTIFICATIONS PUSH (FCM) =====
+// 1) Console Firebase -> Cloud Messaging -> "Certificats Web Push" -> copie la clé publique ici.
+const VAPID_KEY = ''; // <-- COLLE TA CLÉ VAPID ICI
+let _fcm = null;
+window.enableNotifications = async function() {
+  if (!currentUser) return;
+  if (!('Notification' in window) || !('serviceWorker' in navigator)) {
+    showToast('Notifications non supportées sur cet appareil.', 'error'); return;
+  }
+  const supported = await isSupported().catch(() => false);
+  if (!supported) { showToast('Push indisponible ici — installe l\'app (PWA) puis réessaie.', 'error'); return; }
+  if (!VAPID_KEY) { showToast('Clé VAPID manquante : à coller dans le code (voir README).', 'error'); return; }
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') { showToast('Notifications refusées.', ''); return; }
+    const reg = await navigator.serviceWorker.ready;
+    if (!_fcm) _fcm = getMessaging(app);
+    const token = await getToken(_fcm, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (!token) { showToast('Jeton indisponible, réessaie.', 'error'); return; }
+    await updateDoc(doc(db, 'users', currentUser.uid), { fcmTokens: arrayUnion(token) });
+    showToast('Notifications activées ! 🔔', 'success');
+  } catch (e) {
+    showToast('Erreur notif : ' + (e.code || e.message), 'error');
+  }
+};
+// Messages reçus quand l'app est ouverte
+isSupported().then(ok => {
+  if (!ok) return;
+  try {
+    _fcm = getMessaging(app);
+    onMessage(_fcm, p => {
+      const n = p.notification || {};
+      showToast('🔔 ' + (n.title || 'Notification') + (n.body ? ' — ' + n.body : ''), '');
+    });
+  } catch (_) {}
+});
 
 // ===== ÉTAT GLOBAL =====
 let currentUser = null;       // objet Firebase Auth
@@ -3741,6 +3823,7 @@ async function renderProfil() {
     })()}
 
     <div class="divider"></div>
+    <button class="profile-action-btn" onclick="window.enableNotifications()">🔔 Activer les notifications</button>
     <button class="profile-action-btn" onclick="window.openChangePassword()">🔒 Changer mon mot de passe</button>
     ${currentUser?.email === 'letxbrace@gmail.com' ? `
     <button class="profile-action-btn" style="border-color:rgba(255,23,68,.35);color:var(--red)" onclick="window.cleanupAllMatchs()">🧹 Nettoyer tous les matchs (admin)</button>` : ''}
@@ -4216,31 +4299,43 @@ window.searchFriend = async function() {
 
 window.sendFriendRequest = async function(targetUid, targetPseudo) {
   if (!currentUser) return;
-  await updateDoc(doc(db, 'users', currentUser.uid), { friendRequestsSent: arrayUnion(targetUid) });
-  await updateDoc(doc(db, 'users', targetUid), { friendRequestsReceived: arrayUnion(currentUser.uid) });
-  delete usersCache[currentUser.uid];
-  showToast('Demande envoyée à ' + targetPseudo + ' !', 'success');
-  await window.searchFriend();
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), { friendRequestsSent: arrayUnion(targetUid) });
+    await updateDoc(doc(db, 'users', targetUid), { friendRequestsReceived: arrayUnion(currentUser.uid) });
+    delete usersCache[currentUser.uid];
+    showToast('Demande envoyée à ' + targetPseudo + ' !', 'success');
+    await window.searchFriend();
+  } catch (e) {
+    showToast('Échec (' + (e.code || e.message) + '). Publie les règles Firestore.', 'error');
+  }
 };
 
 window.acceptFriendRequest = async function(fromUid) {
   if (!currentUser) return;
   const uid = currentUser.uid;
-  await updateDoc(doc(db, 'users', uid), { friends: arrayUnion(fromUid), friendRequestsReceived: arrayRemove(fromUid) });
-  await updateDoc(doc(db, 'users', fromUid), { friends: arrayUnion(uid), friendRequestsSent: arrayRemove(uid) });
-  delete usersCache[uid]; delete usersCache[fromUid];
-  showToast('Ami ajouté ! 🤜🤛', 'success');
-  renderProfil();
+  try {
+    await updateDoc(doc(db, 'users', uid), { friends: arrayUnion(fromUid), friendRequestsReceived: arrayRemove(fromUid) });
+    await updateDoc(doc(db, 'users', fromUid), { friends: arrayUnion(uid), friendRequestsSent: arrayRemove(uid) });
+    delete usersCache[uid]; delete usersCache[fromUid];
+    showToast('Ami ajouté ! 🤜🤛', 'success');
+    renderProfil();
+  } catch (e) {
+    showToast('Échec (' + (e.code || e.message) + '). Publie les règles Firestore.', 'error');
+  }
 };
 
 window.removeFriend = async function(friendUid) {
   if (!currentUser) return;
   const uid = currentUser.uid;
-  await updateDoc(doc(db, 'users', uid), { friends: arrayRemove(friendUid) });
-  await updateDoc(doc(db, 'users', friendUid), { friends: arrayRemove(uid) });
-  delete usersCache[uid];
-  showToast('Ami retiré.', '');
-  renderProfil();
+  try {
+    await updateDoc(doc(db, 'users', uid), { friends: arrayRemove(friendUid) });
+    await updateDoc(doc(db, 'users', friendUid), { friends: arrayRemove(uid) });
+    delete usersCache[uid];
+    showToast('Ami retiré.', '');
+    renderProfil();
+  } catch (e) {
+    showToast('Échec (' + (e.code || e.message) + ').', 'error');
+  }
 };
 
 async function _loadProfileFriends(friends, receivedReqs) {
