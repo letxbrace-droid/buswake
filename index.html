@@ -2196,36 +2196,66 @@ const VENUES_91 = [
 ];
 
 window._venueDD = {};
-window.venueSuggest = function(cid) {
-  const inp = document.getElementById('cd-lieu-' + cid);
-  const dd = document.getElementById('venue-dd-' + cid);
-  if (!inp || !dd) return;
-  const q = (inp.value || '').trim().toLowerCase();
-  const home = (currentUserData && currentUserData.domicileLat)
+window._venueT = {};
+function _venueHome() {
+  return (currentUserData && currentUserData.domicileLat)
     ? { lat: currentUserData.domicileLat, lon: currentUserData.domicileLon } : null;
+}
+function _venueStatic(q, home) {
   let list = VENUES_91.slice();
   if (q) list = list.filter(x => (x.n + ' ' + x.v + ' ' + x.cp).toLowerCase().includes(q));
-  if (home) list.sort((a, b) =>
-    haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
-  list = list.slice(0, 6);
+  if (home) list.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
+  return list.slice(0, 4).map(x => ({
+    n: x.n,
+    v: x.v + (home ? ' · ' + Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) + ' km' : ''),
+    lat: x.lat, lon: x.lon, t: x.t
+  }));
+}
+function _venueRender(cid, list) {
+  const dd = document.getElementById('venue-dd-' + cid);
+  if (!dd) return;
   window._venueDD[cid] = list;
   if (!list.length) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
-  dd.innerHTML = list.map((x, i) => {
-    const dist = home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) + ' km' : x.cp;
-    const icon = x.t === 'indoor' ? '🏟️' : '🥅';
-    return `<div class="venue-opt" onmousedown="venuePick('${cid}',${i})">
-      <span class="vo-name">${icon} ${x.n}</span>
-      <span class="vo-meta">${x.v} · ${dist}</span>
-    </div>`;
-  }).join('');
+  const mark = t => t === 'indoor' ? '🏟️' : (t === 'urban' ? '🥅' : '📍');
+  dd.innerHTML = list.map((x, i) => `<div class="venue-opt" onmousedown="venuePick('${cid}',${i})">
+      <span class="vo-name">${mark(x.t)} ${x.n}</span>
+      <span class="vo-meta">${x.v || ''}</span>
+    </div>`).join('');
   dd.classList.add('open');
+}
+window.venueSuggest = function(cid) {
+  const inp = document.getElementById('cd-lieu-' + cid);
+  if (!inp) return;
+  const raw = (inp.value || '').trim();
+  const q = raw.toLowerCase();
+  const home = _venueHome();
+  // 1) salles curées tout de suite
+  _venueRender(cid, _venueStatic(q, home));
+  // 2) n'importe quelle adresse via Photon (OSM), avec debounce
+  clearTimeout(window._venueT[cid]);
+  if (raw.length < 3) return;
+  window._venueT[cid] = setTimeout(async () => {
+    try {
+      const url = 'https://photon.komoot.io/api/?lang=fr&limit=6&q=' + encodeURIComponent(raw)
+        + (home ? `&lat=${home.lat}&lon=${home.lon}` : '');
+      const j = await (await fetch(url)).json();
+      const photon = (j.features || []).map(f => {
+        const p = f.properties || {}; const co = (f.geometry && f.geometry.coordinates) || [];
+        const name = p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || 'Lieu';
+        const sub = [p.city || p.county, p.postcode].filter(Boolean).join(' ');
+        return { n: name, v: sub, lat: co[1], lon: co[0], t: 'addr' };
+      }).filter(x => x.lat && x.lon);
+      if ((document.getElementById('cd-lieu-' + cid)?.value || '').trim() !== raw) return; // a changé
+      _venueRender(cid, [..._venueStatic(q, home), ...photon].slice(0, 8));
+    } catch (_) {}
+  }, 320);
 };
 window.venuePick = function(cid, i) {
   const x = (window._venueDD[cid] || [])[i];
   if (!x) return;
   const inp = document.getElementById('cd-lieu-' + cid);
   const dd = document.getElementById('venue-dd-' + cid);
-  if (inp) inp.value = x.n + ' — ' + x.v;
+  if (inp) inp.value = x.v ? (x.n + ' — ' + x.v) : x.n;
   const cc = creneauxBuilt.find(z => z.id === cid);
   if (cc) { cc.lieu = inp ? inp.value : x.n; cc.lat = x.lat; cc.lon = x.lon; }
   window._selectedVenueCoords = { lat: x.lat, lon: x.lon };
@@ -3517,10 +3547,10 @@ function buildCreneauxHtml() {
           <input class="input-field" type="time" id="cd-heure-${c.id}" value="${c.heure}">
         </div>
       </div>
-      <span class="input-label">Salle (indoor / urban) — Essonne</span>
+      <span class="input-label">Lieu du match</span>
       <div class="venue-pick form-group" style="margin-bottom:0">
         <input class="input-field" type="text" id="cd-lieu-${c.id}" value="${c.lieu}" autocomplete="off"
-          placeholder="Tape une ville : Massy, Évry, Palaiseau…"
+          placeholder="Salle, ville ou adresse…"
           oninput="venueSuggest('${c.id}')" onfocus="venueSuggest('${c.id}')"
           onblur="setTimeout(function(){var d=document.getElementById('venue-dd-${c.id}');if(d)d.classList.remove('open');},150)">
         <div class="venue-dd" id="venue-dd-${c.id}"></div>
