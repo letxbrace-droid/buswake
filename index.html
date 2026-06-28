@@ -1701,6 +1701,11 @@
       .ob-vote-row { margin-bottom:9px; }
     }
 
+    /* ===== ONBOARDING — icônes vectorielles ===== */
+    .ob-hero-ic { width:clamp(72px,20vw,90px); height:clamp(72px,20vw,90px); color:var(--orange); margin-bottom:clamp(14px,4vw,22px); filter:drop-shadow(0 12px 30px var(--orange-glow)); animation:logoFloat 3.6s ease-in-out infinite; }
+    .ob-floue svg { width:var(--s,32px); height:var(--s,32px); display:block; color:#fff; }
+    .obt-dot { width:13px; height:13px; border-radius:50%; display:inline-block; flex-shrink:0; box-shadow:0 0 8px currentColor; }
+
   </style>
 </head>
 <body>
@@ -1714,12 +1719,12 @@
 <!-- ONBOARDING -->
 <div id="onboarding-screen" class="hidden">
   <div class="ob-bg" aria-hidden="true">
-    <span class="ob-floue" style="--x:8%;--y:13%;--d:7s;--s:48px">⚽</span>
-    <span class="ob-floue" style="--x:80%;--y:9%;--d:9s;--s:34px">🥅</span>
-    <span class="ob-floue" style="--x:13%;--y:73%;--d:8s;--s:30px">👟</span>
-    <span class="ob-floue" style="--x:83%;--y:66%;--d:10s;--s:42px">🏆</span>
-    <span class="ob-floue" style="--x:48%;--y:86%;--d:11s;--s:26px">🧤</span>
-    <span class="ob-floue" style="--x:64%;--y:38%;--d:9s;--s:22px">⚽</span>
+    <span class="ob-floue" style="--x:8%;--y:13%;--d:7s;--s:50px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8l3.2 2.4-1.2 3.8H10L8.8 10.4z"/><path d="M12 8V4M15.2 10.4l3.4-1M13.9 14.2l2 2.9M10 14.2l-2 2.9M8.8 10.4 5.4 9.4"/></svg></span>
+    <span class="ob-floue" style="--x:80%;--y:9%;--d:9s;--s:38px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 20V7h18v13"/><path d="M3 7v13M21 7v13M8 7v13M16 7v13M3 11h18M3 15.5h18"/></svg></span>
+    <span class="ob-floue" style="--x:12%;--y:72%;--d:8s;--s:34px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 8h6l2.5 4 8.5 1.5V17H3z"/><path d="M3 17h18M6 12.5v2.5M9 13v2"/></svg></span>
+    <span class="ob-floue" style="--x:83%;--y:65%;--d:10s;--s:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3M18 5h3v2a3 3 0 0 1-3 3M9 21h6M12 14v7"/></svg></span>
+    <span class="ob-floue" style="--x:48%;--y:86%;--d:11s;--s:30px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="13" r="5"/><path d="M14 11.5l7-2.5v3.5l-7 1.5M9 8V5h4.5"/></svg></span>
+    <span class="ob-floue" style="--x:64%;--y:38%;--d:9s;--s:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8l3.2 2.4-1.2 3.8H10L8.8 10.4z"/></svg></span>
   </div>
   <button class="ob-skip-btn" onclick="skipOnboarding()">Passer</button>
   <div class="ob-slides-wrap" id="ob-slides-wrap">
@@ -1728,33 +1733,34 @@
     <div class="ob-slide">
       <img src="./logo.png" alt="" class="ob-logo-img">
       <div class="ob-brand">CAP SACLAY <span>FIVE</span></div>
-      <div class="ob-tag">Le football entre collègues, réinventé.</div>
+      <div class="ob-tag">Le foot à 5 entre collègues,<br>version pro.</div>
       <div class="ob-chips"><span>Organisez</span><span>Votez</span><span>Jouez</span></div>
     </div>
 
     <!-- Slide 2 -->
     <div class="ob-slide">
-      <div class="ob-emoji-hero">📅</div>
+      <svg class="ob-hero-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M7 13h2M11 13h2M15 13h2M7 16.5h2M11 16.5h2"/></svg>
       <div class="ob-title">Trouvez le bon <span>créneau</span></div>
       <div class="ob-mini-card">
         <div class="ob-vote-row"><span class="ovr-label">Vendredi 19h30</span><span class="ovr-bar"><i style="width:80%"></i></span><span class="ovr-n">8</span></div>
         <div class="ob-vote-row"><span class="ovr-label">Samedi 14h</span><span class="ovr-bar"><i style="width:55%"></i></span><span class="ovr-n">5</span></div>
         <div class="ob-vote-row"><span class="ovr-label">Dimanche 10h</span><span class="ovr-bar"><i style="width:35%"></i></span><span class="ovr-n">3</span></div>
       </div>
-      <div class="ob-desc">Horaires décalés ? Votez en quelques secondes.</div>
+      <div class="ob-copy">Chacun vote ses dispos. <b>Le créneau qui rassemble l'emporte.</b></div>
+      <div class="ob-desc">Fini les sondages sans fin sur WhatsApp.</div>
     </div>
 
     <!-- Slide 3 -->
     <div class="ob-slide">
-      <div class="ob-emoji-hero">👥</div>
+      <svg class="ob-hero-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="9.5" cy="8" r="3.3"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.7-3.4"/><path d="M15.5 5.1a3.3 3.3 0 0 1 0 5.8"/></svg>
       <div class="ob-title">Composez vos <span>équipes</span></div>
       <div class="ob-vs">
-        <div class="ob-team"><span>⚫</span> BLACK PANTHERS</div>
+        <div class="ob-team"><span class="obt-dot" style="background:#FF6A00"></span> CHASUBLES</div>
         <div class="ob-vs-sep">VS</div>
-        <div class="ob-team"><span>🟠</span> LES CONDUCTEURS</div>
+        <div class="ob-team"><span class="obt-dot" style="background:#00D88A"></span> VERTS</div>
       </div>
       <div class="ob-copy">L'algo répartit les forces <b>à la note près</b>.</div>
-      <div class="ob-desc">Deux camps, un terrain.<br>Que le meilleur gagne. ⚽</div>
+      <div class="ob-desc">Deux camps, un terrain.<br>Que le meilleur gagne.</div>
     </div>
 
   </div>
