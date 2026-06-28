@@ -1665,6 +1665,12 @@
     @keyframes screenIn { from { opacity:0; transform:translateX(16px); } to { opacity:1; transform:none; } }
     .screen.active { animation:screenIn .32s cubic-bezier(.22,1,.36,1); }
 
+    /* ===== TRANSITIONS DIRECTIONNELLES ONGLETS ===== */
+    @keyframes navFromRight { from { opacity:0; transform:translateX(24px); } to { opacity:1; transform:none; } }
+    @keyframes navFromLeft  { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:none; } }
+    .screen.nav-from-right { animation:navFromRight .30s cubic-bezier(.22,1,.36,1); }
+    .screen.nav-from-left  { animation:navFromLeft .30s cubic-bezier(.22,1,.36,1); }
+
   </style>
 </head>
 <body>
@@ -2675,10 +2681,17 @@ document.addEventListener('click', (e) => {
   if (t) haptic(12);
 }, true);
 
+const NAV_ORDER = ['home', 'matchs', 'profil', 'classement'];
 function navigateTo(screen) {
+  const prevIdx = NAV_ORDER.indexOf(currentScreen);
+  const nextIdx = NAV_ORDER.indexOf(screen);
+  const dir = (prevIdx === -1 || nextIdx >= prevIdx) ? 'right' : 'left';
   currentScreen = screen;
-  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-' + screen).classList.add('active');
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active', 'nav-from-left', 'nav-from-right'));
+  const sc = document.getElementById('screen-' + screen);
+  sc.classList.add('active');
+  void sc.offsetWidth; // reflow pour relancer l'animation
+  sc.classList.add(dir === 'right' ? 'nav-from-right' : 'nav-from-left');
   document.querySelectorAll('.nav-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.screen === screen);
   });
