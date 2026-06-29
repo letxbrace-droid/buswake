@@ -1779,6 +1779,19 @@
     .chat-send { width:44px; height:44px; flex-shrink:0; border:none; border-radius:50%; background:linear-gradient(135deg,var(--orange),var(--orange2)); color:#06210f; font-size:17px; font-weight:700; cursor:pointer; }
     .chat-send:disabled, .chat-input:disabled { opacity:.5; cursor:not-allowed; }
 
+    /* ===== XP RING ===== */
+    .xp-ring-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; margin:8px 0 16px; }
+    .xp-ring { width:74px; height:74px; border-radius:50%; position:relative; background:conic-gradient(var(--orange) calc(var(--pct,0)*1%), rgba(255,255,255,.08) 0); display:grid; place-items:center; box-shadow:0 0 22px var(--orange-glow-soft), inset 0 0 12px rgba(0,0,0,.55); }
+    .xp-ring::before { content:''; position:absolute; inset:6px; border-radius:50%; background:radial-gradient(circle,#0d1116,#070a0e); }
+    .xp-ring-in { position:relative; text-align:center; line-height:1.02; }
+    .xpr-num { font-family:'Anton',sans-serif; font-size:19px; color:#fff; }
+    .xpr-lbl { font-size:9px; color:var(--text-sec); font-weight:700; letter-spacing:1.5px; }
+    .xp-hint { font-size:12.5px; color:var(--text-sec); font-weight:600; }
+    /* ===== RADAR ATOUTS ===== */
+    .radar-wrap { display:flex; justify-content:center; align-items:center; position:relative; padding:4px 0 12px; }
+    .radar-wrap::before { content:''; position:absolute; width:200px; height:200px; border-radius:50%; background:radial-gradient(circle, var(--orange-glow-soft), transparent 68%); pointer-events:none; }
+    #profile-radar { position:relative; z-index:1; }
+
   </style>
 </head>
 <body>
@@ -2858,6 +2871,43 @@ function calcOverall(d) {
 function rarityClass(overall) {
   return overall >= 80 ? 'gold' : overall >= 70 ? 'silver' : 'bronze';
 }
+function _hexA(hex, a) {
+  hex = (hex || '#00D88A').trim().replace('#', '');
+  if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
+  const n = parseInt(hex, 16);
+  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+}
+function drawRadar(id) {
+  const cv = document.getElementById(id);
+  if (!cv || !currentUserData) return;
+  const a = currentUserData.atouts || {};
+  const pas = Math.round(((a.vitesse || 70) + (a.dribble || 70)) / 2);
+  const stats = [['PAC', a.vitesse||70], ['DRI', a.dribble||70], ['TIR', a.frappe||70], ['DEF', a.defense||70], ['PHY', a.physique||70], ['PAS', pas]];
+  const ctx = cv.getContext('2d');
+  const W = cv.width, H = cv.height, cx = W/2, cy = H/2, r = Math.min(W, H)/2 - 30, N = stats.length;
+  const pt = (ang, rad) => [cx + Math.cos(ang)*rad, cy + Math.sin(ang)*rad];
+  const accent = (getComputedStyle(document.documentElement).getPropertyValue('--orange') || '#00D88A').trim();
+  function draw(prog) {
+    ctx.clearRect(0, 0, W, H);
+    for (let lev = 1; lev <= 4; lev++) {
+      ctx.beginPath();
+      for (let i = 0; i < N; i++) { const ang = -Math.PI/2 + i*Math.PI*2/N; const [x,y] = pt(ang, r*lev/4); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); }
+      ctx.closePath(); ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 1; ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.08)';
+    for (let i = 0; i < N; i++) { const ang = -Math.PI/2 + i*Math.PI*2/N; const [x,y] = pt(ang, r); ctx.beginPath(); ctx.moveTo(cx,cy); ctx.lineTo(x,y); ctx.stroke(); }
+    ctx.beginPath();
+    stats.forEach((s,i) => { const ang = -Math.PI/2 + i*Math.PI*2/N; const [x,y] = pt(ang, r*(s[1]/100)*prog); i ? ctx.lineTo(x,y) : ctx.moveTo(x,y); });
+    ctx.closePath(); ctx.fillStyle = _hexA(accent, .16); ctx.fill(); ctx.strokeStyle = accent; ctx.lineWidth = 2; ctx.stroke();
+    ctx.shadowColor = accent; ctx.shadowBlur = 10; ctx.stroke(); ctx.shadowBlur = 0;
+    stats.forEach((s,i) => { const ang = -Math.PI/2 + i*Math.PI*2/N; const [x,y] = pt(ang, r*(s[1]/100)*prog); ctx.beginPath(); ctx.arc(x,y,2.7,0,7); ctx.fillStyle = accent; ctx.fill(); });
+    ctx.fillStyle = 'rgba(255,255,255,.72)'; ctx.font = "700 12px Anton, sans-serif"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    stats.forEach((s,i) => { const ang = -Math.PI/2 + i*Math.PI*2/N; const [x,y] = pt(ang, r + 15); ctx.fillText(s[0], x, y); });
+  }
+  const t0 = performance.now();
+  (function anim(now) { const p = Math.min((now - t0)/700, 1); draw(1 - Math.pow(1-p, 3)); if (p < 1) requestAnimationFrame(anim); })(performance.now());
+}
+window.drawRadar = drawRadar;
 function relChipHTML(d) {
   const tot = (d.presences || 0) + (d.lapins || 0);
   let h = '';
@@ -4490,6 +4540,15 @@ async function renderProfil() {
 
     ${futHtml}
 
+    ${(function(){
+      const xp = d.xp || 0;
+      const idx = RANGS.findIndex(r => r.label === rang.label);
+      const next = RANGS[idx + 1];
+      const pct = next ? Math.max(3, Math.min(100, Math.round((xp - rang.min) / (next.min - rang.min) * 100))) : 100;
+      const hint = next ? `${next.min - xp} XP avant ${next.label.replace(/^\S+\s/, '')}` : 'Rang maximum 🏆';
+      return `<div class="xp-ring-wrap"><div class="xp-ring" style="--pct:${pct}"><div class="xp-ring-in"><div class="xpr-num">${xp}</div><div class="xpr-lbl">XP</div></div></div><div class="xp-hint">${hint}</div></div>`;
+    })()}
+
     <div class="stats-row">
       <div class="stat-box"><div class="sv">${d.stats?.matchsJoues ?? 0}</div><div class="sl">Matchs joués</div></div>
       <div class="stat-box"><div class="sv">${d.noteCount ? (d.noteSum/d.noteCount).toFixed(1) : '—'}</div><div class="sl">⭐ Note (${d.noteCount||0})</div></div>
@@ -4502,6 +4561,7 @@ async function renderProfil() {
     </div>
 
     <div class="section-title" style="margin-top:8px">Atouts</div>
+    <div class="radar-wrap"><canvas id="profile-radar" width="240" height="240" style="width:208px;height:208px"></canvas></div>
     ${atoutsOrder.map(a => {
       const val = d.atouts?.[a.key] ?? 70;
       return `<div class="atout-bar-wrap">
@@ -4574,6 +4634,7 @@ async function renderProfil() {
   const _pf = d.friends || [], _pr = d.friendRequestsReceived || [];
   if (_pf.length > 0 || _pr.length > 0) _loadProfileFriends(_pf, _pr);
   requestAnimationFrame(initFutTilt);
+  requestAnimationFrame(() => drawRadar('profile-radar'));
 }
 
 // ===== ÉDITER PROFIL =====
