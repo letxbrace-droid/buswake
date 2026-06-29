@@ -555,6 +555,9 @@
     .jd-pseudo { font-size:13px; font-weight:600; color:var(--text); display:block; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .jd-sub { font-size:11px; color:var(--text-muted); margin-top:1px; display:block; }
     .jd-dist-pill { font-size:11px; font-weight:600; color:var(--text-sec); background:rgba(255,255,255,.06); border:1px solid var(--border); border-radius:20px; padding:3px 8px; white-space:nowrap; flex-shrink:0; }
+    .jd-remove { flex-shrink:0; width:26px; height:26px; border-radius:7px; border:1px solid rgba(255,23,68,.32); background:rgba(255,23,68,.08); color:var(--red); font-size:13px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform .1s, background .15s; }
+    .jd-remove:active { transform:scale(.88); }
+    .jd-remove:hover { background:rgba(255,23,68,.16); }
     .jd-bench-sep { text-align:center; font-size:10px; color:var(--text-muted); letter-spacing:2px; text-transform:uppercase; padding:6px 0 4px; }
     .dept-filter-wrap { display:flex; align-items:center; gap:8px; margin-bottom:10px; }
     .dept-filter-input { flex:1; font-size:13px; padding:8px 12px; background:var(--card); border:1px solid var(--border); border-radius:10px; color:var(--text); outline:none; }
@@ -3096,7 +3099,7 @@ window.filterJoueursDept = function(val) {
   });
 };
 
-function buildJoueursListHtml(joueursAvecDist) {
+function buildJoueursListHtml(joueursAvecDist, matchId, isCreateur) {
   if (!joueursAvecDist.length)
     return '<span style="color:var(--text-muted);font-size:13px">Personne encore.</span>';
   const hasAnyDist = joueursAvecDist.some(j => j.dist !== null || j.codePostal);
@@ -3122,6 +3125,7 @@ function buildJoueursListHtml(joueursAvecDist) {
         <span class="jd-pseudo">${j.pseudo}</span>
       </div>
       ${pill}
+      ${isCreateur ? `<button class="jd-remove" title="Retirer ce joueur" aria-label="Retirer ${escapeHtml(j.pseudo)}" onclick="window._removePlayerFromMatch('${matchId}','${j.uid}')">✕</button>` : ''}
     </div>`;
   });
   h += `</div>`;
@@ -3464,7 +3468,7 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCr
   const chip = `<div class="players-chip"><span>👥 ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitlist.length ? `<span class="pc-wait">⏳ ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : ''}</div>`;
   return `<div class="divider"></div>
     ${chip}${venueCoords ? '<div style="font-size:10px;color:var(--text-muted);margin:-4px 0 8px">· triés par distance</div>' : ''}
-    ${buildJoueursListHtml(joueursAvecDist)}
+    ${buildJoueursListHtml(joueursAvecDist, matchId, isCreateur)}
     ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 8px" onclick="window.openAddPlayer('${matchId}')">➕ Ajouter / inviter un joueur</button>` : ''}
     <div class="divider"></div>
     <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
@@ -5346,6 +5350,32 @@ window.closeAddPlayer = function() {
   document.getElementById('addplayer-modal').classList.add('hidden');
   document.getElementById('ap-list').innerHTML = '';
   window._apUsers = [];
+};
+// Le créateur retire un joueur du match. Retirer un titulaire promeut
+// automatiquement le 1er remplaçant (même logique que la désinscription).
+window._removePlayerFromMatch = async function(matchId, playerUid) {
+  if (!matchId || !currentUser) return;
+  const ref = doc(db, 'matchs', matchId);
+  let m = {};
+  try { const s = await getDoc(ref); m = s.exists() ? s.data() : {}; } catch (_) {}
+  const inscrits = m.joueursInscrits || [];
+  const waitlist = m.waitlist || [];
+  const pseudo = (await getUserData(playerUid))?.pseudo || 'Le joueur';
+  try {
+    if (inscrits.includes(playerUid)) {
+      const newInscrits = inscrits.filter(x => x !== playerUid);
+      const newWait = waitlist.slice();
+      let promoted = null;
+      if (newWait.length) { promoted = newWait.shift(); newInscrits.push(promoted); }
+      await updateDoc(ref, { joueursInscrits: newInscrits, waitlist: newWait });
+      showToast(promoted ? `${pseudo} retiré · un remplaçant prend sa place 🔄` : `${pseudo} retiré du match`, '');
+    } else if (waitlist.includes(playerUid)) {
+      await updateDoc(ref, { waitlist: waitlist.filter(x => x !== playerUid) });
+      showToast(`${pseudo} retiré de la liste d'attente`, '');
+    }
+  } catch (e) {
+    showToast('Échec (' + (e.code || e.message) + ').', 'error');
+  }
 };
 document.getElementById('addplayer-modal').addEventListener('click', function(e) {
   if (e.target === this) closeAddPlayer();
