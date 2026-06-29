@@ -1827,6 +1827,27 @@
     .chat-send { width:44px; height:44px; flex-shrink:0; border:none; border-radius:50%; background:linear-gradient(135deg,var(--orange),var(--orange2)); color:#06210f; font-size:17px; font-weight:700; cursor:pointer; }
     .chat-send:disabled, .chat-input:disabled { opacity:.5; cursor:not-allowed; }
 
+    /* ===== AJOUTER / INVITER UN JOUEUR ===== */
+    .ap-sheet { display:flex; flex-direction:column; max-height:82vh; }
+    .ap-body { display:flex; flex-direction:column; min-height:0; flex:1; padding:0 16px 16px; }
+    #ap-invite { display:flex; align-items:center; justify-content:center; gap:9px; }
+    #ap-invite svg { width:18px; height:18px; flex-shrink:0; }
+    .ap-searchbar { display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:0 12px; height:44px; margin-bottom:10px; flex-shrink:0; }
+    .ap-searchbar svg { width:16px; height:16px; color:var(--text-sec); flex-shrink:0; }
+    .ap-searchbar input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:15px; }
+    .ap-searchbar input::placeholder { color:var(--text-sec); }
+    .ap-list { flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:4px; }
+    .ap-row { display:flex; align-items:center; gap:11px; padding:8px 4px; border-bottom:1px solid var(--border); }
+    .ap-row:last-child { border-bottom:none; }
+    .ap-av { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--orange-dark),var(--orange)); display:flex; align-items:center; justify-content:center; font-family:'Anton',sans-serif; font-size:13.5px; color:#0B0E12; flex-shrink:0; }
+    .ap-meta { flex:1; min-width:0; }
+    .ap-name { font-size:14.5px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .ap-sub { font-size:11.5px; color:var(--text-sec); margin-top:1px; }
+    .ap-add { flex-shrink:0; border:1px solid var(--orange); background:rgba(0,216,138,.08); color:var(--orange); font-weight:700; font-size:12.5px; border-radius:99px; padding:7px 15px; cursor:pointer; font-family:'Space Grotesk',sans-serif; transition:transform .1s; }
+    .ap-add:active { transform:scale(.94); }
+    .ap-add:disabled { opacity:.55; border-color:var(--border); color:var(--text-sec); background:transparent; cursor:default; }
+    .ap-empty { text-align:center; color:var(--text-muted); font-size:13px; padding:26px 8px; line-height:1.6; }
+
     /* ===== XP RING ===== */
     .xp-ring-wrap { display:flex; flex-direction:column; align-items:center; gap:8px; margin:8px 0 16px; }
     .xp-ring { width:74px; height:74px; border-radius:50%; position:relative; background:conic-gradient(var(--orange) calc(var(--pct,0)*1%), rgba(255,255,255,.08) 0); display:grid; place-items:center; box-shadow:0 0 22px var(--orange-glow-soft), inset 0 0 12px rgba(0,0,0,.55); }
@@ -2131,6 +2152,25 @@
     <div class="chat-inputbar">
       <input id="chat-input" class="chat-input" type="text" maxlength="500" placeholder="Écris un message…" onkeydown="if(event.key==='Enter')window.sendChatMsg()">
       <button id="chat-send" class="chat-send" onclick="window.sendChatMsg()" aria-label="Envoyer">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- Ajouter / inviter un joueur (créateur) -->
+<div id="addplayer-modal" class="modal-overlay hidden">
+  <div class="modal-sheet ap-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-header">
+      <div class="modal-title">➕ Ajouter un joueur</div>
+      <button class="modal-close" onclick="closeAddPlayer()">✕</button>
+    </div>
+    <div class="ap-body">
+      <button class="btn-sm btn-wa" id="ap-invite" style="width:100%;margin-bottom:12px">Inviter un nouveau joueur</button>
+      <div class="ap-searchbar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="ap-search" type="text" placeholder="Rechercher un joueur…" autocomplete="off" spellcheck="false">
+      </div>
+      <div class="ap-list" id="ap-list"></div>
     </div>
   </div>
 </div>
@@ -3410,7 +3450,7 @@ async function openMatchDetail(matchId) {
 window.openMatchDetail = openMatchDetail;
 
 const WA_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.611 5.385l-.999 3.648 3.877-1.032zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
-function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords) {
+function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur) {
   const inscrits = m.joueursInscrits || [];
   const waitlist = m.waitlist || [];
   const isTit = inscrits.includes(uid);
@@ -3425,6 +3465,7 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords) {
   return `<div class="divider"></div>
     ${chip}${venueCoords ? '<div style="font-size:10px;color:var(--text-muted);margin:-4px 0 8px">· triés par distance</div>' : ''}
     ${buildJoueursListHtml(joueursAvecDist)}
+    ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 8px" onclick="window.openAddPlayer('${matchId}')">➕ Ajouter / inviter un joueur</button>` : ''}
     <div class="divider"></div>
     <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
     <button class="btn-sm btn-wa" style="width:100%;margin-bottom:8px" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager sur WhatsApp</button>
@@ -3509,7 +3550,7 @@ async function renderMatchDetail(matchId, m) {
       html += `<button class="btn-sm btn-red" style="width:100%;opacity:.7" onclick="annulerMatch('${matchId}')">🗑️ Annuler ce match</button>`;
     }
 
-    html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords);
+    html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur);
   }
 
   // ---- Match confirmé ----
@@ -3533,7 +3574,7 @@ async function renderMatchDetail(matchId, m) {
         </div>`).join('');
     }
 
-    html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords);
+    html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur);
 
     if (isCreateur) {
       const hasTeams = (m.equipes || []).some(eq => (eq.joueurs || []).length > 0);
@@ -5223,6 +5264,92 @@ window.shareMatchWA = async function(matchId) {
   }
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 };
+
+// ===== AJOUTER / INVITER UN JOUEUR (créateur) =====
+// Le créateur du match peut inscrire directement un membre de l'app
+// (titulaire, ou remplaçant si le match est complet), ou inviter quelqu'un
+// qui n'a pas encore l'app via le partage WhatsApp.
+window._apUsers = [];
+window.openAddPlayer = async function(matchId) {
+  window._apMatchId = matchId;
+  const ov = document.getElementById('addplayer-modal');
+  const list = document.getElementById('ap-list');
+  const search = document.getElementById('ap-search');
+  const invite = document.getElementById('ap-invite');
+  search.value = '';
+  list.innerHTML = '<div class="ap-empty">Chargement…</div>';
+  ov.classList.remove('hidden');
+  invite.innerHTML = WA_SVG + 'Inviter un nouveau joueur';
+  invite.onclick = () => window.shareMatchWA(matchId);
+  let m = {};
+  try { const s = await getDoc(doc(db, 'matchs', matchId)); m = s.exists() ? s.data() : {}; } catch (_) {}
+  window._apTaken = new Set([...(m.joueursInscrits || []), ...(m.waitlist || [])]);
+  try {
+    const snap = await getDocs(query(collection(db, 'users'), orderBy('xp', 'desc')));
+    window._apUsers = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch (_) { window._apUsers = []; }
+  _renderApList();
+  search.oninput = _renderApList;
+};
+function _renderApList() {
+  const list = document.getElementById('ap-list');
+  if (!list) return;
+  const q = (document.getElementById('ap-search')?.value || '').trim().toLowerCase();
+  const taken = window._apTaken || new Set();
+  const rows = (window._apUsers || []).filter(u => !taken.has(u.id) && (!q || (u.pseudo || '').toLowerCase().includes(q)));
+  if (!rows.length) {
+    list.innerHTML = `<div class="ap-empty">${q ? 'Aucun joueur trouvé.' : 'Tous les membres sont déjà dans le match.<br>Invite quelqu\'un de nouveau via WhatsApp.'}</div>`;
+    return;
+  }
+  list.innerHTML = rows.map(u => {
+    const rang = getRang(u.xp || 0);
+    return `<div class="ap-row">
+      <div class="ap-av">${initiales(u.pseudo)}</div>
+      <div class="ap-meta">
+        <div class="ap-name">${escapeHtml(u.pseudo)}</div>
+        <div class="ap-sub">${rang.label} · ${u.xp || 0} XP</div>
+      </div>
+      <button class="ap-add" onclick="window._addPlayerToMatch('${u.id}')">Ajouter</button>
+    </div>`;
+  }).join('');
+}
+window._addPlayerToMatch = async function(playerUid) {
+  const matchId = window._apMatchId;
+  if (!matchId || !currentUser) return;
+  const ref = doc(db, 'matchs', matchId);
+  let m = {};
+  try { const s = await getDoc(ref); m = s.exists() ? s.data() : {}; } catch (_) {}
+  const inscrits = m.joueursInscrits || [];
+  const waitlist = m.waitlist || [];
+  if (inscrits.includes(playerUid) || waitlist.includes(playerUid)) {
+    showToast('Ce joueur est déjà dans le match.', '');
+    (window._apTaken = window._apTaken || new Set()).add(playerUid);
+    _renderApList();
+    return;
+  }
+  const pseudo = (await getUserData(playerUid))?.pseudo || 'Le joueur';
+  try {
+    if (inscrits.length >= MIN_CONFIRM) {
+      await updateDoc(ref, { waitlist: arrayUnion(playerUid) });
+      showToast(`${pseudo} ajouté en remplaçant ⏳`, 'success');
+    } else {
+      await updateDoc(ref, { joueursInscrits: arrayUnion(playerUid), waitlist: arrayRemove(playerUid) });
+      showToast(`${pseudo} inscrit au match ✅`, 'success');
+    }
+    (window._apTaken = window._apTaken || new Set()).add(playerUid);
+    _renderApList();
+  } catch (e) {
+    showToast('Échec (' + (e.code || e.message) + ').', 'error');
+  }
+};
+window.closeAddPlayer = function() {
+  document.getElementById('addplayer-modal').classList.add('hidden');
+  document.getElementById('ap-list').innerHTML = '';
+  window._apUsers = [];
+};
+document.getElementById('addplayer-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeAddPlayer();
+});
 
 // ===== NOTATION ENTRE JOUEURS (post-match) =====
 window.openRatePlayers = async function(matchId) {
