@@ -735,53 +735,101 @@
     }
     .edit-profile-btn:hover { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.06); }
 
-    /* ===== CLASSEMENT ===== */
-    .podium { display:flex; align-items:flex-end; justify-content:center; gap:8px; margin-bottom:28px; height:150px; }
-    .podium-item { display:flex; flex-direction:column; align-items:center; justify-content:flex-end; flex:1; max-width:115px; }
-    .podium-avatar {
-      width:46px; height:46px; border-radius:50%;
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Anton',sans-serif; font-size:18px; font-weight:700;
-      color:#0B0E12; margin-bottom:5px;
-      border:2px solid rgba(0,0,0,.45);
-      box-shadow:0 0 0 2px rgba(255,255,255,.1), 0 4px 12px rgba(0,0,0,.55);
-    }
-    .podium-name { font-size:11px; font-weight:700; color:var(--text); text-align:center; width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-    .podium-xp { font-size:10px; color:var(--text-sec); margin-top:1px; }
-    .podium-block {
-      width:100%; border-radius:10px 10px 0 0;
-      display:flex; align-items:flex-start; justify-content:center; padding-top:8px;
-      font-family:'Anton',sans-serif; font-size:30px; font-weight:700;
-      color:rgba(0,0,0,.6); text-shadow:0 1px 1px rgba(255,255,255,.25);
-    }
-    .podium-1 .podium-block { background:linear-gradient(180deg, #FFD700, #F57F17); height:95px; box-shadow:0 0 20px rgba(255,215,0,.3); }
-    .podium-2 .podium-block { background:linear-gradient(180deg, #90A4AE, #546E7A); height:72px; }
-    .podium-3 .podium-block { background:linear-gradient(180deg, #A05000, #6D3500); height:58px; }
-    .podium-1 .podium-avatar { background:linear-gradient(135deg, #FFD700, #F57F17); box-shadow:0 0 16px rgba(255,215,0,.4); }
-    .podium-2 .podium-avatar { background:linear-gradient(135deg, #90A4AE, #546E7A); }
-    .podium-3 .podium-avatar { background:linear-gradient(135deg, #A05000, #6D3500); }
+    /* ===== CLASSEMENT IMMERSIF ===== */
+    .cls-hero { padding:2px 2px 4px; margin-bottom:6px; }
+    .cls-eyebrow { font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--text-sec); }
+    .cls-eyebrow b { color:var(--orange); font-weight:700; }
+    .cls-title { font-family:'Anton',sans-serif; font-size:34px; line-height:1.02; letter-spacing:.01em; color:var(--text); margin-top:5px; }
+    .cls-title-sub { font-size:12.5px; color:var(--text-sec); margin-top:5px; display:flex; align-items:center; gap:7px; font-weight:600; }
+    .cls-title-sub svg { width:15px; height:15px; color:var(--orange); flex-shrink:0; }
 
-    .leaderboard-list { display:flex; flex-direction:column; gap:8px; }
-    .lb-item {
-      background:var(--card); border:1px solid var(--border);
-      border-radius:13px; padding:12px 14px;
-      display:flex; align-items:center; gap:12px;
-      transition:all .2s;
+    /* 3D Podium */
+    .podium-stage { padding:12px 4px 0; perspective:920px; transform-style:preserve-3d; }
+    .podium-stage-inner { transform-style:preserve-3d; transition:transform .1s linear; will-change:transform; }
+    .podium-row-3d { display:flex; align-items:flex-end; justify-content:center; gap:10px; }
+    .podium-col { flex:1; max-width:116px; text-align:center; transform-style:preserve-3d; }
+    .podium-avatar-stack { position:relative; display:flex; justify-content:center; margin-bottom:10px; transform:translateZ(20px); transform-style:preserve-3d; }
+    .p-avatar-3d {
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-family:'Anton',sans-serif; font-weight:700; position:relative;
+      color:#0B0E12; box-shadow:0 8px 22px rgba(0,0,0,.4);
     }
-    .lb-item:hover { border-color:var(--border-light); background:var(--card2); }
-    .lb-item.me { border-color:rgba(0,216,138,.4); background:rgba(0,216,138,.06); box-shadow:0 0 16px rgba(0,216,138,.08); }
-    .lb-rank { font-family:'Anton',sans-serif; font-size:19px; font-weight:700; color:var(--text-muted); min-width:28px; }
-    .lb-avatar {
-      width:40px; height:40px; border-radius:50%;
-      background:linear-gradient(135deg, var(--orange-dark), var(--orange));
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Anton',sans-serif; font-size:15px; font-weight:700;
-      color:#fff; flex-shrink:0; box-shadow:0 0 10px var(--orange-glow);
+    .p-avatar-3d.r1 { width:74px; height:74px; font-size:26px; background:linear-gradient(160deg,#ffe27a 0%,#f4ad1a 100%); box-shadow:0 0 30px rgba(255,207,82,.26), 0 10px 28px rgba(0,0,0,.45); }
+    .p-avatar-3d.r2 { width:57px; height:57px; font-size:20px; background:linear-gradient(160deg,#c4ccd6,#8b98a8); color:#10151c; }
+    .p-avatar-3d.r3 { width:53px; height:53px; font-size:18px; background:linear-gradient(160deg,#cf9258,#9c5c22); color:#fff3e2; }
+    .ring-gold { position:absolute; inset:-4px; border-radius:50%; background:conic-gradient(from 140deg,#ffe9a6,#ffbe2b,#fff0c8,#d89713,#ffe9a6); z-index:-1; filter:blur(.3px); }
+    .ring-glass { position:absolute; inset:-3px; border-radius:50%; background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.16); z-index:-1; }
+    .crown-float { position:absolute; top:-13px; left:50%; transform:translateX(-50%); width:24px; height:24px; color:#ffd54a; filter:drop-shadow(0 2px 5px rgba(0,0,0,.4)); }
+    .float-anim { animation:floatY 3.2s ease-in-out infinite; }
+    .float-anim.d2 { animation-delay:.45s; }
+    .float-anim.d3 { animation-delay:.9s; }
+    @keyframes floatY { 0%,100%{transform:translateY(0) translateZ(20px);} 50%{transform:translateY(-4px) translateZ(20px);} }
+    .podium-name-3d { font-size:13.5px; font-weight:700; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .podium-col.first .podium-name-3d { font-size:15px; }
+    .podium-xp-3d { font-size:11.5px; color:var(--text-sec); margin-top:2px; font-weight:700; }
+    .podium-col.first .podium-xp-3d { color:#e6c065; }
+    .podium-block-3d {
+      margin-top:10px; border-radius:14px 14px 11px 11px; position:relative;
+      transform-style:preserve-3d; display:flex; align-items:center; justify-content:center;
+      box-shadow:0 2px 4px rgba(0,0,0,.4), 0 12px 32px rgba(0,0,0,.35), 0 28px 60px rgba(0,0,0,.22);
     }
-    .lb-info { flex:1; }
-    .lb-pseudo { font-weight:600; font-size:14px; }
-    .lb-detail { font-size:11px; color:var(--text-sec); margin-top:2px; }
-    .lb-xp { font-family:'Anton',sans-serif; font-size:17px; font-weight:700; color:var(--orange); text-shadow:0 0 10px var(--orange-glow); }
+    .podium-block-3d::before { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 34%); pointer-events:none; }
+    .podium-block-3d .podium-num { font-family:'Anton',sans-serif; position:relative; text-shadow:0 1px 0 rgba(255,255,255,.25), 0 -1px 1px rgba(0,0,0,.28); }
+    .block-first { height:100px; background:linear-gradient(180deg,#ffdb5a,#ef9f19); }
+    .block-first .podium-num { font-size:33px; color:#171d25; }
+    .block-second { height:76px; background:linear-gradient(180deg,#3a4351,#272f3b); }
+    .block-second .podium-num { font-size:28px; color:#c2cdda; }
+    .block-third { height:60px; background:linear-gradient(180deg,#5a3318,#33200f); }
+    .block-third .podium-num { font-size:25px; color:#d89a62; }
+    .podium-floor { height:50px; margin:-6px 22px 0; background:linear-gradient(to bottom,rgba(255,255,255,.06),rgba(255,255,255,0) 70%); filter:blur(12px); opacity:.5; border-radius:60%/100%; transform:scaleY(-.7); pointer-events:none; }
+
+    /* Recherche */
+    .cls-search-wrap { padding:16px 0 10px; }
+    .cls-search { position:relative; display:flex; align-items:center; gap:10px; background:var(--card); border:1px solid var(--border); box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 8px 26px rgba(0,0,0,.3); border-radius:14px; padding:0 13px; height:46px; }
+    .cls-search svg { width:17px; height:17px; color:var(--text-sec); flex-shrink:0; }
+    .cls-search input { flex:1; background:transparent; border:none; outline:none; color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:15px; font-weight:500; }
+    .cls-search input::placeholder { color:var(--text-sec); }
+    .search-clear { border:none; background:none; color:var(--text-sec); font-size:12.5px; font-weight:700; cursor:pointer; padding:6px; border-radius:8px; display:none; }
+    .search-clear.show { display:block; }
+
+    /* Liste verre */
+    .players-glass { background:var(--card); border:1px solid var(--border); box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 20px 50px rgba(0,0,0,.4); border-radius:18px; overflow:hidden; }
+    .player-row {
+      min-height:58px; padding:8px 13px; display:flex; align-items:center; gap:11px;
+      border-bottom:1px solid var(--border); cursor:pointer;
+      transition:background .16s, transform .12s; -webkit-tap-highlight-color:transparent;
+      position:relative;
+    }
+    .player-row:last-child { border-bottom:none; }
+    .player-row:hover { background:var(--card2); }
+    .player-row:active { transform:scale(.985); }
+    .player-rank { width:26px; text-align:center; font-family:'Anton',sans-serif; font-size:15px; font-weight:700; color:var(--text-muted); flex-shrink:0; }
+    .player-rank.gold { color:var(--gold); }
+    .player-rank.silver { color:#b9c4d2; }
+    .player-rank.bronze { color:#cf9258; }
+    .p-li-avatar {
+      width:38px; height:38px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-family:'Anton',sans-serif; font-size:13.5px; font-weight:700; flex-shrink:0;
+      background:linear-gradient(135deg,var(--orange-dark),var(--orange)); color:#0B0E12;
+      box-shadow:inset 0 1px 1px rgba(255,255,255,.28), 0 0 0 1.5px rgba(0,216,138,.22);
+    }
+    .p-li-avatar.r1 { background:linear-gradient(160deg,#ffe27a,#f4ad1a); box-shadow:inset 0 1px 1px rgba(255,255,255,.3), 0 0 0 1.5px rgba(255,215,0,.3); }
+    .p-li-avatar.r2 { background:linear-gradient(160deg,#c4ccd6,#8b98a8); color:#10151c; box-shadow:inset 0 1px 1px rgba(255,255,255,.25), 0 0 0 1.5px rgba(255,255,255,.1); }
+    .p-li-avatar.r3 { background:linear-gradient(160deg,#cf9258,#9c5c22); color:#fff2df; box-shadow:inset 0 1px 1px rgba(255,255,255,.2), 0 0 0 1.5px rgba(255,255,255,.08); }
+    .p-li-meta { flex:1; min-width:0; }
+    .p-li-name { font-size:15px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .p-li-sub { font-size:11.5px; color:var(--text-sec); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .p-li-xp { font-family:'Anton',sans-serif; font-size:16px; font-weight:700; color:var(--orange); font-variant-numeric:tabular-nums; flex-shrink:0; padding-left:8px; text-shadow:0 0 10px var(--orange-glow); }
+    .player-row.me { background:linear-gradient(90deg, rgba(0,216,138,.08), rgba(0,216,138,0) 72%); box-shadow:inset 2.5px 0 0 var(--orange); }
+    .player-row.me .p-li-name { font-weight:700; }
+    .me-avatar-wrap { position:relative; display:flex; }
+    .me-ring-pulse { position:absolute; inset:-3px; border-radius:50%; border:2px solid rgba(0,216,138,.55); animation:mePulse 2s ease-out infinite; pointer-events:none; }
+    @keyframes mePulse { 0%{transform:scale(1);opacity:.48;} 100%{transform:scale(1.14);opacity:0;} }
+    .player-row.hidden-row { display:none; }
+    .cls-no-results { padding:18px 16px; font-size:13.5px; color:var(--text-sec); text-align:center; display:none; }
+    .cls-no-results.show { display:block; }
+    @media (prefers-reduced-motion: reduce) { .float-anim, .me-ring-pulse { animation:none !important; } }
+    @media (max-width:380px) { .podium-col { max-width:106px; } .cls-title { font-size:30px; } }
 
     /* ===== TOAST ===== */
     #toast-wrap {
@@ -4734,51 +4782,138 @@ async function renderClassement() {
     return;
   }
 
+  const meUid = currentUser?.uid;
   const top3 = users.slice(0, 3);
-  const rest = users.slice(3);
 
-  // Podium
-  let podiumHtml = '<div class="podium">';
-  const podiumOrder = top3.length >= 2 ? [top3[1], top3[0], top3[2]].filter(Boolean) : top3;
-  const podiumClass = ['podium-2', 'podium-1', 'podium-3'];
-  const podiumLabel = ['2', '1', '3'];
-  podiumOrder.forEach((u, i) => {
-    const isMe = u.id === currentUser?.uid;
-    const rang = getRang(u.xp || 0);
-    podiumHtml += `
-      <div class="podium-item ${podiumClass[i]}">
-        <div class="podium-avatar${isMe ? '" style="border:2px solid var(--orange)' : ''}">${initiales(u.pseudo)}</div>
-        <div class="podium-name">${u.pseudo}${isMe ? ' 👋' : ''}</div>
-        <div class="podium-xp">${u.xp || 0} XP</div>
-        <div class="podium-block">${podiumLabel[i]}</div>
-      </div>`;
-  });
-  podiumHtml += '</div>';
+  const trophySvg = '<svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-1px;color:var(--gold)"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>';
+  const crownSvg = '<svg class="crown-float" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M3 7l4.5 3.2L12 4l4.5 6.2L21 7l-1.6 11.2a1.2 1.2 0 0 1-1.18 1.05H5.78A1.2 1.2 0 0 1 4.6 18.2L3 7z"/></svg>';
 
-  // Liste
-  let listHtml = '<div class="leaderboard-list">';
-  users.forEach((u, i) => {
-    const isMe = u.id === currentUser?.uid;
-    const rang = getRang(u.xp || 0);
-    const rankColor = i === 0 ? 'var(--gold)' : i === 1 ? 'var(--silver)' : i === 2 ? 'var(--bronze)' : 'var(--text-muted)';
-    listHtml += `
-      <div class="lb-item${isMe ? ' me' : ''}">
-        <div class="lb-rank" style="color:${rankColor}">${i + 1}</div>
-        <div class="lb-avatar">${initiales(u.pseudo)}</div>
-        <div class="lb-info">
-          <div class="lb-pseudo">${u.pseudo}${isMe ? ' 👋' : ''}</div>
-          <div class="lb-detail">${rang.label} · ${u.stats?.matchsJoues ?? 0} matchs · ${u.stats?.hommeDuMatch ?? 0} 🏆</div>
+  // ===== Podium 3D (ordre visuel : 2 - 1 - 3) =====
+  const slots = [
+    { u: top3[1], cls: 'podium-col', av: 'r2', block: 'block-second', delay: 'd2', num: '2', ring: '<span class="ring-glass" aria-hidden="true"></span>' },
+    { u: top3[0], cls: 'podium-col first', av: 'r1', block: 'block-first', delay: '', num: '1', ring: '<span class="ring-gold" aria-hidden="true"></span>' + crownSvg },
+    { u: top3[2], cls: 'podium-col', av: 'r3', block: 'block-third', delay: 'd3', num: '3', ring: '<span class="ring-glass" aria-hidden="true"></span>' }
+  ];
+  const podiumCols = slots.map(s => {
+    if (!s.u) return '';
+    const isMe = s.u.id === meUid;
+    return `
+      <div class="${s.cls}">
+        <div class="podium-avatar-stack float-anim ${s.delay}">
+          <div class="p-avatar-3d ${s.av}">${initiales(s.u.pseudo)}${s.ring}</div>
         </div>
-        <div class="lb-xp">${u.xp || 0} XP</div>
+        <div class="podium-name-3d">${escapeHtml(s.u.pseudo)}${isMe ? ' 👋' : ''}</div>
+        <div class="podium-xp-3d"><span class="xp-count" data-xp="${s.u.xp || 0}">0</span> XP</div>
+        <div class="podium-block-3d ${s.block}"><span class="podium-num">${s.num}</span></div>
       </div>`;
-  });
-  listHtml += '</div>';
+  }).join('');
+
+  // ===== Liste complète =====
+  const rows = users.map((u, i) => {
+    const isMe = u.id === meUid;
+    const rang = getRang(u.xp || 0);
+    const rk = i === 0 ? 'gold' : i === 1 ? 'silver' : i === 2 ? 'bronze' : '';
+    const avCls = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
+    const mdm = u.stats?.hommeDuMatch ?? 0;
+    const avatar = isMe
+      ? `<div class="me-avatar-wrap"><span class="me-ring-pulse" aria-hidden="true"></span><div class="p-li-avatar ${avCls}">${initiales(u.pseudo)}</div></div>`
+      : `<div class="p-li-avatar ${avCls}">${initiales(u.pseudo)}</div>`;
+    return `
+      <div class="player-row${isMe ? ' me' : ''}" data-name="${escapeHtml((u.pseudo || '').toLowerCase())}" onclick="viewPlayerCard('${u.id}')">
+        <div class="player-rank ${rk}">${i + 1}</div>
+        ${avatar}
+        <div class="p-li-meta">
+          <div class="p-li-name">${escapeHtml(u.pseudo)}${isMe ? ' 👋' : ''}</div>
+          <div class="p-li-sub">${rang.label} · ${u.stats?.matchsJoues ?? 0} matchs · ${mdm} ${trophySvg}</div>
+        </div>
+        <div class="p-li-xp"><span class="xp-count" data-xp="${u.xp || 0}">0</span> XP</div>
+      </div>`;
+  }).join('');
 
   el.innerHTML = `
-    <div class="section-title"><svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>Classement XP</div>
-    ${podiumHtml}
-    <div class="section-title" style="margin-top:4px">Tous les joueurs</div>
-    ${listHtml}`;
+    <div class="cls-hero">
+      <div class="cls-eyebrow">CAP SACLAY <b>FIVE</b></div>
+      <h1 class="cls-title">Classement</h1>
+      <div class="cls-title-sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>${users.length} joueur${users.length > 1 ? 's' : ''} · Saison en cours</div>
+    </div>
+    <section class="podium-stage" aria-label="Podium XP">
+      <div class="podium-stage-inner" id="podiumTilt">
+        <div class="podium-row-3d">${podiumCols}</div>
+      </div>
+    </section>
+    <div class="podium-floor" aria-hidden="true"></div>
+    <div class="cls-search-wrap">
+      <label class="cls-search" for="clsSearch">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+        <input id="clsSearch" type="text" placeholder="Rechercher un joueur…" autocomplete="off" spellcheck="false" aria-label="Rechercher un joueur">
+        <button class="search-clear" id="clsSearchClear" type="button" aria-label="Effacer">Effacer</button>
+      </label>
+    </div>
+    <div class="section-title" style="margin-top:0">Tous les joueurs</div>
+    <div class="players-glass" id="clsList" role="list">
+      ${rows}
+      <div class="cls-no-results" id="clsNoResults">Aucun joueur trouvé.</div>
+    </div>`;
+
+  initClassement();
+}
+
+// Animations + interactions du classement (count-up, tilt, recherche)
+function initClassement() {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // Count-up XP
+  document.querySelectorAll('#screen-classement .xp-count').forEach(el => {
+    const target = parseInt(el.dataset.xp || '0', 10);
+    if (reduce || target <= 0) { el.textContent = target.toLocaleString('fr-FR'); return; }
+    const t0 = performance.now(), dur = 820;
+    const step = now => {
+      const p = Math.min((now - t0) / dur, 1);
+      el.textContent = Math.round(target * (1 - Math.pow(1 - p, 3))).toLocaleString('fr-FR');
+      if (p < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  });
+
+  // Recherche live
+  const input = document.getElementById('clsSearch');
+  const clear = document.getElementById('clsSearchClear');
+  const noRes = document.getElementById('clsNoResults');
+  const rows = [...document.querySelectorAll('#clsList .player-row')];
+  if (input) {
+    const apply = () => {
+      const qy = input.value.trim().toLowerCase();
+      clear.classList.toggle('show', qy.length > 0);
+      let vis = 0;
+      rows.forEach(r => {
+        const show = !qy || (r.dataset.name || '').includes(qy);
+        r.classList.toggle('hidden-row', !show);
+        if (show) vis++;
+      });
+      noRes.classList.toggle('show', vis === 0);
+    };
+    input.addEventListener('input', apply);
+    clear.addEventListener('click', () => { input.value = ''; apply(); input.focus(); });
+  }
+
+  // Podium 3D parallax tilt
+  if (reduce) return;
+  const tiltEl = document.getElementById('podiumTilt');
+  const stage = tiltEl && tiltEl.closest('.podium-stage');
+  if (!stage) return;
+  let tRX = 0, tRY = 0, cRX = 0, cRY = 0, raf = null;
+  const upd = () => {
+    cRX += (tRX - cRX) * 0.12; cRY += (tRY - cRY) * 0.12;
+    tiltEl.style.transform = `rotateX(${cRX.toFixed(2)}deg) rotateY(${cRY.toFixed(2)}deg)`;
+    if (Math.abs(tRX - cRX) > 0.02 || Math.abs(tRY - cRY) > 0.02) raf = requestAnimationFrame(upd);
+    else raf = null;
+  };
+  const set = (rx, ry) => { tRX = rx; tRY = ry; if (!raf) raf = requestAnimationFrame(upd); };
+  stage.addEventListener('pointermove', e => {
+    const r = stage.getBoundingClientRect();
+    set(-((e.clientY - r.top) / r.height - 0.5) * 6, ((e.clientX - r.left) / r.width - 0.5) * 7);
+  });
+  stage.addEventListener('pointerleave', () => set(0, 0));
 }
 
 // ===== AUTH STATE =====
