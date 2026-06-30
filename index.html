@@ -205,10 +205,13 @@
       background:transparent; border:none; box-shadow:none; outline:none; cursor:pointer;
       touch-action:none;            /* le drag horizontal n'est jamais happé par le scroll */
     }
-    /* --- piste --- */
+    /* --- piste : le bord du remplissage est calé EXACTEMENT sous le centre
+       du pouce. --fill est un ratio 0→1 ; le centre du pouce parcourt
+       [10px ; 100%-10px] (pouce de 20px), d'où le calc ci-dessous. --- */
     .atout-item input[type=range]::-webkit-slider-runnable-track {
       height:6px; border-radius:99px; border:none;
-      background:linear-gradient(90deg, var(--orange) var(--fill,65%), rgba(255,255,255,.12) var(--fill,65%));
+      --edge:calc(10px + var(--fill,.57) * (100% - 20px));
+      background:linear-gradient(90deg, var(--orange) var(--edge), rgba(255,255,255,.12) var(--edge));
     }
     .atout-item input[type=range]::-moz-range-track {
       height:6px; border-radius:99px; background:rgba(255,255,255,.12); border:none;
@@ -2469,11 +2472,16 @@ function updateRangeGradient(input) {
   // reste transparent car il fait 34px de haut (place pour le pouce).
   // Slider générique : fond dégradé directement sur l'input (= la piste).
   if (input.closest('.atout-item')) {
-    input.style.setProperty('--fill', pct.toFixed(1) + '%');
+    // ratio 0→1 : la piste cale le bord du remplissage sous le pouce (calc).
+    input.style.setProperty('--fill', (pct / 100).toFixed(4));
   } else {
     input.style.background = `linear-gradient(90deg, var(--orange) ${pct.toFixed(1)}%, var(--border) ${pct.toFixed(1)}%)`;
   }
 }
+// Exposé en global : le handler inline oninput="...updateRangeGradient(this)"
+// s'exécute hors du scope du module et ne verrait pas la fonction sinon
+// (le remplissage resterait figé pendant le drag).
+window.updateRangeGradient = updateRangeGradient;
 
 function syncAtout(name, val) {
   val = parseInt(val);
@@ -4666,7 +4674,7 @@ function openEditProfile() {
       <label class="input-label">Atouts</label>
       ${atoutsOrder.map(a => {
         const val = d.atouts?.[a] ?? 70;
-        const pct = ((val-20)/(99-20))*100;
+        const ratio = ((val-20)/(99-20)).toFixed(4);
         return `<div class="atout-item form-group" style="margin-top:10px">
           <label style="display:flex;justify-content:space-between;align-items:center">
             <span style="display:inline-flex;align-items:center;gap:6px">${ATT_SVG[a] || ''} <span style="text-transform:capitalize">${a}</span></span>
@@ -4674,7 +4682,7 @@ function openEditProfile() {
           </label>
           <div class="slider-wrap">
             <input type="range" min="20" max="99" value="${val}" id="epa-${a}"
-              style="--fill:${pct}%"
+              style="--fill:${ratio}"
               oninput="document.getElementById('epv-${a}').textContent=this.value;updateRangeGradient(this)">
           </div>
         </div>`;
