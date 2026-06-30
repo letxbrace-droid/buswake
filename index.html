@@ -604,93 +604,85 @@
 
     /* ===== FUT CARD V3 — FIFA STYLE ===== */
     .fut-card-wrap { display:flex; justify-content:center; margin-bottom:20px; }
+    /* ===== CARTE FUT — plein cadre, mat, façon poster (refonte) =====
+       La photo occupe tout le fond ; le texte se pose dessus via un scrim.
+       Un seul accent vert ; le tier (or/argent/bronze) ne colore que le
+       chiffre général et le liseré vivant du bas. */
     .fut-card-v3 {
-      position:relative; width:220px;
-      background:linear-gradient(160deg, #E8D48B 0%, #C8A830 20%, #F0D060 40%, #B89020 60%, #D8B840 80%, #A07810 100%);
-      border-radius:18px 18px 12px 12px;
-      box-shadow:0 12px 40px rgba(0,0,0,.7), 0 0 0 1px rgba(255,200,50,.3), inset 0 1px 0 rgba(255,255,255,.4);
-      overflow:hidden; font-family:'Anton',sans-serif;
-      border:2px solid rgba(220,180,40,.6);
+      position:relative; width:300px; height:424px;
+      border-radius:24px; overflow:hidden; isolation:isolate;
+      background:#05070a; font-family:'Space Grotesk',sans-serif;
+      --tier-edge:var(--green); --tier-num:#EAF0F5;
     }
-    .fut-card-v3::before {
-      content:''; position:absolute; inset:0;
-      background:
-        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,255,255,.2) 0%, transparent 60%),
-        repeating-linear-gradient(45deg, transparent, transparent 18px, rgba(255,200,50,.04) 18px, rgba(255,200,50,.04) 19px);
-      pointer-events:none; z-index:1;
+    /* Photo plein cadre */
+    .fc3-photo-zone {
+      position:absolute; inset:0; z-index:0;
+      display:flex; align-items:center; justify-content:center;
+      background:radial-gradient(120% 90% at 50% 0%, #1a2230 0%, #0c0f15 55%, #05070a 100%);
     }
-    /* Top section */
+    .fc3-photo { width:100%; height:100%; object-fit:cover; object-position:center top; display:block; }
+    .fc3-photo-placeholder {
+      display:flex; align-items:center; justify-content:center;
+      color:rgba(255,255,255,.16);
+    }
+    .fc3-photo-placeholder .ph-ic { width:74px; height:74px; }
+    /* Scrim lisibilité (haut + bas) */
+    .fc3-scrim {
+      position:absolute; inset:0; z-index:1; pointer-events:none;
+      background:linear-gradient(180deg,
+        rgba(0,0,0,.55) 0%, rgba(0,0,0,0) 24%, rgba(0,0,0,0) 42%,
+        rgba(5,7,10,.80) 70%, #05070a 100%);
+    }
+    /* Barre haute : note générale à gauche, écusson + photo à droite */
     .fc3-top {
-      position:relative; height:165px;
-      background:linear-gradient(180deg, rgba(0,0,0,.15) 0%, rgba(0,0,0,.05) 100%);
-      overflow:hidden;
+      position:absolute; top:0; left:0; right:0; z-index:3;
+      display:flex; justify-content:space-between; align-items:flex-start;
+      padding:18px 18px 0;
     }
-    .fc3-meta {
-      position:absolute; left:12px; top:12px; z-index:3;
-      display:flex; flex-direction:column; align-items:center; gap:3px;
-    }
+    .fc3-meta { display:flex; flex-direction:column; line-height:.84; }
     .fc3-overall {
-      font-size:40px; font-weight:700; line-height:1;
-      color:#1A1000; text-shadow:0 2px 4px rgba(255,200,50,.5);
+      font-family:'Anton',sans-serif; font-size:52px; letter-spacing:-1px;
+      color:var(--tier-num); text-shadow:0 3px 14px rgba(0,0,0,.6);
+    }
+    .fc3-ovr-lbl {
+      font-size:9px; letter-spacing:3px; font-weight:700; color:var(--green);
+      margin-top:6px; margin-left:2px;
+    }
+    .fc3-top-right { display:flex; flex-direction:column; align-items:flex-end; gap:10px; }
+    .fc3-badge-row { display:flex; }
+    .fc3-upload-btn {
+      display:inline-flex; align-items:center; gap:5px;
+      background:rgba(0,0,0,.45); border:1px solid rgba(255,255,255,.18);
+      border-radius:20px; padding:5px 10px; font-size:10px; font-weight:600;
+      color:#fff; cursor:pointer; backdrop-filter:blur(8px);
+      font-family:'Space Grotesk',sans-serif;
+    }
+    .fc3-upload-btn svg { width:13px; height:13px; }
+    /* Bas : poste · tier, nom géant, ligne de stats sobre */
+    .fc3-bottom {
+      position:absolute; left:0; right:0; bottom:0; z-index:3;
+      padding:0 20px 22px;
     }
     .fc3-pos {
-      font-size:13px; font-weight:600; color:#1A1000; letter-spacing:.5px;
-    }
-    .fc3-badge-row { display:flex; flex-direction:column; align-items:center; gap:4px; margin-top:4px; }
-    .fc3-photo-zone {
-      position:absolute; right:0; top:0; bottom:0; left:40px;
-      display:flex; align-items:flex-end; justify-content:center;
-      z-index:2;
-    }
-    .fc3-photo {
-      width:160px; height:160px; object-fit:cover;
-      object-position:center top;
-      filter:drop-shadow(-4px 0 12px rgba(0,0,0,.4));
-    }
-    .fc3-photo-placeholder {
-      width:100px; height:140px;
-      display:flex; align-items:center; justify-content:center;
-      font-size:72px; opacity:.6; align-self:center;
-    }
-    .fc3-photo-placeholder .ph-ic { width:54px; height:54px; opacity:.85; }
-    .fc3-upload-btn {
-      position:absolute; bottom:8px; right:8px; z-index:4;
-      background:rgba(0,0,0,.5); border:1px solid rgba(255,200,50,.4);
-      border-radius:8px; padding:4px 8px; font-size:10px; color:#FFD050;
-      cursor:pointer; font-family:'Space Grotesk',sans-serif; font-weight:600;
-      backdrop-filter:blur(4px);
-    }
-    /* Bottom section */
-    .fc3-bottom {
-      position:relative; z-index:2;
-      background:linear-gradient(180deg, rgba(210,160,20,.9) 0%, rgba(180,130,10,.95) 100%);
-      border-top:1px solid rgba(255,200,50,.5);
-      padding:9px 13px 13px;
+      font-size:10px; letter-spacing:2.5px; font-weight:600; text-transform:uppercase;
+      color:rgba(255,255,255,.52); margin-bottom:6px;
     }
     .fc3-name {
-      font-size:20px; font-weight:700; color:#1A0E00;
-      text-align:center; letter-spacing:1.5px;
-      text-shadow:0 1px 2px rgba(255,200,50,.3);
-      margin-bottom:5px;
+      font-family:'Anton',sans-serif; font-size:38px; letter-spacing:.5px;
+      line-height:.9; color:#fff; text-shadow:0 2px 12px rgba(0,0,0,.5);
     }
-    .fc3-divider {
-      height:1px; background:rgba(0,0,0,.25); margin:0 0 6px;
+    .fc3-divider { height:1px; background:rgba(255,255,255,.1); margin:16px 0 0; }
+    .fc3-stats { display:flex; justify-content:space-between; margin-top:14px; }
+    .fc3-stat { display:flex; flex-direction:column; align-items:center; gap:3px; }
+    .fc3-stat .sn {
+      font-family:'Anton',sans-serif; font-size:18px; font-weight:400;
+      color:#fff; letter-spacing:.5px;
     }
-    .fc3-stats {
-      display:grid; grid-template-columns:1fr 1fr 1fr;
-      gap:2px 8px;
-    }
-    .fc3-stat {
-      display:flex; align-items:baseline; gap:4px; justify-content:center;
-    }
-    .fc3-stat .sn { font-size:14px; font-weight:700; color:#1A0E00; }
-    .fc3-stat .sl { font-size:9px; font-weight:600; color:#5A3A00; letter-spacing:.5px; }
-    /* Glow rare effect */
-    .fut-card-v3.rare::before {
-      background:
-        radial-gradient(ellipse 60% 40% at 50% 0%, rgba(255,255,255,.3) 0%, transparent 60%),
-        repeating-linear-gradient(-45deg, transparent, transparent 12px, rgba(180,120,0,.08) 12px, rgba(180,120,0,.08) 13px);
-    }
+    .fc3-stat .sl { font-size:8px; letter-spacing:1.5px; font-weight:600; color:rgba(255,255,255,.42); }
+    /* Tiers : seuls le chiffre et le liseré du bas changent */
+    .fut-card-v3.t-or     { --tier-edge:#FFD24A; --tier-num:#FFE08A; }
+    .fut-card-v3.t-argent { --tier-edge:#D6DEE6; --tier-num:#EEF3F8; }
+    .fut-card-v3.t-bronze { --tier-edge:#CC8A52; --tier-num:#F2C49C; }
 
     .atout-bar-wrap { margin-bottom:10px; }
     .atout-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
@@ -1379,19 +1371,8 @@
     .pdp-stat-val { font-family:Anton,sans-serif; font-size:13px; font-weight:700; text-align:right; color:var(--text); }
 
     /* ===== FUT TIER COLORS ===== */
-    .fut-card-v3.fut-common{
-      background:linear-gradient(160deg,#2E8B57 0%,#1B5E37 22%,#3FA86A 45%,#14502E 70%,#2E8B57 100%);
-      border-color:rgba(80,200,120,.55);
-      box-shadow:0 12px 40px rgba(0,0,0,.7),0 0 0 1px rgba(80,200,120,.3),inset 0 1px 0 rgba(255,255,255,.22);
-    }
-    .fut-card-v3.fut-common::before{ background:radial-gradient(ellipse 60% 40% at 50% 0%,rgba(255,255,255,.16) 0%,transparent 60%),repeating-linear-gradient(45deg,transparent,transparent 18px,rgba(80,200,120,.05) 18px,rgba(80,200,120,.05) 19px); }
-    .fut-card-v3.fut-common .fc3-overall{ color:#F5D85A; text-shadow:0 2px 6px rgba(0,0,0,.45); }
-    .fut-card-v3.fut-common .fc3-pos{ color:#CFF5DC; }
-    .fut-card-v3.fut-common .fc3-bottom{ background:linear-gradient(180deg,rgba(20,80,46,.92) 0%,rgba(12,58,33,.96) 100%); border-top-color:rgba(80,200,120,.42); }
-    .fut-card-v3.fut-common .fc3-name{ color:#FFFFFF; text-shadow:0 1px 3px rgba(0,0,0,.5); }
-    .fut-card-v3.fut-common .fc3-divider{ background:rgba(255,255,255,.18); }
-    .fut-card-v3.fut-common .fc3-stat .sn{ color:#FFFFFF; }
-    .fut-card-v3.fut-common .fc3-stat .sl{ color:#BFEACB; }
+    /* (Anciens tiers gold/vert supprimés — gérés par t-or/t-argent/t-bronze
+       dans le bloc carte plus haut.) */
 
     /* ===== PROFILE ACTION BUTTONS ===== */
     .profile-action-btn{ width:100%; padding:13px; background:var(--card); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--text); font-family:'Space Grotesk',sans-serif; font-size:14px; font-weight:600; cursor:pointer; transition:all .2s; margin-bottom:10px; text-align:center; }
@@ -1617,8 +1598,8 @@
       box-shadow: inset 0 1px 0 rgba(255,255,255,.07), 0 -10px 50px rgba(0,0,0,.7);
     }
     .fut-card-v3 {
-      box-shadow: 0 22px 60px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.07),
-                  inset 0 2px 0 rgba(255,255,255,.4);
+      box-shadow: 0 24px 60px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.07),
+                  inset 0 -2px 0 0 var(--tier-edge), inset 0 0 60px rgba(0,216,138,.05);
     }
     /* Cartes : léger dégradé interne pour le relief */
     .match-list-card, .poll-card, .stat-box, .hero-match {
@@ -2658,7 +2639,8 @@ window.viewPlayerCard = async function(uid) {
   const a = d.atouts || {};
   const pas = Math.round(((a.vitesse||70) + (a.dribble||70)) / 2);
   const ovr = calcOverall(d);
-  const tier = ovr >= 85 ? 'rare' : (ovr >= 75 ? '' : 'fut-common');
+  const tier = ovr >= 85 ? 't-or' : (ovr >= 75 ? 't-argent' : 't-bronze');
+  const tierLabel = ovr >= 85 ? 'OR' : (ovr >= 75 ? 'ARGENT' : 'BRONZE');
   const poste = POSTES.find(p => p.id === d.posteFavori) || POSTES[2];
   const rang = getRang(d.xp || 0);
   const photo = d.photo || localStorage.getItem('cs5_photo_' + uid);
@@ -2670,15 +2652,19 @@ window.viewPlayerCard = async function(uid) {
     ${relChipHTML(d)}
     <div class="fut-card-wrap">
       <div class="fut-card-v3 ${tier} shimmer-active fut-tilt">
+        <div class="fc3-photo-zone">${photoHtml}</div>
+        <div class="fc3-scrim"></div>
         <div class="fc3-top">
           <div class="fc3-meta">
             <div class="fc3-overall">${ovr}</div>
-            <div class="fc3-pos">${poste.abbr}</div>
-            <div class="fc3-badge-row">${clubShield(d.equipePreferee || 'PSG', 22)}</div>
+            <div class="fc3-ovr-lbl">GÉNÉRAL</div>
           </div>
-          <div class="fc3-photo-zone">${photoHtml}</div>
+          <div class="fc3-top-right">
+            <div class="fc3-badge-row">${clubShield(d.equipePreferee || 'PSG', 34)}</div>
+          </div>
         </div>
         <div class="fc3-bottom">
+          <div class="fc3-pos">${poste.label} · ${tierLabel}</div>
           <div class="fc3-name">${(d.pseudo || 'JOUEUR').toUpperCase()}</div>
           <div class="fc3-divider"></div>
           <div class="fc3-stats">
@@ -4516,35 +4502,32 @@ async function renderProfil() {
     ? `<img src="${savedPhoto}" class="fc3-photo" alt="photo">`
     : `<div class="fc3-photo-placeholder"><svg class="ph-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c.8-3.4 3.4-5 7-5s6.2 1.6 7 5"/></svg></div>`;
 
+  const tierCls = noteGlobal >= 85 ? 't-or' : noteGlobal >= 75 ? 't-argent' : 't-bronze';
+  const tierLabel = noteGlobal >= 85 ? 'OR' : noteGlobal >= 75 ? 'ARGENT' : 'BRONZE';
   const futHtml = `
   <div class="fut-card-wrap">
-    <div class="fut-card-v3 ${noteGlobal >= 85 ? 'rare' : noteGlobal >= 75 ? '' : 'fut-common'} shimmer-active fut-tilt" id="profile-fut-card">
+    <div class="fut-card-v3 ${tierCls} shimmer-active fut-tilt" id="profile-fut-card">
+      <div class="fc3-photo-zone">${photoHtml}</div>
+      <div class="fc3-scrim"></div>
       <div class="fc3-top">
         <div class="fc3-meta">
           <div class="fc3-overall">${noteGlobal}</div>
-          <div class="fc3-pos">${posteLabel}</div>
-          <div class="fc3-badge-row">
-            ${clubShield(d.equipePreferee || 'PSG', 22)}
-          </div>
+          <div class="fc3-ovr-lbl">GÉNÉRAL</div>
         </div>
-        <div class="fc3-photo-zone">${photoHtml}</div>
-        <label class="fc3-upload-btn" for="fc-photo-input">${ICON.camera} Photo</label>
-        <input type="file" id="fc-photo-input" accept="image/*"
-          style="display:none" onchange="uploadFcPhoto(this)">
+        <div class="fc3-top-right">
+          <div class="fc3-badge-row">${clubShield(d.equipePreferee || 'PSG', 34)}</div>
+          <label class="fc3-upload-btn" for="fc-photo-input">${ICON.camera} Photo</label>
+          <input type="file" id="fc-photo-input" accept="image/*"
+            style="display:none" onchange="uploadFcPhoto(this)">
+        </div>
       </div>
       <div class="fc3-bottom">
+        <div class="fc3-pos">${posteData.label} · ${tierLabel}</div>
         <div class="fc3-name">${(d.pseudo || 'JOUEUR').toUpperCase()}</div>
         <div class="fc3-divider"></div>
         <div class="fc3-stats">
-          ${statsOrder.map(k => `
-            <div class="fc3-stat">
-              <span class="sn">${d.atouts?.[k] || 70}</span>
-              <span class="sl">${atoutsMap[k]}</span>
-            </div>`).join('')}
-          <div class="fc3-stat">
-            <span class="sn">${pas}</span>
-            <span class="sl">PAS</span>
-          </div>
+          ${statsOrder.map(k => `<div class="fc3-stat"><span class="sn">${d.atouts?.[k] || 70}</span><span class="sl">${atoutsMap[k]}</span></div>`).join('')}
+          <div class="fc3-stat"><span class="sn">${pas}</span><span class="sl">PAS</span></div>
         </div>
       </div>
     </div>
