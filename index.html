@@ -652,6 +652,7 @@
       display:flex; align-items:center; justify-content:center;
       font-size:72px; opacity:.6; align-self:center;
     }
+    .fc3-photo-placeholder .ph-ic { width:54px; height:54px; opacity:.85; }
     .fc3-upload-btn {
       position:absolute; bottom:8px; right:8px; z-index:4;
       background:rgba(0,0,0,.5); border:1px solid rgba(255,200,50,.4);
@@ -1674,6 +1675,9 @@
     .modal-title { display:flex; align-items:center; gap:8px; }
     .hero-label, .hero-lieu, .lieu-str, .jd-dist-pill, .rank-badge { display:inline-flex; align-items:center; gap:5px; }
     .players-chip span { display:inline-flex; align-items:center; gap:5px; }
+    .rsi-name { display:inline-flex; align-items:center; gap:7px; }
+    .p-icon .ic { width:1.5em; height:1.5em; }
+    .rel-chip { display:inline-flex; align-items:center; gap:5px; }
 
     /* ===== TILT 3D CARTE FUT ===== */
     .fut-card-wrap { perspective:1100px; }
@@ -2046,29 +2050,29 @@
         <div class="reg-fut-preview" id="reg-fut-preview"></div>
         <div class="reg-stats-list">
           <div>
-            <div class="rsi-header"><span class="rsi-name">⚡ VITESSE</span><span class="rsi-val" id="rv-vitesse">70</span></div>
+            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg> VITESSE</span><span class="rsi-val" id="rv-vitesse">70</span></div>
             <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncRegAtout('vitesse',this)">
           </div>
           <div>
-            <div class="rsi-header"><span class="rsi-name">🎭 DRIBBLE</span><span class="rsi-val" id="rv-dribble">70</span></div>
+            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17 9 7l3.5 6 3-4 4.5 9"/></svg> DRIBBLE</span><span class="rsi-val" id="rv-dribble">70</span></div>
             <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncRegAtout('dribble',this)">
           </div>
           <div>
-            <div class="rsi-header"><span class="rsi-name">💥 FRAPPE</span><span class="rsi-val" id="rv-frappe">70</span></div>
+            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg> FRAPPE</span><span class="rsi-val" id="rv-frappe">70</span></div>
             <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncRegAtout('frappe',this)">
           </div>
           <div>
-            <div class="rsi-header"><span class="rsi-name">🛡️ DÉFENSE</span><span class="rsi-val" id="rv-defense">70</span></div>
+            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> DÉFENSE</span><span class="rsi-val" id="rv-defense">70</span></div>
             <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-defense" oninput="syncRegAtout('defense',this)">
           </div>
           <div>
-            <div class="rsi-header"><span class="rsi-name">💪 PHYSIQUE</span><span class="rsi-val" id="rv-physique">70</span></div>
+            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/></svg> PHYSIQUE</span><span class="rsi-val" id="rv-physique">70</span></div>
             <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-physique" oninput="syncRegAtout('physique',this)">
           </div>
         </div>
         <div style="display:flex;gap:10px">
           <button class="btn-sm btn-outline" style="flex:1;padding:14px" onclick="regNextStep(2)">← Retour</button>
-          <button class="btn-primary" style="flex:2;margin-top:0" onclick="doRegister()">Créer mon compte ⚡</button>
+          <button class="btn-primary" style="flex:2;margin-top:0" onclick="doRegister()">Créer mon compte <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></button>
         </div>
       </div>
     </div>
@@ -2157,7 +2161,7 @@
   <div class="modal-sheet chat-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title" id="chat-title">💬 Discussion</div>
+      <div class="modal-title" id="chat-title"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg> Discussion</div>
       <button class="modal-close" onclick="closeChatModal()">✕</button>
     </div>
     <div class="chat-msgs" id="chat-msgs"></div>
@@ -2173,7 +2177,7 @@
   <div class="modal-sheet ap-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title">➕ Ajouter un joueur</div>
+      <div class="modal-title"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Ajouter un joueur</div>
       <button class="modal-close" onclick="closeAddPlayer()">✕</button>
     </div>
     <div class="ap-body">
@@ -2313,6 +2317,21 @@ const BADGE_SVG = {
   hdm:           _bsvg('<path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/>'),
   organisateur:  _bsvg('<rect x="8" y="3" width="8" height="4" rx="1"/><path d="M16 5h2a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V7a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/>'),
   assidu:        _bsvg('<path d="M12 2c1.2 3 4.2 4.6 4.2 8.2a4.2 4.2 0 0 1-8.4 0c0-1 .3-1.9.9-2.6C8.1 9.4 9.3 11 9.3 11c.2-3 1.6-6 2.7-9z"/>'),
+};
+// Icônes vectorielles des postes et des atouts (mêmes tracés que l'onboarding)
+const _psvg = (p) => `<svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const POSTE_SVG = {
+  gardien:   _psvg('<path d="M5 13V8a1.6 1.6 0 0 1 3.2 0M8.2 11V5.5a1.6 1.6 0 0 1 3.2 0M11.4 11V6.5a1.6 1.6 0 0 1 3.2 0V12M14.6 12V8a1.6 1.6 0 0 1 3.2 0v5a6 6 0 0 1-6 6h-1a6 6 0 0 1-4.7-2.3l-2-2.6a1.6 1.6 0 0 1 2.4-2.1z"/>'),
+  defenseur: _psvg('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
+  milieu:    _psvg('<circle cx="12" cy="12" r="3"/><path d="M3 12h6M15 12h6M12 3v6M12 15v6"/>'),
+  attaquant: _psvg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
+};
+const ATT_SVG = {
+  vitesse:  _psvg('<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>'),
+  dribble:  _psvg('<path d="M4 17 9 7l3.5 6 3-4 4.5 9"/>'),
+  frappe:   _psvg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/>'),
+  defense:  _psvg('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
+  physique: _psvg('<path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/>'),
 };
 const XP = { participer: 100, voter: 10, creer: 50, hdm: 200 };
 const MIN_CONFIRM = 10; // joueurs inscrits minimum pour confirmer un match (foot à 5 = 2×5)
@@ -2493,7 +2512,7 @@ function renderPosteGrid(containerId, hiddenId, selected) {
   if (!wrap) return;
   wrap.innerHTML = POSTES.map(p =>
     `<div class="poste-btn${p.id === selected ? ' selected' : ''}" onclick="selectPoste('${p.id}','${hiddenId}','${containerId}')">
-      <span class="p-icon">${p.icon}</span>
+      <span class="p-icon">${POSTE_SVG[p.id] || p.icon}</span>
       <span class="p-abbr">${p.abbr}</span>
       <span class="p-label">${p.label}</span>
     </div>`
@@ -2544,7 +2563,7 @@ async function checkBadges(uid, userData) {
     await updateDoc(doc(db, 'users', uid), { badges: arrayUnion(...newBadges) });
     newBadges.forEach(b => {
       const def = BADGES_DEF.find(x => x.id === b);
-      if (def) showToast(`Badge débloqué : ${def.icon} ${def.name}`, 'success');
+      if (def) showToast(`Badge débloqué : ${def.name}`, 'success');
     });
   }
 }
@@ -2674,7 +2693,7 @@ function updateRegFutCard() {
           <div class="fc3-pos">${posteData.abbr}</div>
           <div class="fc3-badge-row">${clubShield(equipe,22)}</div>
         </div>
-        <div class="fc3-photo-zone"><div class="fc3-photo-placeholder">👤</div></div>
+        <div class="fc3-photo-zone"><div class="fc3-photo-placeholder"><svg class="ph-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c.8-3.4 3.4-5 7-5s6.2 1.6 7 5"/></svg></div></div>
       </div>
       <div class="fc3-bottom">
         <div class="fc3-name">${name}</div>
@@ -2884,7 +2903,7 @@ window.viewPlayerCard = async function(uid) {
   const poste = POSTES.find(p => p.id === d.posteFavori) || POSTES[2];
   const rang = getRang(d.xp || 0);
   const photo = d.photo || localStorage.getItem('cs5_photo_' + uid);
-  const photoHtml = photo ? `<img src="${photo}" class="fc3-photo" alt="">` : `<div class="fc3-photo-placeholder">👤</div>`;
+  const photoHtml = photo ? `<img src="${photo}" class="fc3-photo" alt="">` : `<div class="fc3-photo-placeholder"><svg class="ph-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c.8-3.4 3.4-5 7-5s6.2 1.6 7 5"/></svg></div>`;
   const html = `
     <div style="text-align:center;margin-bottom:4px">
       <span class="rank-badge">${rang.label} · ${d.xp||0} XP${d.codePostal ? ` · ${ICON.pin} ${d.codePostal}` : ''}</span>
@@ -3014,9 +3033,9 @@ function relChipHTML(d) {
   if (tot >= 1) {
     const rel = Math.round((d.presences || 0) / tot * 100);
     const cls = rel >= 85 ? 'rel-good' : rel >= 60 ? 'rel-mid' : 'rel-bad';
-    h += `<span class="rel-chip ${cls}">🛡️ Fiabilité ${rel}%</span>`;
+    h += `<span class="rel-chip ${cls}">${ICON.shield} Fiabilité ${rel}%</span>`;
   }
-  if ((d.streak || 0) >= 2) h += `<span class="rel-chip rel-streak">🔥 ${d.streak}</span>`;
+  if ((d.streak || 0) >= 2) h += `<span class="rel-chip rel-streak">${ICON.flame} ${d.streak}</span>`;
   return h ? `<div class="rel-row">${h}</div>` : '';
 }
 
@@ -3255,14 +3274,14 @@ async function renderHome() {
   // ===== Dernières activités (fil compact) =====
   const acts = [];
   (snapS ? snapS.docs : []).forEach(d => { const m = d.data();
-    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:'🗳️', color:'var(--blue)', label:'Nouveau sondage',
+    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.poll, color:'var(--blue)', label:'Nouveau sondage',
       sub: (m.creneauxProposes?.length || 0) + ' créneau' + ((m.creneauxProposes?.length||0)>1?'x':'') + ' · ' + ((m.joueursInscrits||[]).length) + ' inscrits', id:d.id }); });
   (snapC ? snapC.docs : []).forEach(d => { const m = d.data();
-    acts.push({ t: m.dateFinale?.toMillis?.() ?? m.createdAt?.toMillis?.() ?? 0, icon:'✅', color:'var(--green)', label:'Match confirmé',
+    acts.push({ t: m.dateFinale?.toMillis?.() ?? m.createdAt?.toMillis?.() ?? 0, icon:ICON.checkCircle, color:'var(--green)', label:'Match confirmé',
       sub: formatDateShort(m.dateFinale) + (m.lieuFinal ? ' · ' + m.lieuFinal : ''), id:d.id }); });
   (snapT ? snapT.docs : []).forEach(d => { const m = d.data();
     const na = m.equipes?.[0]?.nom || 'Équipe A', nb = m.equipes?.[1]?.nom || 'Équipe B';
-    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:'🏁', color:'var(--gold)', label:'Résultat',
+    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.flag, color:'var(--gold)', label:'Résultat',
       sub: na + ' ' + (m.scoreA ?? '?') + '–' + (m.scoreB ?? '?') + ' ' + nb, id:d.id }); });
   acts.sort((x, y) => y.t - x.t);
   if (acts.length) {
@@ -3295,7 +3314,7 @@ async function renderHome() {
     html += `<div style="margin-top:16px">
       <button class="btn-primary" style="opacity:.4;filter:grayscale(.5);pointer-events:none;cursor:not-allowed">+ PROPOSER UN MATCH</button>
       <div style="margin-top:10px;padding:12px 14px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);border-radius:12px;font-size:13px;color:#FFD37A;text-align:center;line-height:1.5">
-        ⚠️ Tu es déjà titulaire dans un match actif.<br>
+        ${ICON.warn} Tu es déjà titulaire dans un match actif.<br>
         <span style="color:rgba(255,255,255,.65)">Désiste-toi d'abord pour en proposer un nouveau.</span>
       </div>
     </div>`;
@@ -3424,7 +3443,7 @@ function loadMatchsList(filter) {
           </div>
           ${voteBarsHtml}
           <div class="mlc-bottom">
-            <span style="font-size:18px">${isInscrit ? '✅' : '👤'}</span>
+            <span style="font-size:18px;display:inline-flex;color:${isInscrit ? 'var(--green)' : 'var(--text-sec)'}">${isInscrit ? ICON.checkCircle : ICON.user}</span>
             <span class="mlc-creator">${(m.joueursInscrits || []).length} joueur${(m.joueursInscrits || []).length > 1 ? 's' : ''}</span>
             ${motmBtnHtml}
           </div>
@@ -3490,6 +3509,13 @@ const ICON = {
   xCircle:  _icS('<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>'),
   warn:     _icS('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
   scroll:   _icS('<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/><path d="M8 3h10a2 2 0 0 1 2 2v3H8z"/><path d="M8 3v13"/>'),
+  lock:     _icS('<rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/>'),
+  edit:     _icS('<path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/>'),
+  sparkle:  _icS('<path d="M12 3v4M12 17v4M3 12h4M17 12h4"/><path d="m6 6 2.4 2.4M15.6 15.6 18 18M18 6l-2.4 2.4M8.4 15.6 6 18"/>'),
+  camera:   _icS('<path d="M5 7h3l1.5-2h5L16 7h3a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2z"/><circle cx="12" cy="13" r="3.5"/>'),
+  user:     _icS('<circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c.8-3.4 3.4-5 7-5s6.2 1.6 7 5"/>'),
+  save:     _icS('<path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><path d="M17 21v-8H7v8M7 3v5h8"/>'),
+  flame:    _icS('<path d="M12 2c1.2 3 4.2 4.6 4.2 8.2a4.2 4.2 0 0 1-8.4 0c0-1 .3-1.9.9-2.6C8.1 9.4 9.3 11 9.3 11c.2-3 1.6-6 2.7-9z"/>'),
 };
 window.ICON = ICON;
 function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur) {
@@ -3753,7 +3779,7 @@ async function toggleInscription(matchId) {
   // Vérifier si code postal renseigné
   const ud = await getUserData(uid);
   if (!ud?.codePostal) {
-    openModal('📍 Ton code postal', `
+    openModal(`${ICON.pin} Ton code postal`, `
       <p style="font-size:14px;color:var(--text-sec);margin-bottom:14px;line-height:1.5">
         Renseigne ton code postal pour que les autres joueurs voient<br>
         ta distance jusqu'au terrain.
@@ -3898,7 +3924,7 @@ window.removeCreneau = function(id) {
 let _venueMap = null;
 window.openVenueMap = function(inputId) {
   const inputEl = document.getElementById(inputId);
-  openModal('📍 Choisir un terrain', `
+  openModal(`${ICON.pin} Choisir un terrain`, `
     <input class="input-field" id="venue-search-input"
       placeholder="🔍 Cherche une ville : Orsay, Massy, Paris 13e…"
       style="margin-bottom:10px">
@@ -4102,7 +4128,7 @@ window.submitCreateMatch = async function() {
   const ud = await getUserData(uid);
   if (ud && !(ud.badges || []).includes('organisateur')) {
     await updateDoc(doc(db, 'users', uid), { badges: arrayUnion('organisateur') });
-    showToast('Badge débloqué : 📋 Organisateur', 'success');
+    showToast('Badge débloqué : Organisateur', 'success');
   }
   showToast('Match proposé ! +50 XP 🎉', 'success');
   closeModal();
@@ -4210,8 +4236,8 @@ function renderTerrainView() {
       <div class="pitch-foot">${lieu} • Five indoor • 5v5</div>
     </div>
     <div class="terrain-actions">
-      <button class="btn-sm btn-outline" style="flex:1" onclick="setCompoMode('auto')">⚡ Équilibrer auto</button>
-      <button class="btn-sm btn-green" style="flex:1" onclick="saveEquipes()">💾 Enregistrer</button>
+      <button class="btn-sm btn-outline" style="flex:1" onclick="setCompoMode('auto')">${ICON.zap} Équilibrer auto</button>
+      <button class="btn-sm btn-green" style="flex:1" onclick="saveEquipes()">${ICON.save} Enregistrer</button>
     </div>
   </div>`;
 
@@ -4629,7 +4655,7 @@ async function renderProfil() {
   const savedPhoto = d.photo || localStorage.getItem('cs5_photo_' + uid);
   const photoHtml = savedPhoto
     ? `<img src="${savedPhoto}" class="fc3-photo" alt="photo">`
-    : `<div class="fc3-photo-placeholder">👤</div>`;
+    : `<div class="fc3-photo-placeholder"><svg class="ph-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c.8-3.4 3.4-5 7-5s6.2 1.6 7 5"/></svg></div>`;
 
   const futHtml = `
   <div class="fut-card-wrap">
@@ -4643,7 +4669,7 @@ async function renderProfil() {
           </div>
         </div>
         <div class="fc3-photo-zone">${photoHtml}</div>
-        <label class="fc3-upload-btn" for="fc-photo-input">📷 Photo</label>
+        <label class="fc3-upload-btn" for="fc-photo-input">${ICON.camera} Photo</label>
         <input type="file" id="fc-photo-input" accept="image/*"
           style="display:none" onchange="uploadFcPhoto(this)">
       </div>
@@ -4773,8 +4799,7 @@ function openEditProfile() {
   const d = currentUserData;
   if (!d) return;
   const atoutsOrder = ['vitesse','dribble','frappe','defense','physique'];
-  const atoutsIcons = { vitesse:'⚡', dribble:'🎭', frappe:'💥', defense:'🛡️', physique:'💪' };
-  openModal('✏️ Modifier mon profil', `
+  openModal(`${ICON.edit} Modifier mon profil`, `
     <div class="form-group">
       <label class="input-label">Pseudo</label>
       <input class="input-field" id="ep-pseudo" value="${d.pseudo || ''}">
@@ -4800,7 +4825,7 @@ function openEditProfile() {
         const pct = ((val-20)/(99-20))*100;
         return `<div class="atout-item form-group" style="margin-top:10px">
           <label style="display:flex;justify-content:space-between;align-items:center">
-            <span>${atoutsIcons[a] || ''} <span style="text-transform:capitalize">${a}</span></span>
+            <span style="display:inline-flex;align-items:center;gap:6px">${ATT_SVG[a] || ''} <span style="text-transform:capitalize">${a}</span></span>
             <span id="epv-${a}" style="color:var(--orange);font-weight:700;font-family:Anton,sans-serif;font-size:16px">${val}</span>
           </label>
           <div class="slider-wrap">
@@ -5005,7 +5030,7 @@ applyTheme(currentTheme);
 
 // ===== SUPPRIMER LE COMPTE =====
 window.openDeleteAccount = function() {
-  openModal('🗑️ Supprimer mon compte', `
+  openModal(`${ICON.trash} Supprimer mon compte`, `
     <p style="font-size:15px;line-height:1.5;margin-bottom:16px;color:var(--text-sec)">
       Ton compte, ta carte FUT, tes stats et tes XP seront
       <strong style="color:var(--red)">définitivement supprimés</strong>.<br>Cette action est irréversible.
@@ -5058,7 +5083,7 @@ window.confirmDeleteAccount = async function() {
 window.openChangePassword = function() {
   const isGoogle = (currentUser?.providerData || []).some(p => p.providerId === 'google.com');
   if (isGoogle && (currentUser?.providerData || []).length === 1) {
-    openModal('🔒 Mot de passe', `
+    openModal(`${ICON.lock} Mot de passe`, `
       <p style="font-size:14px;line-height:1.5;color:var(--text-sec)">
         Ton compte utilise la connexion Google : ton mot de passe se gère
         directement dans ton compte Google, pas ici.
@@ -5066,7 +5091,7 @@ window.openChangePassword = function() {
       <button class="btn-sm btn-outline" style="width:100%;margin-top:16px" onclick="closeModal()">OK</button>`);
     return;
   }
-  openModal('🔒 Changer mon mot de passe', `
+  openModal(`${ICON.lock} Changer mon mot de passe`, `
     <input class="input-field" type="password" id="cp-old" placeholder="Mot de passe actuel" style="margin-bottom:10px" autocomplete="current-password">
     <input class="input-field" type="password" id="cp-new" placeholder="Nouveau mot de passe (min. 6)" style="margin-bottom:10px" autocomplete="new-password">
     <input class="input-field" type="password" id="cp-new2" placeholder="Confirme le nouveau" style="margin-bottom:16px" autocomplete="new-password">
@@ -5111,7 +5136,7 @@ window.confirmChangePassword = async function() {
 const ADMIN_EMAIL = 'letxbrace@gmail.com';
 window.cleanupAllMatchs = function() {
   if (currentUser?.email !== ADMIN_EMAIL) { showToast('Réservé à l\'admin.', 'error'); return; }
-  openModal('🧹 Nettoyer tous les matchs', `
+  openModal(`${ICON.sparkle} Nettoyer tous les matchs`, `
     <p style="font-size:15px;line-height:1.5;margin-bottom:18px;color:var(--text-sec)">
       <strong style="color:var(--red)">TOUS</strong> les matchs (sondages, confirmés, terminés)
       seront <strong style="color:var(--red)">définitivement supprimés</strong>.<br>
