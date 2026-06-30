@@ -29,8 +29,10 @@
       --border: #20242F;
       --border-light: #2C3140;
       --text: #FFFFFF;
-      --text-sec: #6060A0;
-      --text-muted: #32324A;
+      /* Hiérarchie par opacité (logique Apple/HIG dark) : blanc neutre,
+         pas de teinte décorative, s'adapte au fond, lisible (AA). */
+      --text-sec: rgba(255,255,255,0.62);
+      --text-muted: rgba(255,255,255,0.34);
       --green: #00E676;
       --green-glow: rgba(0,230,118,.3);
       --red: #FF1744;
