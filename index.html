@@ -908,6 +908,92 @@
     .mlc-sub { font-size:12px; color:var(--text-sec); margin-top:3px; }
     .mlc-bottom { padding:10px 16px; background:var(--surface); display:flex; align-items:center; gap:10px; border-top:1px solid var(--border); }
     .mlc-creator { font-size:12px; color:var(--text-sec); }
+
+    /* ===== ÉCRAN MATCHS — REDESIGN TECH ===== */
+    /* CTA premium "Proposer un match" */
+    .cta-propose { position:relative; width:100%; border:none; border-radius:16px; padding:15px; cursor:pointer;
+      background:linear-gradient(135deg,var(--orange-dark),var(--orange) 55%,var(--orange2)); color:#04130c;
+      font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; letter-spacing:.3px; overflow:hidden;
+      display:flex; align-items:center; justify-content:center; gap:9px; margin-bottom:16px;
+      box-shadow:0 1px 0 rgba(255,255,255,.45) inset, 0 0 0 1px rgba(0,216,138,.4), 0 10px 30px rgba(0,216,138,.28); }
+    .cta-propose::after { content:""; position:absolute; top:0; left:-60%; width:45%; height:100%;
+      background:linear-gradient(100deg,transparent,rgba(255,255,255,.5),transparent); transform:skewX(-18deg);
+      animation:ctaSheen 3.4s ease-in-out infinite; }
+    @keyframes ctaSheen { 0%,60%{left:-60%} 100%{left:130%} }
+    .cta-propose:active { transform:scale(.985); }
+    .cta-propose .ic { width:19px; height:19px; }
+    .cta-propose.locked { background:var(--card); color:var(--text-muted); box-shadow:inset 0 0 0 1px var(--border); cursor:not-allowed; }
+    .cta-propose.locked::after { display:none; }
+
+    /* Segmented control */
+    .seg-wrap { position:relative; display:flex; background:var(--surface); border:1px solid var(--border);
+      border-radius:14px; padding:4px; margin-bottom:16px; gap:2px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+    .seg-thumb { position:absolute; top:4px; left:4px; height:calc(100% - 8px); width:calc((100% - 8px)/3);
+      background:linear-gradient(135deg,var(--orange-dark),var(--orange)); border-radius:10px;
+      box-shadow:0 4px 14px var(--orange-glow), 0 1px 0 rgba(255,255,255,.3) inset;
+      transition:transform .32s cubic-bezier(.32,.72,.2,1); }
+    .seg-btn { position:relative; z-index:2; flex:1; display:flex; align-items:center; justify-content:center; gap:6px;
+      padding:9px 4px; border:none; background:none; color:var(--text-sec); font-family:'Space Grotesk',sans-serif;
+      font-weight:700; font-size:12.5px; cursor:pointer; transition:color .2s; -webkit-tap-highlight-color:transparent; }
+    .seg-btn.active { color:#04130c; }
+    .seg-btn .ic { width:14px; height:14px; }
+    .seg-count { display:inline-flex; align-items:center; justify-content:center; min-width:17px; height:17px; padding:0 5px;
+      border-radius:9px; background:rgba(255,255,255,.12); font-size:10.5px; font-weight:700; }
+    .seg-btn.active .seg-count { background:rgba(0,0,0,.22); }
+
+    /* Section label */
+    .mlist-lbl { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin:16px 0 8px; }
+
+    /* Carte match v2 */
+    .mc { position:relative; background:linear-gradient(180deg,var(--card),#10141c); border:1px solid var(--border);
+      border-radius:16px; overflow:hidden; margin-bottom:12px; cursor:pointer;
+      box-shadow:0 10px 28px rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.04); transition:transform .14s, border-color .2s; }
+    .mc:active { transform:scale(.99); }
+    .mc:hover { border-color:rgba(255,255,255,.14); }
+    .mc::before { content:""; position:absolute; left:0; top:0; bottom:0; width:3px; }
+    .mc.sondage::before { background:linear-gradient(180deg,var(--blue),#2a6fc4); }
+    .mc.confirme::before { background:linear-gradient(180deg,var(--orange2),var(--orange-dark)); }
+    .mc.histo::before { background:linear-gradient(180deg,var(--gold),#b8860b); }
+    .mc-top { display:flex; justify-content:space-between; align-items:flex-start; padding:14px 16px 8px; gap:10px; }
+    .mc-eyebrow { font-size:10px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:var(--text-sec); display:flex; align-items:center; gap:5px; }
+    .mc-eyebrow .ic { width:13px; height:13px; }
+    .mc-date { font-family:'Anton',sans-serif; font-size:21px; margin-top:3px; letter-spacing:.4px; }
+    .mc-chip { display:inline-flex; align-items:center; gap:5px; font-size:10.5px; font-weight:700; padding:5px 10px; border-radius:99px; text-transform:uppercase; letter-spacing:.04em; white-space:nowrap; flex-shrink:0; }
+    .chip-sondage { color:var(--blue); background:rgba(0,176,255,.12); border:1px solid rgba(0,176,255,.3); }
+    .chip-confirme { color:var(--orange); background:rgba(0,216,138,.12); border:1px solid rgba(0,216,138,.3); }
+    .chip-histo { color:var(--gold); background:rgba(255,215,0,.1); border:1px solid rgba(255,215,0,.3); }
+    .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
+    @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
+    .mc-body { padding:2px 16px 12px; }
+    .fillbar { display:flex; align-items:center; gap:9px; margin-top:8px; }
+    .fillbar .track { flex:1; height:7px; border-radius:99px; background:rgba(255,255,255,.07); overflow:hidden; }
+    .fillbar .fill { height:100%; border-radius:99px; background:linear-gradient(90deg,var(--orange-dark),var(--orange2)); box-shadow:0 0 8px var(--orange-glow); transition:width .5s cubic-bezier(.32,.72,.2,1); }
+    .fillbar .cnt { font-size:12px; font-weight:700; color:var(--text-sec); font-variant-numeric:tabular-nums; }
+    .fillbar .cnt b { color:var(--text); }
+    .vb { margin-top:8px; display:flex; flex-direction:column; gap:5px; }
+    .vb-row { display:flex; align-items:center; gap:8px; font-size:11.5px; }
+    .vb-date { width:62px; color:var(--text-sec); font-weight:600; white-space:nowrap; }
+    .vb-track { flex:1; height:6px; border-radius:99px; background:rgba(255,255,255,.06); overflow:hidden; }
+    .vb-fill { height:100%; border-radius:99px; background:rgba(0,176,255,.45); transition:width .5s cubic-bezier(.32,.72,.2,1); }
+    .vb-fill.best { background:linear-gradient(90deg,var(--blue),#7cc4ff); }
+    .vb-cnt { width:16px; text-align:right; color:var(--text); font-weight:700; }
+    .mc-foot { display:flex; align-items:center; gap:10px; padding:10px 16px; background:rgba(255,255,255,.02); border-top:1px solid var(--border); }
+    .av-stack { display:flex; }
+    .av-stack span { width:26px; height:26px; border-radius:50%; background:linear-gradient(135deg,var(--orange-dark),var(--orange));
+      display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#04130c;
+      border:2px solid #10141c; margin-left:-8px; font-family:'Anton',sans-serif; }
+    .av-stack span:first-child { margin-left:0; }
+    .av-stack span.av-more { background:var(--card2); color:var(--text-sec); }
+    .foot-txt { font-size:11.5px; color:var(--text-sec); }
+    .foot-txt b { color:var(--text); }
+    .count-pill { margin-left:auto; display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700; color:var(--orange); }
+    .count-pill .ic { width:14px; height:14px; }
+    .mc-score { display:flex; align-items:center; justify-content:center; gap:14px; padding:6px 0 2px; }
+    .mc-score .n { font-family:'Anton',sans-serif; font-size:30px; }
+    .mc-score .sep { color:var(--text-muted); font-size:18px; }
+    .mc-score .tn { font-size:11px; color:var(--text-sec); text-align:center; margin-top:2px; font-weight:600; }
+    .mc-motm { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--gold); }
+    .mc-motm .ic { width:14px; height:14px; }
     .input-row { display:flex; gap:8px; }
     .input-row input { flex:1; }
     .section-actions { display:flex; gap:8px; margin-bottom:14px; }
@@ -3308,11 +3394,11 @@ async function renderHome() {
 
   if (eligibility.can) {
     html += `<div style="margin-top:16px">
-      <button class="btn-primary" onclick="openCreateMatch()">+ PROPOSER UN MATCH</button>
+      <button class="cta-propose" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>
     </div>`;
   } else {
     html += `<div style="margin-top:16px">
-      <button class="btn-primary" style="opacity:.4;filter:grayscale(.5);pointer-events:none;cursor:not-allowed">+ PROPOSER UN MATCH</button>
+      <button class="cta-propose locked">${ICON.plus} Proposer un match</button>
       <div style="margin-top:10px;padding:12px 14px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);border-radius:12px;font-size:13px;color:#FFD37A;text-align:center;line-height:1.5">
         ${ICON.warn} Tu es déjà titulaire dans un match actif.<br>
         <span style="color:rgba(255,255,255,.65)">Désiste-toi d'abord pour en proposer un nouveau.</span>
@@ -3353,27 +3439,77 @@ let matchsFilter = 'sondage';
 async function renderMatchs() {
   const el = document.getElementById('matchs-content');
   const elig = window._canCreateMatch ?? { can: true };
-  const propBtn = elig.can
-    ? `<button class="btn-sm btn-orange" onclick="openCreateMatch()">+ Proposer</button>`
-    : `<button class="btn-sm btn-orange" style="opacity:.35;pointer-events:none;filter:grayscale(.5)" title="Déjà titulaire dans un match actif">+ Proposer</button>`;
+  const cta = elig.can
+    ? `<button class="cta-propose" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>`
+    : `<button class="cta-propose locked" title="Déjà titulaire dans un match actif">${ICON.plus} Proposer un match</button>`;
   el.innerHTML = `
-    <div class="screen-navbar"><h1 class="screen-title">Matchs</h1>${propBtn}</div>
-    <div class="pill-tabs">
-      <button class="pill-tab active" id="filter-sondage" onclick="setMatchFilter('sondage')">Sondages</button>
-      <button class="pill-tab" id="filter-confirme" onclick="setMatchFilter('confirme')">Confirmés</button>
-      <button class="pill-tab" id="filter-termine" onclick="setMatchFilter('termine')">Historique</button>
+    <div class="screen-navbar"><h1 class="screen-title">Matchs</h1></div>
+    ${cta}
+    <div class="seg-wrap">
+      <div class="seg-thumb" id="seg-thumb"></div>
+      <button class="seg-btn ${matchsFilter==='sondage'?'active':''}" id="seg-sondage" onclick="setMatchFilter('sondage')">${ICON.poll}Sondages<span class="seg-count" id="cnt-sondage"></span></button>
+      <button class="seg-btn ${matchsFilter==='confirme'?'active':''}" id="seg-confirme" onclick="setMatchFilter('confirme')">${ICON.checkCircle}Confirmés<span class="seg-count" id="cnt-confirme"></span></button>
+      <button class="seg-btn ${matchsFilter==='termine'?'active':''}" id="seg-termine" onclick="setMatchFilter('termine')">${ICON.scroll}Histo<span class="seg-count" id="cnt-termine"></span></button>
     </div>
     <div id="matchs-list"><div class="loader"><div class="spinner"></div></div></div>`;
+  requestAnimationFrame(() => positionSegThumb(matchsFilter));
   loadMatchsList(matchsFilter);
+  loadMatchCounts();
+}
+function positionSegThumb(filter) {
+  const thumb = document.getElementById('seg-thumb');
+  const btn = document.getElementById('seg-' + filter);
+  if (!thumb || !btn) return;
+  thumb.style.width = btn.offsetWidth + 'px';
+  thumb.style.transform = `translateX(${btn.offsetLeft - 4}px)`;
+}
+async function loadMatchCounts() {
+  const map = { sondage: 'sondage', confirme: 'confirmé', termine: 'terminé' };
+  for (const [k, st] of Object.entries(map)) {
+    try {
+      const snap = await getDocs(query(collection(db, 'matchs'), where('statut', '==', st)));
+      const c = document.getElementById('cnt-' + k);
+      if (c) c.textContent = snap.size;
+    } catch (_) {}
+  }
 }
 window.setMatchFilter = function(f) {
   matchsFilter = f;
   ['sondage','confirme','termine'].forEach(x => {
-    const el = document.getElementById('filter-' + x);
-    if (el) el.classList.toggle('active', x === f);
+    document.getElementById('seg-' + x)?.classList.toggle('active', x === f);
   });
+  positionSegThumb(f);
   loadMatchsList(f);
 };
+// Avatars empilés (stack) pour les cartes match
+async function renderStackAvatars(uids, containerId, max = 4) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  let h = '';
+  for (const uid of uids.slice(0, max)) {
+    const u = await getUserData(uid);
+    h += `<span>${initiales(u ? u.pseudo : '?')}</span>`;
+  }
+  if (uids.length > max) h += `<span class="av-more">+${uids.length - max}</span>`;
+  c.innerHTML = h;
+}
+// Libellés de date pour les cartes
+function dateDayLabel(ts) {
+  if (!ts) return '—';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+function countdownLabel(ts) {
+  if (!ts) return '';
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const diff = d - new Date();
+  if (diff < 0) return 'Passé · ' + time;
+  const days = Math.floor(diff / 86400000);
+  if (days === 0) return (diff < 3600000 ? 'Bientôt · ' : "Aujourd'hui · ") + time;
+  if (days === 1) return 'Demain · ' + time;
+  return `Dans ${days} jours · ${time}`;
+}
 
 function loadMatchsList(filter) {
   const el = document.getElementById('matchs-list');
@@ -3400,56 +3536,103 @@ function loadMatchsList(filter) {
       return tb - ta;
     });
     let html = '';
+    const fills = [];   // avatars empilés à charger : {id, uids}
+    const motms = [];   // noms MOTM à charger : {id, uid}
     for (const d of docs) {
       const m = d.data();
-      const isInscrit = (m.joueursInscrits || []).includes(currentUser?.uid);
-      const votesTotal = Object.values(m.votes || {}).reduce((s, v) => s + v.length, 0);
-      const best = getBestCreneau(m);
-      let subtitle = '';
-      if (statut === 'sondage') subtitle = `${m.creneauxProposes ? m.creneauxProposes.length : 0} créneaux · ${votesTotal} vote${votesTotal > 1 ? 's' : ''}`;
-      else if (statut === 'confirmé') subtitle = `${formatDateShort(m.dateFinale)} · ${m.lieuFinal || ''}`;
-      else subtitle = `Score: ${m.scoreA ?? '?'} – ${m.scoreB ?? '?'}`;
-      // Vote bars for sondage cards
-      let voteBarsHtml = '';
+      const id = d.id;
+      const inscrits = m.joueursInscrits || [];
+      const n = inscrits.length;
+      const isInscrit = inscrits.includes(currentUser?.uid);
+
       if (statut === 'sondage') {
-        const creneaux = m.creneauxProposes || [];
         const vMap = m.votes || {};
-        const maxV = Math.max(1, ...creneaux.map(c => (vMap[c.id]||[]).length));
-        const sortedC = [...creneaux].sort((a,b) => (vMap[b.id]||[]).length - (vMap[a.id]||[]).length);
-        voteBarsHtml = '<div class="mlc-vote-bars">' + sortedC.slice(0,3).map((c,i) => {
-          const cnt = (vMap[c.id]||[]).length;
-          const pct = Math.round((cnt/maxV)*100);
-          return '<div class="mlc-vb-row">' +
-            '<div class="mlc-vb-date">' + formatDateShort(c.date) + '</div>' +
-            '<div class="mlc-vb-track"><div class="mlc-vb-fill' + (i===0&&cnt>0?' best':'') + '" style="width:' + pct + '%"></div></div>' +
-            '<div class="mlc-vb-count">' + cnt + '</div>' +
-          '</div>';
-        }).join('') + '</div>';
-      }
-      // MOTM button for terminated cards
-      const motmVotedMe = statut === 'terminé' && currentUser
-        ? Object.values(m.motmVotes||{}).some(arr=>(arr||[]).includes(currentUser.uid)) : false;
-      const motmBtnHtml = statut === 'terminé'
-        ? `<button class="btn-sm ${motmVotedMe?'btn-outline':'btn-orange'}" style="font-size:11px;padding:5px 10px;margin-left:auto" onclick="event.stopPropagation();window.openMotmVote('${d.id}')">${motmVotedMe?`${ICON.trophy} Voté`:`${ICON.trophy} MOTM`}</button>`
-        : '';
-      html += `
-        <div class="match-list-card" onclick="openMatchDetail('${d.id}')">
-          <div class="mlc-top">
-            <div>
-              <div class="mlc-title">${statut === 'confirmé' ? ICON.ball : statut === 'sondage' ? ICON.poll : ICON.scroll} Match du ${best ? formatDateShort(best.date) : (m.dateFinale ? formatDateShort(m.dateFinale) : '?')}</div>
-              <div class="mlc-sub">${subtitle}</div>
+        const creneaux = m.creneauxProposes || [];
+        const voterUids = [...new Set(Object.values(vMap).flat())];
+        const ivoted = voterUids.includes(currentUser?.uid);
+        const best = getBestCreneau(m);
+        const maxV = Math.max(1, ...creneaux.map(c => (vMap[c.id] || []).length));
+        const sortedC = [...creneaux].sort((a, b) => (vMap[b.id] || []).length - (vMap[a.id] || []).length);
+        const voteBars = creneaux.length
+          ? '<div class="vb">' + sortedC.slice(0, 3).map((c, i) => {
+              const cnt = (vMap[c.id] || []).length;
+              const pct = Math.round((cnt / maxV) * 100);
+              return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
+            }).join('') + '</div>'
+          : '<div class="mc-eyebrow" style="margin-top:6px;color:var(--text-sec)">Aucun créneau proposé</div>';
+        html += `
+          <div class="mc sondage" onclick="openMatchDetail('${id}')">
+            <div class="mc-top">
+              <div>
+                <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> Sondage · vote ouvert</div>
+                <div class="mc-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
+              </div>
+              <span class="mc-chip chip-sondage">Sondage</span>
             </div>
-            <span class="tag tag-${filter}">${statut}</span>
-          </div>
-          ${voteBarsHtml}
-          <div class="mlc-bottom">
-            <span style="font-size:18px;display:inline-flex;color:${isInscrit ? 'var(--green)' : 'var(--text-sec)'}">${isInscrit ? ICON.checkCircle : ICON.user}</span>
-            <span class="mlc-creator">${(m.joueursInscrits || []).length} joueur${(m.joueursInscrits || []).length > 1 ? 's' : ''}</span>
-            ${motmBtnHtml}
-          </div>
-        </div>`;
+            <div class="mc-body">${voteBars}</div>
+            <div class="mc-foot">
+              <div class="av-stack" id="mcav-${id}"></div>
+              <span class="foot-txt"><b>${voterUids.length}</b> ont voté</span>
+              <span class="count-pill" style="color:var(--blue)">${ivoted ? `${ICON.check} Voté` : `${ICON.poll} Voter`}</span>
+            </div>
+          </div>`;
+        fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
+
+      } else if (statut === 'confirmé') {
+        const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+        const places = Math.max(0, MIN_CONFIRM - n);
+        const placesTxt = places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet';
+        html += `
+          <div class="mc confirme" onclick="openMatchDetail('${id}')">
+            <div class="mc-top">
+              <div>
+                <div class="mc-eyebrow" style="color:var(--orange)">${countdownLabel(m.dateFinale)}</div>
+                <div class="mc-date">${dateDayLabel(m.dateFinale)}</div>
+              </div>
+              <span class="mc-chip chip-confirme">Confirmé</span>
+            </div>
+            <div class="mc-body">
+              <div class="mc-eyebrow" style="margin-top:2px;color:var(--text-sec)">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
+              <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+            </div>
+            <div class="mc-foot">
+              <div class="av-stack" id="mcav-${id}"></div>
+              <span class="foot-txt">${placesTxt}</span>
+              <span class="count-pill">${isInscrit ? `${ICON.checkCircle} Inscrit` : `${ICON.plus} Rejoindre`}</span>
+            </div>
+          </div>`;
+        fills.push({ id, uids: inscrits });
+
+      } else { // terminé
+        const teamA = m.equipes?.[0]?.nom || 'Équipe A';
+        const teamB = m.equipes?.[1]?.nom || 'Équipe B';
+        const motmHtml = m.hommeDuMatchUid
+          ? `<span class="mc-motm" id="mcmotm-${id}">${ICON.trophy} MOTM · …</span>`
+          : `<span class="count-pill" style="color:var(--gold)" onclick="event.stopPropagation();window.openMotmVote('${id}')">${ICON.trophy} Vote MOTM</span>`;
+        html += `
+          <div class="mc histo" onclick="openMatchDetail('${id}')">
+            <div class="mc-top">
+              <div>
+                <div class="mc-eyebrow" style="color:var(--gold)">Terminé · ${dateDayLabel(m.dateFinale)}</div>
+                <div class="mc-score"><div><div class="n">${m.scoreA ?? '?'}</div><div class="tn">${escapeHtml(teamA)}</div></div><span class="sep">–</span><div><div class="n">${m.scoreB ?? '?'}</div><div class="tn">${escapeHtml(teamB)}</div></div></div>
+              </div>
+              <span class="mc-chip chip-histo">Terminé</span>
+            </div>
+            <div class="mc-foot">
+              ${motmHtml}
+              <span class="count-pill" style="color:var(--text-sec);margin-left:auto">${ICON.users} ${n} joueur${n > 1 ? 's' : ''}</span>
+            </div>
+          </div>`;
+        if (m.hommeDuMatchUid) motms.push({ id, uid: m.hommeDuMatchUid });
+      }
     }
     el.innerHTML = html;
+    fills.forEach(f => renderStackAvatars(f.uids, 'mcav-' + f.id));
+    motms.forEach(async mm => {
+      const u = await getUserData(mm.uid);
+      const span = document.getElementById('mcmotm-' + mm.id);
+      if (span) span.innerHTML = `${ICON.trophy} MOTM · ${escapeHtml(u?.pseudo || 'Inconnu')}`;
+    });
   }, err => {
     console.error('Firestore matchs query error:', err);
     el.innerHTML = `<div class="empty-state"><div class="icon" style="color:var(--red)">${ICON.warn}</div><p>Erreur de chargement.<br><small style="color:var(--red)">${err.code}</small></p></div>`;
