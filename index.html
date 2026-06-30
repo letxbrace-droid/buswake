@@ -767,6 +767,34 @@
     .ch-proof-txt { font-size:12.5px; color:var(--text-sec); }
     .ch-proof-txt b { color:#fff; }
 
+    /* ===== MATCHS À REJOINDRE — priorité + groupes par temps ===== */
+    .sec-lbl { font-size:11px; letter-spacing:1.4px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin:22px 2px 11px; display:flex; align-items:center; gap:7px; }
+    .sec-lbl svg { width:14px; height:14px; }
+    .sec-lbl:first-child { margin-top:6px; }
+    .reco { position:relative; border-radius:20px; overflow:hidden; background:#0B0D12; border:1px solid rgba(0,216,138,.35); box-shadow:0 18px 50px rgba(0,0,0,.6),0 0 0 1px rgba(0,216,138,.1); cursor:pointer; }
+    .reco-glow { position:absolute; inset:0; background:radial-gradient(90% 60% at 50% -10%,rgba(0,216,138,.18),transparent 60%); pointer-events:none; }
+    .reco-in { position:relative; z-index:2; padding:18px; }
+    .reco-eyebrow { display:inline-flex; align-items:center; gap:8px; font-size:11px; letter-spacing:1.2px; font-weight:700; color:var(--orange); text-transform:uppercase; }
+    .reco-manque { font-family:'Anton',sans-serif; font-size:32px; line-height:1.05; margin:10px 0 4px; color:#fff; }
+    .reco-where { font-size:13.5px; color:var(--text-sec); display:flex; align-items:center; gap:5px; }
+    .reco-where svg { width:14px; height:14px; flex-shrink:0; }
+    .reco-foot { display:flex; align-items:center; gap:10px; margin:14px 0 4px; }
+    .reco-friends { font-size:12.5px; color:var(--text-sec); }
+    .reco-friends b { color:#fff; }
+    .reco-cta { width:100%; margin-top:12px; display:inline-flex; align-items:center; justify-content:center; gap:8px; }
+    .reco-cta svg { width:18px; height:18px; }
+    .mrow { display:flex; align-items:center; gap:13px; padding:13px 14px; background:var(--card); border:1px solid var(--border); border-radius:15px; margin-bottom:9px; cursor:pointer; transition:border-color .15s, transform .12s; }
+    .mrow:active { transform:scale(.985); border-color:var(--border-light); }
+    .mrow-date { display:flex; flex-direction:column; align-items:center; justify-content:center; min-width:46px; line-height:1; }
+    .mrow-date b { font-size:13px; color:#fff; text-transform:capitalize; }
+    .mrow-date span { font-family:'Anton',sans-serif; font-size:13px; color:var(--text-sec); margin-top:3px; }
+    .mrow-mid { flex:1; min-width:0; }
+    .mrow-manque { font-size:15px; font-weight:700; margin-bottom:3px; }
+    .mrow-where { font-size:12px; color:var(--text-sec); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .mrow-cta { flex-shrink:0; font-size:12px; font-weight:700; color:var(--orange); background:rgba(0,216,138,.12); border:1px solid rgba(0,216,138,.28); padding:8px 13px; border-radius:20px; }
+    .mrow-cta.is-joined { color:var(--green); background:rgba(0,230,118,.1); border-color:rgba(0,230,118,.3); }
+    .mrow-cta.is-full { color:var(--text-muted); background:transparent; border-color:var(--border); }
+
     .atout-bar-wrap { margin-bottom:10px; }
     .atout-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
     .atout-bar-label span:last-child { color:var(--orange); font-weight:700; }
@@ -3507,6 +3535,126 @@ function matchCardHTML(id, m, statut, fills, motms) {
       </div>
     </div>`;
 }
+// ===== VUE « MATCHS À REJOINDRE » (onglet Confirmés réorganisé) =====
+// Stratégie : ne pas faire comparer le joueur — désigner le match à
+// rejoindre. Tri chronologique, un match recommandé en tête, l'info reine
+// « il manque X », les potes, et un regroupement par temps.
+function _matchWhen(m) {
+  const df = m.dateFinale;
+  let ms = 0, heure = '';
+  if (df && df.toMillis) { ms = df.toMillis(); }
+  else if (typeof df === 'string') {
+    const cr = (m.creneauxProposes || []).find(c => c.date === df && (!m.lieuFinal || c.lieu === m.lieuFinal))
+            || (m.creneauxProposes || []).find(c => c.date === df);
+    heure = cr?.heure || '';
+    ms = new Date(df + 'T' + (heure || '20:00') + ':00').getTime();
+  } else if (df) { ms = new Date(df).getTime(); }
+  return { ms: ms || 0, heure };
+}
+function _manqueHTML(places) {
+  if (places <= 0) return `<span style="color:var(--green)">Complet</span>`;
+  const c = places <= 2 ? 'var(--red)' : places <= 4 ? '#FFB020' : 'var(--orange)';
+  return `<span style="color:${c}">Il manque ${places} joueur${places > 1 ? 's' : ''}</span>`;
+}
+function _recoEyebrow(w) {
+  const d = new Date(w.ms), now = new Date();
+  const time = w.heure || d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+  const hr = w.heure ? parseInt(w.heure) : d.getHours();
+  const diff = w.ms - now.getTime();
+  const days = Math.ceil((d.setHours(0,0,0,0) - new Date().setHours(0,0,0,0)) / 86400000);
+  let rel;
+  if (diff < 0) rel = 'EN COURS';
+  else if (days <= 0) rel = hr >= 16 ? 'CE SOIR' : "AUJOURD'HUI";
+  else if (days === 1) rel = 'DEMAIN';
+  else rel = 'DANS ' + days + ' JOURS';
+  return `${rel} · ${time}`;
+}
+function _dayParts(w) {
+  const d = new Date(w.ms);
+  let abbr = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+  abbr = abbr.charAt(0).toUpperCase() + abbr.slice(1);
+  return { abbr, sub: w.heure || d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }) };
+}
+function _matchDist(m) {
+  try {
+    const home = typeof _venueHome === 'function' ? _venueHome() : null;
+    if (home && m.lieuCoords && m.lieuCoords.lat != null) {
+      return Math.round(haversine(home.lat, home.lon, m.lieuCoords.lat, m.lieuCoords.lon));
+    }
+  } catch (_) {}
+  return null;
+}
+function buildConfirmedView(rawDocs, fills) {
+  const startToday = new Date(); startToday.setHours(0, 0, 0, 0);
+  const endToday = startToday.getTime() + 86400000;
+  const in7 = startToday.getTime() + 7 * 86400000;
+  const friends = currentUserData?.friends || [];
+  const items = rawDocs.map(d => {
+    const m = d.data();
+    const inscrits = m.joueursInscrits || [];
+    return {
+      id: d.id, m, inscrits, n: inscrits.length,
+      places: Math.max(0, MIN_CONFIRM - inscrits.length),
+      joined: inscrits.includes(currentUser?.uid),
+      w: _matchWhen(m), dist: _matchDist(m),
+      friendUids: inscrits.filter(u => friends.includes(u)),
+    };
+  }).filter(it => it.w.ms >= startToday.getTime())
+    .sort((a, b) => a.w.ms - b.w.ms);
+  if (!items.length) return '';
+
+  // Le match recommandé : le plus tôt qu'on peut encore rejoindre.
+  const reco = items.find(it => it.places > 0 && !it.joined) || null;
+  let html = '';
+  if (reco) {
+    fills.push({ id: 'reco-' + reco.id, uids: reco.friendUids.length ? reco.friendUids : reco.inscrits });
+    const m = reco.m;
+    const where = `${ICON.pin} ${escapeHtml(m.lieuFinal || 'Lieu à définir')}${reco.dist != null ? ` · à ${reco.dist} km de toi` : ''}`;
+    const friendsTxt = reco.friendUids.length
+      ? `<b>${reco.friendUids.length} de tes pote${reco.friendUids.length > 1 ? 's' : ''}</b> ${reco.friendUids.length > 1 ? 'jouent' : 'joue'}`
+      : `<b>${reco.n}</b> inscrit${reco.n > 1 ? 's' : ''} · prends ta place`;
+    html += `<div class="sec-lbl" style="color:var(--orange)">${ICON.zap} À rejoindre en priorité</div>`;
+    html += `<div class="reco" onclick="openMatchDetail('${reco.id}')">
+      <div class="reco-glow"></div>
+      <div class="reco-in">
+        <div class="reco-eyebrow"><span class="live-dot"></span>${_recoEyebrow(reco.w)}</div>
+        <div class="reco-manque">${_manqueHTML(reco.places)}</div>
+        <div class="reco-where">${where}</div>
+        <div class="reco-foot">
+          <div class="av-stack" id="mcav-reco-${reco.id}"></div>
+          <span class="reco-friends">${friendsTxt}</span>
+        </div>
+        <button class="btn-primary reco-cta" onclick="event.stopPropagation();openMatchDetail('${reco.id}')">${ICON.zap} Je joue</button>
+      </div>
+    </div>`;
+  }
+  // Le reste, groupé par temps.
+  const rest = items.filter(it => !reco || it.id !== reco.id);
+  const groups = [["Aujourd'hui", []], ['Cette semaine', []], ['Plus tard', []]];
+  rest.forEach(it => {
+    const b = it.w.ms < endToday ? 0 : it.w.ms < in7 ? 1 : 2;
+    groups[b][1].push(it);
+  });
+  groups.forEach(([lbl, arr]) => {
+    if (!arr.length) return;
+    html += `<div class="sec-lbl">${lbl}</div>`;
+    html += arr.map(it => {
+      const dp = _dayParts(it.w);
+      const potes = it.friendUids.length ? ` · <span style="color:var(--orange)">${it.friendUids.length} pote${it.friendUids.length > 1 ? 's' : ''}</span>` : '';
+      const where = `${escapeHtml(it.m.lieuFinal || 'Lieu')}${it.dist != null ? ` · ${it.dist} km` : ''}${potes}`;
+      const cta = it.joined ? `<span class="mrow-cta is-joined">Tu joues</span>`
+                : it.places <= 0 ? `<span class="mrow-cta is-full">Complet</span>`
+                : `<span class="mrow-cta">Je joue</span>`;
+      return `<div class="mrow" onclick="openMatchDetail('${it.id}')">
+        <div class="mrow-date"><b>${dp.abbr}</b><span>${dp.sub}</span></div>
+        <div class="mrow-mid"><div class="mrow-manque">${_manqueHTML(it.places)}</div><div class="mrow-where">${where}</div></div>
+        ${cta}
+      </div>`;
+    }).join('');
+  });
+  return html;
+}
+
 // Hydrate les cartes (avatars empilés + nom du MOTM) après insertion
 function hydrateMatchCards(fills, motms) {
   (fills || []).forEach(f => renderStackAvatars(f.uids, 'mcav-' + f.id));
@@ -3570,19 +3718,24 @@ function loadMatchsList(filter) {
   // On trie côté client après réception.
   const q = query(collection(db, 'matchs'), where('statut', '==', statut));
   const unsub = onSnapshot(q, async snap => {
-    if (snap.empty) {
-      el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? ICON.scroll : ICON.calendar}</div><p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Rien de calé. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
-      return;
-    }
-    // Tri par date de création décroissante côté client
-    const docs = snap.docs.slice().sort((a, b) => {
-      const ta = a.data().createdAt?.toMillis?.() ?? 0;
-      const tb = b.data().createdAt?.toMillis?.() ?? 0;
-      return tb - ta;
-    });
+    const emptyHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? ICON.scroll : ICON.calendar}</div><p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match à rejoindre. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
+    if (snap.empty) { el.innerHTML = emptyHTML; return; }
     const fills = [];   // avatars empilés à charger : {id, uids}
     const motms = [];   // noms MOTM à charger : {id, uid}
-    const html = docs.map(d => matchCardHTML(d.id, d.data(), statut, fills, motms)).join('');
+    let html;
+    if (filter === 'confirme') {
+      // Vue « à rejoindre » : recommandation + groupes par temps (à venir).
+      html = buildConfirmedView(snap.docs, fills);
+      if (!html) { el.innerHTML = emptyHTML; return; }
+    } else {
+      // Tri par date de création décroissante côté client
+      const docs = snap.docs.slice().sort((a, b) => {
+        const ta = a.data().createdAt?.toMillis?.() ?? 0;
+        const tb = b.data().createdAt?.toMillis?.() ?? 0;
+        return tb - ta;
+      });
+      html = docs.map(d => matchCardHTML(d.id, d.data(), statut, fills, motms)).join('');
+    }
     el.innerHTML = html;
     hydrateMatchCards(fills, motms);
   }, err => {
