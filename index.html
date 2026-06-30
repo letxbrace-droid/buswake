@@ -1513,12 +1513,6 @@
     .ob-art{margin-bottom:30px;filter:drop-shadow(0 12px 28px rgba(0,216,138,.35));animation:obBob 2.8s ease-in-out infinite;}
     .ob-art svg{display:block;width:138px;height:138px;}
     @keyframes obBob{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-10px) scale(1.06)}}
-    .ob-title{font-family:'Anton',sans-serif;font-size:clamp(28px,8vw,38px);font-weight:700;color:#fff;text-align:center;line-height:1.15;margin-bottom:14px;text-shadow:0 2px 16px rgba(0,216,138,.25);}
-    .ob-title span{color:var(--orange);}
-    .ob-desc{font-size:15px;color:rgba(255,255,255,.55);text-align:center;line-height:1.6;max-width:280px;}
-    .ob-dots{position:absolute;bottom:max(env(safe-area-inset-bottom,0px),18px);bottom:calc(94px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);display:flex;gap:8px;z-index:5;}
-    .ob-dot{width:7px;height:7px;border-radius:4px;background:rgba(255,255,255,.22);transition:all .3s;cursor:pointer;}
-    .ob-dot.active{width:22px;background:var(--orange);box-shadow:0 0 8px var(--orange-glow);}
     .ob-next-btn{
       position:absolute;bottom:44px;left:20px;right:20px;padding:16px;border:none;border-radius:14px;
       background:linear-gradient(135deg,var(--orange),var(--orange2));color:#fff;
@@ -1527,11 +1521,6 @@
       bottom:calc(34px + env(safe-area-inset-bottom,0px));
     }
     .ob-next-btn:active{transform:scale(.97);}
-    .ob-skip-btn{
-      position:absolute;top:max(env(safe-area-inset-top,0px),16px);right:20px;z-index:10;
-      padding:8px 14px;border:1px solid var(--border-light);border-radius:20px;
-      background:rgba(255,255,255,.05);color:rgba(255,255,255,.45);font-size:13px;cursor:pointer;
-    }
 
     /* ===== FUT CARD SHIMMER ===== */
     .fut-card-v3.shimmer-active::after{
@@ -1633,16 +1622,14 @@
     .ob-brand { font-family:'Anton',sans-serif; font-size:clamp(36px,12vw,54px); line-height:.9; letter-spacing:1px; text-align:center; color:#fff; }
     .ob-brand span { color:var(--orange); display:block; text-shadow:0 0 26px var(--orange-glow); }
     .ob-tag { margin-top:20px; font-size:16px; color:rgba(255,255,255,.72); text-align:center; max-width:290px; line-height:1.5; }
+    /* Entrée en douceur (les seules anims que Jobs garde : marque + promesse + flux) */
+    @keyframes obIn { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:none; } }
+    .ob-brand { animation: obIn .6s .12s cubic-bezier(.22,1,.36,1) both; }
+    .ob-tag   { animation: obIn .6s .26s cubic-bezier(.22,1,.36,1) both; }
+    .ob-flow  { animation: obIn .6s .40s cubic-bezier(.22,1,.36,1) both; }
+    @media (prefers-reduced-motion: reduce) { .ob-brand, .ob-tag, .ob-flow { animation:none !important; } }
     .ob-chips { display:flex; gap:8px; margin-top:24px; flex-wrap:wrap; justify-content:center; }
     .ob-chips span { font-size:12px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--orange); background:rgba(0,216,138,.1); border:1px solid rgba(0,216,138,.32); padding:8px 15px; border-radius:99px; }
-    .ob-mini-card { width:100%; max-width:300px; background:var(--card); border:1px solid var(--border-light); border-radius:18px; padding:16px; margin-top:4px; box-shadow:0 16px 40px rgba(0,0,0,.45); }
-    .ob-vote-row { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
-    .ob-vote-row:last-child { margin-bottom:0; }
-    .ovr-label { font-size:12.5px; color:var(--text); min-width:98px; font-weight:600; }
-    .ovr-bar { flex:1; height:9px; background:rgba(255,255,255,.1); border-radius:99px; overflow:hidden; }
-    .ovr-bar i { display:block; height:100%; background:linear-gradient(90deg,var(--orange-dark),var(--orange)); border-radius:99px; box-shadow:0 0 10px var(--orange-glow); animation:obBarGrow 1.1s cubic-bezier(.22,1,.36,1) both; }
-    @keyframes obBarGrow { from{ width:0 !important; } }
-    .ovr-n { font-family:'Anton',sans-serif; font-size:15px; color:var(--orange); min-width:16px; text-align:right; }
     .ob-vs { display:flex; flex-direction:column; align-items:center; gap:8px; margin-top:4px; }
     .ob-team { font-family:'Anton',sans-serif; font-size:16px; letter-spacing:.5px; display:flex; align-items:center; gap:8px; background:var(--card); border:1px solid var(--border-light); padding:11px 18px; border-radius:14px; box-shadow:0 8px 20px rgba(0,0,0,.35); }
     .ob-vs-sep { font-family:'Anton',sans-serif; color:var(--text-sec); font-size:14px; }
@@ -1666,7 +1653,7 @@
 
     /* --- Blocs 3D : élévation + reflet interne + halo doux --- */
     .match-list-card, .poll-card, .stat-box, .hero-match, .equipe-block,
-    .badge-item, .ob-mini-card, .ob-team, .pitch, .creneau-vote,
+    .badge-item, .pitch, .creneau-vote,
     .club-card, .poste-btn, .friend-item, .seg {
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.06),
@@ -1681,7 +1668,7 @@
                   inset 0 2px 0 rgba(255,255,255,.4);
     }
     /* Cartes : léger dégradé interne pour le relief */
-    .match-list-card, .poll-card, .stat-box, .hero-match, .ob-mini-card {
+    .match-list-card, .poll-card, .stat-box, .hero-match {
       background-image: linear-gradient(180deg, rgba(255,255,255,.035), rgba(255,255,255,0) 46%);
     }
 
@@ -1722,10 +1709,10 @@
     input[type=range]:active::-moz-range-thumb { box-shadow:0 4px 12px rgba(0,0,0,.65), 0 0 0 12px rgba(0,216,138,.2); }
 
     /* --- Barres de vote / progression : rail iOS lumineux --- */
-    .mlc-vb-track, .vote-track, .atout-bar-bg, .ovr-bar, .pdp-stat-bar {
+    .mlc-vb-track, .vote-track, .atout-bar-bg, .pdp-stat-bar {
       border-radius:99px !important; background:rgba(255,255,255,.12) !important;
     }
-    .mlc-vb-fill, .vote-fill, .atout-bar-fill, .ovr-bar i, .pdp-stat-bar div {
+    .mlc-vb-fill, .vote-fill, .atout-bar-fill, .pdp-stat-bar div {
       border-radius:99px !important;
       background:linear-gradient(90deg, var(--orange-dark), var(--orange)) !important;
       box-shadow:0 0 10px var(--orange-glow);
@@ -1899,41 +1886,22 @@
     .btn-wa:active { transform:translateY(1px) scale(.99); }
 
     /* ===== ONBOARDING RESPONSIVE FIX ===== */
-    #onboarding-screen .ob-skip-btn { position:absolute; z-index:6; }
     .ob-slide {
       padding:calc(env(safe-area-inset-top,0px) + 56px) 24px calc(150px + env(safe-area-inset-bottom,0px)) !important;
       justify-content:center; overflow-y:auto; overflow-x:hidden;
     }
-    .ob-emoji-hero { font-size:clamp(60px, 17vw, 82px); margin-bottom:clamp(14px,4vw,22px); }
     .ob-logo-img { width:clamp(108px, 32vw, 144px); height:auto; }
     .ob-brand { font-size:clamp(32px, 11.5vw, 52px); }
     .ob-tag { font-size:clamp(14px, 4vw, 16px); }
-    .ob-mini-card { width:100%; max-width:min(300px, 86vw); }
-    .ob-team { font-size:clamp(13px, 4vw, 16px); padding:10px 14px; }
-    .ob-copy { margin-top:18px; font-size:15px; color:rgba(255,255,255,.8); text-align:center; max-width:300px; line-height:1.5; }
-    .ob-copy b { color:var(--orange); font-weight:700; }
     /* écrans courts : on resserre */
     @media (max-height: 720px) {
-      .ob-emoji-hero { font-size:60px; margin-bottom:12px; }
       .ob-logo-img { width:104px; }
-      .ob-mini-card { padding:12px; }
-      .ob-vote-row { margin-bottom:9px; }
     }
 
     /* ===== ONBOARDING — icônes vectorielles ===== */
-    .ob-hero-ic { width:clamp(72px,20vw,90px); height:clamp(72px,20vw,90px); color:var(--orange); margin-bottom:clamp(14px,4vw,22px); filter:drop-shadow(0 12px 30px var(--orange-glow)); animation:logoFloat 3.6s ease-in-out infinite; }
     .ob-floue svg { width:var(--s,32px); height:var(--s,32px); display:block; color:#fff; }
     .obt-dot { width:13px; height:13px; border-radius:50%; display:inline-block; flex-shrink:0; box-shadow:0 0 8px currentColor; }
 
-    /* ===== ONBOARDING — équilibrage équipes ===== */
-    .ob-balance { display:flex; align-items:center; justify-content:center; gap:14px; margin-top:2px; }
-    .obb-side { display:flex; flex-direction:column; align-items:center; gap:3px; background:var(--card); border:1px solid var(--border-light); border-radius:16px; padding:14px 20px; min-width:108px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05), 0 10px 24px rgba(0,0,0,.5); }
-    .obb-dot { width:12px; height:12px; border-radius:50%; box-shadow:0 0 10px currentColor; }
-    .obb-note { font-family:'Anton',sans-serif; font-size:30px; line-height:1; }
-    .obb-lbl { font-size:11px; color:var(--text-sec); font-weight:600; letter-spacing:.5px; }
-    .obb-vs { font-family:'Anton',sans-serif; color:var(--text-muted); font-size:16px; }
-    .ob-balance-tag { display:inline-flex; align-items:center; gap:6px; margin-top:14px; font-size:12.5px; font-weight:700; color:var(--orange); background:rgba(0,216,138,.1); border:1px solid rgba(0,216,138,.32); padding:6px 14px; border-radius:99px; }
-    .ob-balance-tag svg { width:15px; height:15px; }
 
     /* ===== ONBOARDING — parcours gamifié (slide 1) ===== */
     .ob-flow { display:flex; align-items:flex-start; justify-content:center; gap:4px; margin-top:28px; }
@@ -2052,10 +2020,9 @@
     <span class="ob-floue" style="--x:48%;--y:86%;--d:11s;--s:30px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="9" cy="13" r="5"/><path d="M14 11.5l7-2.5v3.5l-7 1.5M9 8V5h4.5"/></svg></span>
     <span class="ob-floue" style="--x:64%;--y:38%;--d:9s;--s:24px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="9"/><path d="M12 8l3.2 2.4-1.2 3.8H10L8.8 10.4z"/></svg></span>
   </div>
-  <button class="ob-skip-btn" onclick="skipOnboarding()">Passer</button>
   <div class="ob-slides-wrap" id="ob-slides-wrap">
 
-    <!-- Slide 1 -->
+    <!-- Slide unique : marque + promesse + Organise · Vote · Joue -->
     <div class="ob-slide">
       <img src="./logo.png" alt="" class="ob-logo-img">
       <div class="ob-brand">CAP SACLAY <span>FIVE</span></div>
@@ -2069,40 +2036,8 @@
       </div>
     </div>
 
-    <!-- Slide 2 -->
-    <div class="ob-slide">
-      <svg class="ob-hero-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M7 13h2M11 13h2M15 13h2M7 16.5h2M11 16.5h2"/></svg>
-      <div class="ob-title">Trouvez le bon <span>créneau</span></div>
-      <div class="ob-mini-card">
-        <div class="ob-vote-row"><span class="ovr-label">Vendredi 19h30</span><span class="ovr-bar"><i style="width:80%"></i></span><span class="ovr-n">8</span></div>
-        <div class="ob-vote-row"><span class="ovr-label">Samedi 14h</span><span class="ovr-bar"><i style="width:55%"></i></span><span class="ovr-n">5</span></div>
-        <div class="ob-vote-row"><span class="ovr-label">Dimanche 10h</span><span class="ovr-bar"><i style="width:35%"></i></span><span class="ovr-n">3</span></div>
-      </div>
-      <div class="ob-copy">Chacun vote ses dispos. <b>Le créneau qui rassemble l'emporte.</b></div>
-      <div class="ob-desc">Fini les sondages sans fin sur WhatsApp.</div>
-    </div>
-
-    <!-- Slide 3 -->
-    <div class="ob-slide">
-      <svg class="ob-hero-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M16 19v-1.5a3.5 3.5 0 0 0-3.5-3.5h-5A3.5 3.5 0 0 0 4 17.5V19"/><circle cx="9.5" cy="8" r="3.3"/><path d="M20 19v-1.5a3.5 3.5 0 0 0-2.7-3.4"/><path d="M15.5 5.1a3.3 3.3 0 0 1 0 5.8"/></svg>
-      <div class="ob-title">Composez vos <span>équipes</span></div>
-      <div class="ob-balance">
-        <div class="obb-side"><span class="obb-dot" style="background:#FF6A00"></span><span class="obb-note" style="color:#FF8A3D">77.4</span><span class="obb-lbl">Équipe A</span></div>
-        <div class="obb-vs">VS</div>
-        <div class="obb-side"><span class="obb-dot" style="background:#00D88A"></span><span class="obb-note" style="color:#00E89A">77.2</span><span class="obb-lbl">Équipe B</span></div>
-      </div>
-      <div class="ob-balance-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg> Équipes équilibrées</div>
-      <div class="ob-copy">L'algo répartit les forces <b>à la note près</b>.</div>
-      <div class="ob-desc">Deux camps, un terrain.<br>Que le meilleur gagne.</div>
-    </div>
-
   </div>
-  <div class="ob-dots" id="ob-dots">
-    <div class="ob-dot active" onclick="goObSlide(0)"></div>
-    <div class="ob-dot" onclick="goObSlide(1)"></div>
-    <div class="ob-dot" onclick="goObSlide(2)"></div>
-  </div>
-  <button class="ob-next-btn" id="ob-next-btn" onclick="obNextSlide()">Commencer</button>
+  <button class="ob-next-btn" id="ob-next-btn" onclick="skipOnboarding()">Commencer</button>
 </div>
 
 <!-- AUTH -->
@@ -5246,7 +5181,7 @@ window.exportFutCard = async function() {
 
 // ===== ONBOARDING =====
 let _obSlide = 0;
-const OB_TOTAL = 3;
+const OB_TOTAL = 1; // slide unique (marque + promesse) — fini les visites guidées
 function initOnboarding() { _obSlide = 0; _obUpdate(); }
 window.goObSlide = function(idx) { _obSlide = Math.max(0, Math.min(OB_TOTAL-1, idx)); _obUpdate(); };
 function _obUpdate() {
