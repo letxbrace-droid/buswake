@@ -1113,28 +1113,7 @@
 
 
     /* ===== TOOLTIP SLIDER PREMIUM V3 ===== */
-    .slider-wrap { position:relative; padding-top:30px; margin-bottom:2px; }
-    .s-tooltip {
-      position:absolute; top:0;
-      transform:translateX(-50%) scale(1);
-      background:linear-gradient(135deg, var(--orange), var(--orange2));
-      color:#fff;
-      font-size:13px; font-weight:700;
-      padding:3px 10px 2px; border-radius:9px;
-      pointer-events:none;
-      transition:left .06s linear, transform .25s cubic-bezier(0.34,1.45,0.64,1);
-      font-family:'Anton',sans-serif;
-      white-space:nowrap;
-      box-shadow:0 3px 14px var(--orange-glow);
-      letter-spacing:.5px; line-height:1.5;
-    }
-    .s-tooltip.pop { transform:translateX(-50%) translateY(-4px) scale(1.18); }
-    .s-tooltip::after {
-      content:''; position:absolute; top:100%; left:50%;
-      transform:translateX(-50%);
-      border:5px solid transparent;
-      border-top-color:var(--orange);
-    }
+    .slider-wrap { position:relative; padding-top:6px; margin-bottom:2px; }
 
     /* ===== FUT CARD shield + poste ===== */
     .fut-club-shield { display:inline-flex; align-items:center; gap:8px; margin-top:6px; justify-content:center; }
@@ -2476,13 +2455,6 @@ function updateRangeGradient(input) {
   const val = +input.value || 70;
   const pct = ((val - min) / (max - min)) * 100;
   input.style.background = `linear-gradient(90deg, var(--orange) ${pct.toFixed(1)}%, var(--border) ${pct.toFixed(1)}%)`;
-  const tooltip = input.parentElement?.querySelector('.s-tooltip');
-  if (tooltip) {
-    tooltip.textContent = val;
-    const thumbW = 22;
-    const thumbOffset = (pct / 100) * (input.offsetWidth - thumbW) + thumbW / 2;
-    tooltip.style.left = thumbOffset + 'px';
-  }
 }
 
 function syncAtout(name, val) {
@@ -4683,13 +4655,9 @@ function openEditProfile() {
             <span id="epv-${a}" style="color:var(--orange);font-weight:700;font-family:Anton,sans-serif;font-size:16px">${val}</span>
           </label>
           <div class="slider-wrap">
-            <div class="s-tooltip" id="epst-${a}" style="left:calc(${pct}% + ${10-pct*.2}px)">${val}</div>
             <input type="range" min="20" max="99" value="${val}" id="epa-${a}"
               style="background:linear-gradient(90deg,var(--orange) ${pct}%,var(--border) ${pct}%)"
-              oninput="(function(el){
-                document.getElementById('epv-${a}').textContent=el.value;
-                updateRangeGradient(el);
-              })(this)">
+              oninput="document.getElementById('epv-${a}').textContent=this.value;updateRangeGradient(this)">
           </div>
         </div>`;
       }).join('')}
