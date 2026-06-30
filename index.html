@@ -612,6 +612,40 @@
       cursor:pointer; font-size:14px; transition:all .2s; font-family:'Space Grotesk',sans-serif;
     }
     .add-creneau-btn:hover { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.04); }
+
+    /* ===== CRÉATION MATCH — LIEU EN CARTES + CRÉNEAUX EN CHIPS ===== */
+    .cm-venue { display:flex; align-items:center; gap:11px; background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:11px 13px; margin-bottom:8px; cursor:pointer; transition:border-color .15s, background .15s; }
+    .cm-venue.sel { border-color:var(--orange); background:rgba(0,216,138,.08); box-shadow:0 0 0 1px var(--orange) inset; }
+    .cm-venue:active { transform:scale(.99); }
+    .cm-v-ic { width:38px; height:38px; border-radius:11px; background:var(--card2); display:flex; align-items:center; justify-content:center; color:var(--text-sec); flex-shrink:0; }
+    .cm-venue.sel .cm-v-ic { background:rgba(0,216,138,.16); color:var(--orange); }
+    .cm-v-ic .ic { width:18px; height:18px; }
+    .cm-v-meta { flex:1; min-width:0; }
+    .cm-v-name { font-size:14.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cm-v-sub { font-size:11.5px; color:var(--text-sec); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .cm-v-check { color:var(--orange); flex-shrink:0; display:none; }
+    .cm-venue.sel .cm-v-check { display:block; }
+    .cm-v-check .ic { width:20px; height:20px; }
+    .cm-search-toggle { display:flex; align-items:center; gap:9px; background:var(--card); border:1px solid var(--border); border-radius:12px; padding:0 13px; height:44px; color:var(--text-sec); font-size:13px; font-weight:600; cursor:pointer; }
+    .cm-search-toggle .ic { width:16px; height:16px; }
+    .cm-search-box { margin-top:8px; display:none; }
+    .cm-search-box.open { display:block; }
+    .cm-search-dd { margin-top:6px; }
+    .cm-dd-opt { padding:10px 12px; border:1px solid var(--border); border-radius:10px; margin-bottom:6px; cursor:pointer; background:var(--card); }
+    .cm-dd-opt:hover { border-color:var(--orange); background:var(--card2); }
+    .cm-dd-opt .o-n { font-size:13.5px; font-weight:600; }
+    .cm-dd-opt .o-s { font-size:11px; color:var(--text-sec); margin-top:1px; }
+    .cm-slots { display:flex; flex-wrap:wrap; gap:8px; }
+    .cm-slot { padding:10px 14px; border-radius:12px; border:1.5px solid var(--border); background:var(--card); font-size:13px; font-weight:700; color:var(--text); cursor:pointer; text-align:center; min-width:64px; transition:border-color .15s, background .15s; -webkit-tap-highlight-color:transparent; }
+    .cm-slot small { display:block; font-size:10.5px; color:var(--text-sec); font-weight:600; margin-top:2px; }
+    .cm-slot:active { transform:scale(.96); }
+    .cm-slot.on { border-color:var(--orange); background:rgba(0,216,138,.1); }
+    .cm-slot.on small { color:var(--orange); }
+    .cm-slot.add { border-style:dashed; color:var(--text-sec); display:flex; align-items:center; }
+    .cm-custom { display:none; gap:8px; margin-top:10px; align-items:flex-end; }
+    .cm-custom.open { display:flex; }
+    .cm-custom > div { flex:1; }
+    .cm-summary { text-align:center; font-size:11.5px; color:var(--text-muted); margin-top:12px; }
     .input-field {
       width:100%; padding:11px 13px;
       background:var(--surface); border:1.5px solid var(--border);
@@ -4201,24 +4235,157 @@ function buildCreneauxHtml() {
   }).join('');
 }
 
+// ===== CRÉATION MATCH — lieu en cartes + créneaux en chips (zéro saisie) =====
+let _cmVenue = null;      // terrain choisi {n, v, lat, lon}
+let _cmSlots = [];        // créneaux cochés [{id, date:'YYYY-MM-DD', heure, dateObj}]
+let _cmSuggest = [];      // créneaux suggérés
+let _cmExtra = null;      // terrain trouvé via recherche (épinglé en tête)
+
+function _pad(n) { return String(n).padStart(2, '0'); }
+function _ymd(d) { return d.getFullYear() + '-' + _pad(d.getMonth() + 1) + '-' + _pad(d.getDate()); }
+function _cmBuildSuggest() {
+  const now = new Date();
+  const nextDow = (dow, h, m) => {
+    const d = new Date(now); d.setHours(h, m, 0, 0);
+    let diff = (dow - d.getDay() + 7) % 7;
+    if (diff === 0 && d <= now) diff = 7;
+    d.setDate(d.getDate() + diff);
+    return d;
+  };
+  // créneaux foot typiques : ven 19h/20h30, mer 19h, sam 14h, dim 10h
+  const defs = [[5, 19, 0], [5, 20, 30], [3, 19, 0], [6, 14, 0], [0, 10, 0]];
+  return defs.map(([dow, h, m]) => {
+    const d = nextDow(dow, h, m);
+    return { id: genId(), date: _ymd(d), heure: _pad(h) + ':' + _pad(m), dateObj: d };
+  }).sort((a, b) => a.dateObj - b.dateObj).slice(0, 5);
+}
+function _cmVenueCards() {
+  const home = _venueHome();
+  let list = VENUES_91.slice();
+  if (home) list.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
+  list = list.slice(0, 3).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon,
+    dist: home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null }));
+  // épingler le terrain recherché / le dernier utilisé en tête s'il n'y est pas
+  const extra = _cmExtra || (function(){ try { return JSON.parse(localStorage.getItem('cs5_lastVenue') || 'null'); } catch (_) { return null; } })();
+  if (extra && !list.some(x => x.n === extra.n)) list.unshift({ ...extra });
+  return list;
+}
+function renderCmModal() {
+  const cards = _cmVenueCards();
+  const venuesHtml = cards.map((x, i) => {
+    const sel = _cmVenue && _cmVenue.n === x.n;
+    const sub = [x.v, x.dist != null ? x.dist + ' km' : '', (_cmVenue == null && i === 0) ? '' : ''].filter(Boolean).join(' · ');
+    return `<div class="cm-venue${sel ? ' sel' : ''}" onclick='cmPickVenue(${JSON.stringify(x).replace(/'/g, "&#39;")})'>
+      <div class="cm-v-ic">${ICON.pin}</div>
+      <div class="cm-v-meta"><div class="cm-v-name">${escapeHtml(x.n)}</div><div class="cm-v-sub">${escapeHtml(sub) || 'Terrain'}</div></div>
+      <div class="cm-v-check">${ICON.check}</div>
+    </div>`;
+  }).join('');
+  const slotsHtml = _cmSuggest.map(s => {
+    const on = _cmSlots.some(z => z.id === s.id);
+    const top = s.dateObj.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+    return `<div class="cm-slot${on ? ' on' : ''}" onclick="cmToggleSlot('${s.id}')">${top.replace('.', '')}<small>${s.heure}</small></div>`;
+  }).join('');
+  const customSlots = _cmSlots.filter(s => !_cmSuggest.some(z => z.id === s.id)).map(s => {
+    const top = s.dateObj.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric' });
+    return `<div class="cm-slot on" onclick="cmToggleSlot('${s.id}')">${top.replace('.', '')}<small>${s.heure}</small></div>`;
+  }).join('');
+  const today = new Date().toISOString().split('T')[0];
+  const body = `<div class="create-form">
+    <div class="section-sub">${ICON.pin} On joue où ?</div>
+    <div id="cm-venues">${venuesHtml}</div>
+    <div class="cm-search-toggle" onclick="cmToggleSearch()">${ICON.pin} Un autre terrain…</div>
+    <div class="cm-search-box" id="cm-search-box">
+      <input class="input-field" id="cm-search-input" placeholder="Salle, ville ou adresse…" autocomplete="off" oninput="cmVenueSearch()" style="margin-top:8px">
+      <div class="cm-search-dd" id="cm-search-dd"></div>
+    </div>
+    <div class="section-sub" style="margin-top:18px">On joue quand ? <span style="text-transform:none;letter-spacing:0;color:var(--text-muted);font-weight:600">· coche 1 à 3</span></div>
+    <div class="cm-slots" id="cm-slots">${slotsHtml}${customSlots}<div class="cm-slot add" onclick="cmToggleCustom()">${ICON.plus}</div></div>
+    <div class="cm-custom" id="cm-custom">
+      <div><span class="input-label">Date</span><input class="input-field" type="date" id="cm-cd" min="${today}"></div>
+      <div><span class="input-label">Heure</span><input class="input-field" type="time" id="cm-ch" value="19:00"></div>
+      <button class="btn-sm btn-orange" style="height:44px" onclick="cmAddCustom()">${ICON.plus}</button>
+    </div>
+    <div class="divider"></div>
+    <button class="btn-primary" onclick="cmSubmit()">ENVOYER AUX COLLÈGUES</button>
+    <div class="cm-summary">${_cmVenue ? '1 lieu' : 'choisis un lieu'} · ${_cmSlots.length} créneau${_cmSlots.length > 1 ? 'x' : ''} · 0 saisie</div>
+  </div>`;
+  const mb = document.getElementById('modal-body');
+  if (mb && !document.getElementById('main-modal').classList.contains('hidden')) mb.innerHTML = body;
+  else openModal('Proposer un match', body);
+}
 function openCreateMatch() {
-  // Vérif locale (UI guard)
   const check = window._canCreateMatch ?? { can: true };
-  if (!check.can) {
-    showToast('Tu es déjà titulaire dans un match actif. Désiste-toi d\'abord.', 'error');
-    return;
-  }
-  creneauxBuilt = [{ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom }];
-  openModal('Proposer un match', `
-    <div class="create-form">
-      <div class="section-sub">Propose tes créneaux</div>
-      <div id="creneaux-list">${buildCreneauxHtml()}</div>
-      <button class="add-creneau-btn" onclick="addCreneau()">+ Un autre créneau</button>
-      <div class="divider"></div>
-      <button class="btn-primary" onclick="submitCreateMatch()">ENVOYER AUX COLLÈGUES</button>
-    </div>`);
+  if (!check.can) { showToast('Tu es déjà titulaire dans un match actif. Désiste-toi d\'abord.', 'error'); return; }
+  _cmSuggest = _cmBuildSuggest();
+  _cmSlots = _cmSuggest.length ? [_cmSuggest[0]] : []; // pré-coche le 1er créneau
+  _cmExtra = null;
+  const cards = _cmVenueCards();
+  _cmVenue = cards[0] || null; // pré-sélectionne le terrain le plus probable
+  renderCmModal();
 }
 window.openCreateMatch = openCreateMatch;
+window.cmPickVenue = function(x) { _cmVenue = x; renderCmModal(); };
+window.cmToggleSlot = function(id) {
+  const i = _cmSlots.findIndex(z => z.id === id);
+  if (i >= 0) _cmSlots.splice(i, 1);
+  else {
+    const s = _cmSuggest.find(z => z.id === id);
+    if (s) _cmSlots.push(s);
+  }
+  renderCmModal();
+};
+window.cmToggleCustom = function() { document.getElementById('cm-custom')?.classList.toggle('open'); };
+window.cmAddCustom = function() {
+  const d = document.getElementById('cm-cd')?.value;
+  const h = document.getElementById('cm-ch')?.value || '19:00';
+  if (!d) { showToast('Choisis une date.', 'error'); return; }
+  const dateObj = new Date(d + 'T' + h + ':00');
+  _cmSlots.push({ id: genId(), date: d, heure: h, dateObj });
+  renderCmModal();
+};
+window.cmToggleSearch = function() {
+  const box = document.getElementById('cm-search-box');
+  if (box) { box.classList.toggle('open'); if (box.classList.contains('open')) setTimeout(() => document.getElementById('cm-search-input')?.focus(), 50); }
+};
+let _cmSearchT = null;
+window.cmVenueSearch = function() {
+  const inp = document.getElementById('cm-search-input');
+  const dd = document.getElementById('cm-search-dd');
+  if (!inp || !dd) return;
+  const raw = (inp.value || '').trim(); const q = raw.toLowerCase();
+  const home = _venueHome();
+  const renderList = (list) => {
+    dd.innerHTML = list.map(x => `<div class="cm-dd-opt" onmousedown='cmPickSearch(${JSON.stringify(x).replace(/'/g, "&#39;")})'>
+      <div class="o-n">${escapeHtml(x.n)}</div><div class="o-s">${escapeHtml(x.v || '')}</div></div>`).join('');
+  };
+  let stat = VENUES_91.filter(x => (x.n + ' ' + x.v + ' ' + x.cp).toLowerCase().includes(q));
+  if (home) stat.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
+  renderList(stat.slice(0, 5).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon })));
+  clearTimeout(_cmSearchT);
+  if (raw.length < 3) return;
+  _cmSearchT = setTimeout(async () => {
+    try {
+      const url = 'https://photon.komoot.io/api/?lang=fr&limit=6&q=' + encodeURIComponent(raw) + (home ? `&lat=${home.lat}&lon=${home.lon}` : '');
+      const j = await (await fetch(url)).json();
+      const photon = (j.features || []).map(f => {
+        const p = f.properties || {}, co = (f.geometry && f.geometry.coordinates) || [];
+        return { n: p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || 'Lieu', v: [p.city || p.county, p.postcode].filter(Boolean).join(' '), lat: co[1], lon: co[0] };
+      }).filter(x => x.lat && x.lon);
+      if ((document.getElementById('cm-search-input')?.value || '').trim() !== raw) return;
+      renderList([...stat.slice(0, 4).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon })), ...photon].slice(0, 8));
+    } catch (_) {}
+  }, 320);
+};
+window.cmPickSearch = function(x) { _cmExtra = x; _cmVenue = x; renderCmModal(); };
+window.cmSubmit = function() {
+  if (!_cmVenue) { showToast('Choisis un terrain.', 'error'); return; }
+  if (!_cmSlots.length) { showToast('Coche au moins un créneau.', 'error'); return; }
+  const lieu = _cmVenue.v ? `${_cmVenue.n} — ${_cmVenue.v}` : _cmVenue.n;
+  creneauxBuilt = _cmSlots.map(s => ({ id: s.id, date: s.date, heure: s.heure, lieu, lat: _cmVenue.lat ?? null, lon: _cmVenue.lon ?? null }));
+  try { localStorage.setItem('cs5_lastVenue', JSON.stringify({ n: _cmVenue.n, v: _cmVenue.v, lat: _cmVenue.lat, lon: _cmVenue.lon })); } catch (_) {}
+  window.submitCreateMatch();
+};
 
 // Ajoute un créneau SANS rouvrir la modal — met à jour seulement #creneaux-list
 window.addCreneau = function() {
