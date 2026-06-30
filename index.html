@@ -359,7 +359,8 @@
       transform:scale(1.06);
     }
     .nav-btn svg {
-      width:22px; height:22px; fill:currentColor;
+      width:23px; height:23px; fill:none; stroke:currentColor;
+      stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round;
       transition:filter .2s;
     }
     .nav-btn.active svg { filter:drop-shadow(0 0 4px var(--orange-glow)); }
@@ -392,8 +393,9 @@
     .tag-confirme { background:rgba(0,230,118,.12); color:#00E676; border:1px solid rgba(0,230,118,.25); }
     .tag-termine { background:rgba(60,60,90,.2); color:var(--text-sec); border:1px solid var(--border); }
 
-    .empty-state { text-align:center; padding:44px 20px; color:var(--text-muted); }
-    .empty-state .icon { font-size:52px; margin-bottom:14px; }
+    .empty-state { text-align:center; padding:44px 20px; color:var(--text-sec); }
+    .empty-state .icon { font-size:52px; margin-bottom:14px; line-height:1; }
+    .empty-state .icon .ic { width:50px; height:50px; color:var(--orange); opacity:.55; vertical-align:middle; }
     .empty-state p { font-size:14px; line-height:1.7; }
 
     .btn-sm {
@@ -858,7 +860,11 @@
       font-family:'Anton',sans-serif; font-size:17px; letter-spacing:.3px;
       box-shadow:0 8px 32px rgba(255,215,0,.15);
     }
-    .toast-icon { font-size:20px; flex-shrink:0; }
+    .toast-icon { font-size:20px; flex-shrink:0; display:flex; }
+    .toast-icon .ic { width:20px; height:20px; vertical-align:middle; color:var(--text-sec); }
+    .toast.success .toast-icon .ic { color:var(--green); }
+    .toast.error .toast-icon .ic { color:var(--red); }
+    .toast.levelup .toast-icon .ic { color:var(--gold); }
     @keyframes slideDown { from { opacity:0; transform:translateY(-14px) scale(.95); } to { opacity:1; transform:none; } }
 
     /* ===== LOADING ===== */
@@ -1662,6 +1668,12 @@
 
     /* ===== ICÔNES DE SECTION ===== */
     .sec-ic { width:20px; height:20px; color:var(--orange); flex-shrink:0; filter:drop-shadow(0 0 6px var(--orange-glow)); }
+    /* Icône inline vectorielle (remplace les emojis dans les libellés/boutons) */
+    .ic { width:1.05em; height:1.05em; vertical-align:-0.14em; flex-shrink:0; }
+    .btn-sm .ic, .btn-primary .ic, .btn-green .ic, .btn-orange .ic, .btn-red .ic, .btn-outline .ic { margin-right:1px; }
+    .modal-title { display:flex; align-items:center; gap:8px; }
+    .hero-label, .hero-lieu, .lieu-str, .jd-dist-pill, .rank-badge { display:inline-flex; align-items:center; gap:5px; }
+    .players-chip span { display:inline-flex; align-items:center; gap:5px; }
 
     /* ===== TILT 3D CARTE FUT ===== */
     .fut-card-wrap { perspective:1100px; }
@@ -2103,28 +2115,25 @@
   <nav id="bottom-nav">
     <button class="nav-btn active" data-screen="home" onclick="navigateTo('home')">
       <div class="nav-icon-wrap">
-        <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>
       </div>
       <span>Accueil</span>
     </button>
     <button class="nav-btn" data-screen="matchs" onclick="navigateTo('matchs')">
       <div class="nav-icon-wrap">
-        <!-- Calendar/schedule icon -->
-        <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>
+        <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2.8"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
       </div>
       <span>Matchs</span>
     </button>
     <button class="nav-btn" data-screen="profil" onclick="navigateTo('profil')">
       <div class="nav-icon-wrap">
-        <!-- Person icon -->
-        <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="9.2" r="3.6"/><path d="M5.2 19.2c.9-3.1 3.4-4.7 6.8-4.7s5.9 1.6 6.8 4.7"/></svg>
       </div>
       <span>Profil</span>
     </button>
     <button class="nav-btn" data-screen="classement" onclick="navigateTo('classement')">
       <div class="nav-icon-wrap">
-        <!-- Trophy icon -->
-        <svg viewBox="0 0 24 24"><path d="M19 5h-2V3H7v2H5c-1.1 0-2 .9-2 2v1c0 2.55 1.92 4.63 4.39 4.94A5.01 5.01 0 0 0 11 15.9V18H7v2h10v-2h-4v-2.1a5.01 5.01 0 0 0 3.61-2.96C19.08 12.63 21 10.55 21 8V7c0-1.1-.9-2-2-2zM5 8V7h2v3.82C5.84 10.4 5 9.3 5 8zm14 0c0 1.3-.84 2.4-2 2.82V7h2v1z"/></svg>
+        <svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>
       </div>
       <span>Classement</span>
     </button>
@@ -2878,7 +2887,7 @@ window.viewPlayerCard = async function(uid) {
   const photoHtml = photo ? `<img src="${photo}" class="fc3-photo" alt="">` : `<div class="fc3-photo-placeholder">👤</div>`;
   const html = `
     <div style="text-align:center;margin-bottom:4px">
-      <span class="rank-badge">${rang.label} · ${d.xp||0} XP${d.codePostal ? ` · 📍 ${d.codePostal}` : ''}</span>
+      <span class="rank-badge">${rang.label} · ${d.xp||0} XP${d.codePostal ? ` · ${ICON.pin} ${d.codePostal}` : ''}</span>
     </div>
     ${relChipHTML(d)}
     <div class="fut-card-wrap">
@@ -2909,7 +2918,7 @@ window.viewPlayerCard = async function(uid) {
     <div class="section-title" style="margin-top:8px">Atouts</div>
     ${labels.map(([k,lab]) => { const v = a[k] ?? 70; return `<div class="atout-bar-wrap"><div class="atout-bar-label"><span>${lab}</span><span>${v}</span></div><div class="atout-bar-bg"><div class="atout-bar-fill" style="width:${v}%"></div></div></div>`; }).join('')}
     <div style="height:8px"></div>`;
-  document.getElementById('modal-title').textContent = '⚽ ' + (d.pseudo || 'Joueur');
+  document.getElementById('modal-title').innerHTML = ICON.ball + ' ' + escapeHtml(d.pseudo || 'Joueur');
   document.getElementById('modal-body').innerHTML = html;
   requestAnimationFrame(initFutTilt);
 };
@@ -3057,8 +3066,8 @@ function showToast(msg, type = '') {
   const wrap = document.getElementById('toast-wrap');
   const t = document.createElement('div');
   t.className = 'toast ' + type;
-  const icons = { success: '✅', error: '❌', levelup: '🚀', '': 'ℹ️' };
-  t.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+  const icons = { success: ICON.checkCircle, error: ICON.xCircle, levelup: ICON.zap, '': ICON.info };
+  t.innerHTML = `<span class="toast-icon">${icons[type] || ICON.info}</span><span>${msg}</span>`;
   wrap.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
@@ -3114,7 +3123,7 @@ function buildJoueursListHtml(joueursAvecDist, matchId, isCreateur) {
     const rankLabel = j.isTitulaire ? `#${joueursAvecDist.filter((x,xi) => x.isTitulaire && xi <= i).length}` : `R${joueursAvecDist.filter((x,xi) => !x.isTitulaire && xi <= i).length}`;
     const distTxt = j.dist !== null ? `${j.dist} km` : '';
     const pill = (j.codePostal || j.dist !== null)
-      ? `<div class="jd-dist-pill">📍 ${[j.codePostal, distTxt].filter(Boolean).join(' · ')}</div>`
+      ? `<div class="jd-dist-pill">${ICON.pin} ${[j.codePostal, distTxt].filter(Boolean).join(' · ')}</div>`
       : '';
     if (isBench && i > 0 && joueursAvecDist[i-1].isTitulaire)
       h += `<div class="jd-bench-sep">— Remplaçants —</div>`;
@@ -3143,7 +3152,8 @@ async function getUserData(uid) {
 
 // ===== MODAL =====
 function openModal(title, bodyHtml) {
-  document.getElementById('modal-title').textContent = title;
+  // Titres statiques (définis dans le code) → innerHTML pour autoriser les icônes SVG
+  document.getElementById('modal-title').innerHTML = title;
   document.getElementById('modal-body').innerHTML = bodyHtml;
   document.getElementById('main-modal').classList.remove('hidden');
 }
@@ -3195,9 +3205,9 @@ async function renderHome() {
     const joueursCount = (m.joueursInscrits || []).length;
     html += `
       <div class="hero-match card-hover" onclick="openMatchDetail('${confirmes[0].id}')">
-        <div class="hero-label">⚽ Prochain match confirmé</div>
+        <div class="hero-label">${ICON.ball} Prochain match confirmé</div>
         <div class="hero-date">${formatDate(m.dateFinale)}</div>
-        <div class="hero-lieu">📍 ${m.lieuFinal || 'Lieu à définir'}</div>
+        <div class="hero-lieu">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
         <div class="hero-players">
           <div class="player-avatars" id="home-avatars-${confirmes[0].id}"></div>
           <div class="player-count">${joueursCount} joueur${joueursCount>1?'s':''} inscrit${joueursCount>1?'s':''}</div>
@@ -3361,7 +3371,7 @@ function loadMatchsList(filter) {
   const q = query(collection(db, 'matchs'), where('statut', '==', statut));
   const unsub = onSnapshot(q, async snap => {
     if (snap.empty) {
-      el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? '📜' : '📅'}</div><p>Aucun match ici pour l'instant.</p></div>`;
+      el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? ICON.scroll : ICON.calendar}</div><p>Aucun match ici pour l'instant.</p></div>`;
       return;
     }
     // Tri par date de création décroissante côté client
@@ -3401,13 +3411,13 @@ function loadMatchsList(filter) {
       const motmVotedMe = statut === 'terminé' && currentUser
         ? Object.values(m.motmVotes||{}).some(arr=>(arr||[]).includes(currentUser.uid)) : false;
       const motmBtnHtml = statut === 'terminé'
-        ? `<button class="btn-sm ${motmVotedMe?'btn-outline':'btn-orange'}" style="font-size:11px;padding:5px 10px;margin-left:auto" onclick="event.stopPropagation();window.openMotmVote('${d.id}')">${motmVotedMe?'🏆 Voté':'🏆 MOTM'}</button>`
+        ? `<button class="btn-sm ${motmVotedMe?'btn-outline':'btn-orange'}" style="font-size:11px;padding:5px 10px;margin-left:auto" onclick="event.stopPropagation();window.openMotmVote('${d.id}')">${motmVotedMe?`${ICON.trophy} Voté`:`${ICON.trophy} MOTM`}</button>`
         : '';
       html += `
         <div class="match-list-card" onclick="openMatchDetail('${d.id}')">
           <div class="mlc-top">
             <div>
-              <div class="mlc-title">${statut === 'confirmé' ? '⚽' : statut === 'sondage' ? '🗳️' : '📋'} Match du ${best ? formatDateShort(best.date) : (m.dateFinale ? formatDateShort(m.dateFinale) : '?')}</div>
+              <div class="mlc-title">${statut === 'confirmé' ? ICON.ball : statut === 'sondage' ? ICON.poll : ICON.scroll} Match du ${best ? formatDateShort(best.date) : (m.dateFinale ? formatDateShort(m.dateFinale) : '?')}</div>
               <div class="mlc-sub">${subtitle}</div>
             </div>
             <span class="tag tag-${filter}">${statut}</span>
@@ -3423,7 +3433,7 @@ function loadMatchsList(filter) {
     el.innerHTML = html;
   }, err => {
     console.error('Firestore matchs query error:', err);
-    el.innerHTML = `<div class="empty-state"><div class="icon">⚠️</div><p>Erreur de chargement.<br><small style="color:var(--red)">${err.code}</small></p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="icon" style="color:var(--red)">${ICON.warn}</div><p>Erreur de chargement.<br><small style="color:var(--red)">${err.code}</small></p></div>`;
   });
   window._matchsListenerUnsubscribe = unsub;
   activeListeners.push(unsub);
@@ -3440,9 +3450,9 @@ async function openMatchDetail(matchId) {
     const m = snap.data();
     if (firstLoad) {
       firstLoad = false;
-      document.getElementById('modal-title').textContent =
-        m.statut === 'sondage' ? '🗳️ Sondage créneau' :
-        m.statut === 'confirmé' ? '⚽ Match confirmé' : '📋 Match terminé';
+      document.getElementById('modal-title').innerHTML =
+        m.statut === 'sondage' ? `${ICON.poll} Sondage créneau` :
+        m.statut === 'confirmé' ? `${ICON.ball} Match confirmé` : `${ICON.scroll} Match terminé`;
     }
     await renderMatchDetail(matchId, m);
   });
@@ -3454,6 +3464,34 @@ async function openMatchDetail(matchId) {
 window.openMatchDetail = openMatchDetail;
 
 const WA_SVG = '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163a11.867 11.867 0 0 1-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.82 11.82 0 0 1 8.413 3.488 11.82 11.82 0 0 1 3.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 0 1-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 0 0 1.611 5.385l-.999 3.648 3.877-1.032zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>';
+// ===== ICÔNES VECTORIELLES (set unifié, style stroke) =====
+// Remplacent les emojis dans les libellés/boutons/titres pour une UI cohérente.
+const _icS = (p, fill) => `<svg class="ic" viewBox="0 0 24 24" fill="${fill ? 'currentColor' : 'none'}" stroke="${fill ? 'none' : 'currentColor'}" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+const ICON = {
+  check:    _icS('<path d="M20 6 9 17l-5-5"/>'),
+  x:        _icS('<path d="M18 6 6 18M6 6l12 12"/>'),
+  clock:    _icS('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+  chat:     _icS('<path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/>'),
+  shuffle:  _icS('<path d="M16 3h5v5"/><path d="M4 20 21 3"/><path d="M21 16v5h-5"/><path d="m15 15 6 6"/><path d="m4 4 5 5"/>'),
+  flag:     _icS('<path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/>'),
+  trash:    _icS('<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>'),
+  trophy:   _icS('<path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/>'),
+  star:     _icS('<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01z"/>'),
+  users:    _icS('<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>'),
+  pin:      _icS('<path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>'),
+  shield:   _icS('<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>'),
+  poll:     _icS('<path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-6"/>'),
+  zap:      _icS('<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>'),
+  info:     _icS('<circle cx="12" cy="12" r="9"/><path d="M12 16v-4"/><path d="M12 8h.01"/>'),
+  calendar: _icS('<rect x="3" y="4" width="18" height="18" rx="2.4"/><path d="M16 2v4M8 2v4M3 10h18"/>'),
+  plus:     _icS('<path d="M12 5v14M5 12h14"/>'),
+  ball:     _icS('<circle cx="12" cy="12" r="9"/><path d="m12 7 2.5 1.8-1 3h-3l-1-3z"/><path d="m9.5 11.8-2.6-.2M14.5 11.8l2.6-.2M12 14.8l-1.6 2M12 14.8l1.6 2"/>'),
+  checkCircle: _icS('<circle cx="12" cy="12" r="9"/><path d="m8 12 3 3 5-6"/>'),
+  xCircle:  _icS('<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>'),
+  warn:     _icS('<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>'),
+  scroll:   _icS('<path d="M8 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-1"/><path d="M8 3h10a2 2 0 0 1 2 2v3H8z"/><path d="M8 3v13"/>'),
+};
+window.ICON = ICON;
 function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur) {
   const inscrits = m.joueursInscrits || [];
   const waitlist = m.waitlist || [];
@@ -3461,19 +3499,19 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCr
   const wpos = waitlist.indexOf(uid);
   const full = inscrits.length >= MIN_CONFIRM;
   let label, cls;
-  if (isTit) { label = '❌ Me désinscrire'; cls = 'btn-outline'; }
-  else if (wpos !== -1) { label = `❌ Quitter l'attente (#${wpos + 1})`; cls = 'btn-outline'; }
-  else if (full) { label = '⏳ Me mettre remplaçant'; cls = 'btn-orange'; }
-  else { label = '✅ M\'inscrire au match'; cls = 'btn-orange'; }
-  const chip = `<div class="players-chip"><span>👥 ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitlist.length ? `<span class="pc-wait">⏳ ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+  if (isTit) { label = `${ICON.x} Me désinscrire`; cls = 'btn-outline'; }
+  else if (wpos !== -1) { label = `${ICON.x} Quitter l'attente (#${wpos + 1})`; cls = 'btn-outline'; }
+  else if (full) { label = `${ICON.clock} Me mettre remplaçant`; cls = 'btn-orange'; }
+  else { label = `${ICON.check} M'inscrire au match`; cls = 'btn-orange'; }
+  const chip = `<div class="players-chip"><span>${ICON.users} ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitlist.length ? `<span class="pc-wait">${ICON.clock} ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : ''}</div>`;
   return `<div class="divider"></div>
     ${chip}${venueCoords ? '<div style="font-size:10px;color:var(--text-muted);margin:-4px 0 8px">· triés par distance</div>' : ''}
     ${buildJoueursListHtml(joueursAvecDist, matchId, isCreateur)}
-    ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 8px" onclick="window.openAddPlayer('${matchId}')">➕ Ajouter / inviter un joueur</button>` : ''}
+    ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 8px" onclick="window.openAddPlayer('${matchId}')">${ICON.plus} Ajouter / inviter un joueur</button>` : ''}
     <div class="divider"></div>
     <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
     <button class="btn-sm btn-wa" style="width:100%;margin-bottom:8px" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager sur WhatsApp</button>
-    <button class="btn-sm btn-outline" style="width:100%" onclick="window.openMatchChat('${matchId}')">💬 Discussion du match</button>`;
+    <button class="btn-sm btn-outline" style="width:100%" onclick="window.openMatchChat('${matchId}')">${ICON.chat} Discussion du match</button>`;
 }
 
 async function renderMatchDetail(matchId, m) {
@@ -3527,7 +3565,7 @@ async function renderMatchDetail(matchId, m) {
         <div class="creneau-vote${hasVoted ? ' voted' : ''}${isTop ? ' top' : ''}" onclick="voterCreneau('${matchId}','${c.id}')">
           <div class="info">
             <div class="date-str">${formatDate(c.date)}</div>
-            <div class="lieu-str">📍 ${c.lieu}${isTop ? ' <strong style="color:var(--green)">· Plus voté</strong>' : ''}</div>
+            <div class="lieu-str">${ICON.pin} ${c.lieu}${isTop ? ' <strong style="color:var(--green)">· Plus voté</strong>' : ''}</div>
           </div>
           <div class="vote-count">
             <div class="vote-num">${voteCount}</div>
@@ -3543,15 +3581,15 @@ async function renderMatchDetail(matchId, m) {
       if (best) {
         html += `<p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>`;
         if (enoughPlayers) {
-          html += `<button class="btn-sm btn-green" style="width:100%;margin-bottom:8px" onclick="confirmerMatch('${matchId}','${best.id}')">✅ CONFIRMER CE MATCH</button>`;
+          html += `<button class="btn-sm btn-green" style="width:100%;margin-bottom:8px" onclick="confirmerMatch('${matchId}','${best.id}')">${ICON.check} CONFIRMER CE MATCH</button>`;
         } else {
           html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-bottom:8px;line-height:1.5">
-            ⚠️ Il faut <strong>${MIN_CONFIRM} joueurs</strong> inscrits pour confirmer le match.<br>
+            ${ICON.warn} Il faut <strong>${MIN_CONFIRM} joueurs</strong> inscrits pour confirmer le match.<br>
             <span style="color:var(--text-sec)">Actuellement ${inscrits.length}/${MIN_CONFIRM} — encore ${MIN_CONFIRM - inscrits.length} joueur${MIN_CONFIRM - inscrits.length > 1 ? 's' : ''}.</span>
           </div>`;
         }
       }
-      html += `<button class="btn-sm btn-red" style="width:100%;opacity:.7" onclick="annulerMatch('${matchId}')">🗑️ Annuler ce match</button>`;
+      html += `<button class="btn-sm btn-red" style="width:100%;opacity:.7" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>`;
     }
 
     html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur);
@@ -3563,7 +3601,7 @@ async function renderMatchDetail(matchId, m) {
       <div style="background:var(--card);border:1px solid var(--green);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Créneau confirmé</div>
         <div style="font-size:17px;font-weight:600">${formatDate(m.dateFinale)}</div>
-        <div style="font-size:13px;color:var(--text-sec);margin-top:2px">📍 ${m.lieuFinal || '—'}</div>
+        <div style="font-size:13px;color:var(--text-sec);margin-top:2px">${ICON.pin} ${m.lieuFinal || '—'}</div>
       </div>`;
 
     // Équipes
@@ -3586,15 +3624,15 @@ async function renderMatchDetail(matchId, m) {
       const MIN_PLAYERS = 4;
       const canStart = hasTeams && totalAssigned >= MIN_PLAYERS;
       html += `
-        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">🎨 Composer les équipes</button>`;
+        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">${ICON.shuffle} Composer les équipes</button>`;
       if (canStart) {
-        html += `<button class="btn-sm btn-red" style="width:100%;margin-bottom:8px" onclick="openTerminerMatch('${matchId}')">🏁 Terminer le match</button>`;
+        html += `<button class="btn-sm btn-red" style="width:100%;margin-bottom:8px" onclick="openTerminerMatch('${matchId}')">${ICON.flag} Terminer le match</button>`;
       } else {
         html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-bottom:8px">
-          ⚠️ Compose les équipes avant de pouvoir démarrer le match (min. ${MIN_PLAYERS} joueurs assignés)
+          ${ICON.warn} Compose les équipes avant de pouvoir démarrer le match (min. ${MIN_PLAYERS} joueurs assignés)
         </div>`;
       }
-      html += `<button class="btn-sm" style="width:100%;opacity:.6;border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text-sec);background:transparent;cursor:pointer" onclick="annulerMatch('${matchId}')">🗑️ Annuler ce match</button>`;
+      html += `<button class="btn-sm" style="width:100%;opacity:.6;border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text-sec);background:transparent;cursor:pointer" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>`;
     }
   }
 
@@ -3604,10 +3642,10 @@ async function renderMatchDetail(matchId, m) {
     const iRated = currentUser && m.ratings && m.ratings[uid];
     html += `<div style="display:flex;gap:8px;margin-bottom:14px">
       <button class="btn-sm ${motmAlreadyVoted?'btn-outline':'btn-orange'}" style="flex:1" onclick="window.openMotmVote('${matchId}')">
-        ${motmAlreadyVoted ? '🏆 MOTM ✓' : '🏆 Vote MOTM'}
+        ${motmAlreadyVoted ? `${ICON.trophy} MOTM ${ICON.check}` : `${ICON.trophy} Vote MOTM`}
       </button>
       <button class="btn-sm ${iRated?'btn-outline':'btn-green'}" style="flex:1" onclick="window.openRatePlayers('${matchId}')">
-        ${iRated ? '⭐ Noté ✓' : '⭐ Noter les joueurs'}
+        ${iRated ? `${ICON.star} Noté ${ICON.check}` : `${ICON.star} Noter les joueurs`}
       </button>
     </div>`;
     html += `
@@ -3627,7 +3665,7 @@ async function renderMatchDetail(matchId, m) {
       const hdmData = await getUserData(m.hommeDuMatchUid);
       html += `
         <div style="background:rgba(243,156,18,.1);border:1px solid var(--gold);border-radius:12px;padding:12px;text-align:center;margin-bottom:14px">
-          <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px">🏆 HOMME DU MATCH</div>
+          <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:5px">${ICON.trophy} HOMME DU MATCH</div>
           <div style="font-size:20px;font-family:Anton;font-weight:700;margin-top:4px">${hdmData?.pseudo || 'Inconnu'}</div>
         </div>`;
     }
@@ -4387,7 +4425,7 @@ window.saveEquipes = async function() {
 // ===== ANNULER MATCH =====
 window.annulerMatch = async function(matchId) {
   _matchDetailRenderGen++; // invalide tout renderMatchDetail en cours
-  openModal('🗑️ Annuler ce match', `
+  openModal(`${ICON.trash} Annuler ce match`, `
     <p style="font-size:15px;line-height:1.5;margin-bottom:20px;color:var(--text-sec)">
       Ce match sera <strong style="color:var(--red)">définitivement supprimé</strong>.<br>
       Les votes et inscriptions seront perdus.
@@ -4431,7 +4469,7 @@ async function openTerminerMatch(matchId) {
   const nomA = m.equipes?.[0]?.nom || 'Équipe A';
   const nomB = m.equipes?.[1]?.nom || 'Équipe B';
 
-  openModal('🏁 Terminer le match', `
+  openModal(`${ICON.flag} Terminer le match`, `
     <div class="section-sub">Score final</div>
     <div style="display:grid;grid-template-columns:1fr auto 1fr;gap:12px;align-items:center;margin-bottom:20px">
       <div>
@@ -4628,7 +4666,7 @@ async function renderProfil() {
   </div>`;
 
   el.innerHTML = `
-    <div style="text-align:center"><span class="rank-badge">${rang.label} · ${d.xp || 0} XP${d.codePostal ? ` · 📍 ${d.codePostal}` : ''}</span></div>
+    <div style="text-align:center"><span class="rank-badge">${rang.label} · ${d.xp || 0} XP${d.codePostal ? ` · ${ICON.pin} ${d.codePostal}` : ''}</span></div>
     ${relChipHTML(d)}
 
     ${futHtml}
@@ -4823,7 +4861,7 @@ async function renderClassement() {
   const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   if (users.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">🏆</div><p>Aucun joueur encore inscrit.</p></div>';
+    el.innerHTML = `<div class="empty-state"><div class="icon">${ICON.trophy}</div><p>Aucun joueur encore inscrit.</p></div>`;
     return;
   }
 
@@ -5383,7 +5421,7 @@ document.getElementById('addplayer-modal').addEventListener('click', function(e)
 
 // ===== NOTATION ENTRE JOUEURS (post-match) =====
 window.openRatePlayers = async function(matchId) {
-  openModal('⭐ Noter les joueurs', '<div class="loader"><div class="spinner"></div></div>');
+  openModal(`${ICON.star} Noter les joueurs`, '<div class="loader"><div class="spinner"></div></div>');
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
@@ -5412,7 +5450,7 @@ window.openRatePlayers = async function(matchId) {
       </div>`;
     }).join('')}
     ${already ? '' : `<button class="btn-primary" style="margin-top:16px" onclick="window.submitRatings('${matchId}')">Valider mes notes</button>`}`;
-  document.getElementById('modal-title').textContent = '⭐ Noter les joueurs';
+  document.getElementById('modal-title').innerHTML = `${ICON.star} Noter les joueurs`;
   document.getElementById('modal-body').innerHTML = html;
   if (already) Object.assign(window._rateState, already);
 };
@@ -5447,7 +5485,7 @@ window.submitRatings = async function(matchId) {
 
 // ===== MOTM COMMUNITY VOTE =====
 window.openMotmVote = async function(matchId) {
-  openModal('🏆 Vote Homme du Match', '<div class="loader"><div class="spinner"></div></div>');
+  openModal(`${ICON.trophy} Vote Homme du Match`, '<div class="loader"><div class="spinner"></div></div>');
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
   if (!snap.exists()) return;
@@ -5474,7 +5512,7 @@ window.openMotmVote = async function(matchId) {
   const html = '<p style="font-size:13px;color:var(--text-sec);margin-bottom:16px;line-height:1.5">Qui a été le meilleur selon toi ? <span style="color:var(--gold)">+15 XP</span> pour le vainqueur.</p>' +
     '<div class="motm-vote-grid">' + gridHtml + '</div>' +
     (myVotedUid ? '<p style="font-size:12px;color:var(--green);text-align:center">✓ Vote enregistré</p>' : '');
-  document.getElementById('modal-title').textContent = '🏆 Vote Homme du Match';
+  document.getElementById('modal-title').innerHTML = `${ICON.trophy} Vote Homme du Match`;
   document.getElementById('modal-body').innerHTML = html;
 };
 
