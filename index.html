@@ -2323,7 +2323,7 @@
   <div class="modal-sheet chat-sheet">
     <div class="modal-handle"></div>
     <div class="modal-header">
-      <div class="modal-title" id="chat-title"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg> Discussion</div>
+      <div class="modal-title" id="chat-title"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-8.5 8.5 8.5 8.5 0 0 1-3.8-.9L3 21l1.9-5.7A8.4 8.4 0 0 1 4 11.5 8.5 8.5 0 0 1 12.5 3 8.4 8.4 0 0 1 21 11.5z"/></svg> Le vestiaire</div>
       <button class="modal-close" onclick="closeChatModal()">✕</button>
     </div>
     <div class="chat-msgs" id="chat-msgs"></div>
@@ -3451,10 +3451,10 @@ function homeHeroHTML(id, m, statut, fills) {
     const places = Math.max(0, MIN_CONFIRM - n);
     if (fills) fills.push({ id, uids: inscrits });
     const cta = isInscrit
-      ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.checkCircle} Tu es inscrit · voir le match</button>`
+      ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.checkCircle} Tu joues · voir le match</button>`
       : (n >= MIN_CONFIRM
-          ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.clock} Match complet · rejoindre l'attente</button>`
-          : `<button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ICON.plus} Rejoindre le match</button>`);
+          ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.clock} Match plein · rejoindre le banc</button>`
+          : `<button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ICON.plus} Je joue !</button>`);
     return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
       <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} Prochain match · ${countdownLabel(m.dateFinale)}</div>
       <div class="hh-date">${dateDayLabel(m.dateFinale)}</div>
@@ -3617,7 +3617,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
       <div class="mc sondage" onclick="openMatchDetail('${id}')">
         <div class="mc-top">
           <div>
-            <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> Sondage · vote ouvert</div>
+            <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ?</div>
             <div class="mc-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
           </div>
           <span class="mc-chip chip-sondage">Sondage</span>
@@ -3652,7 +3652,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
         <div class="mc-foot">
           <div class="av-stack" id="mcav-${id}"></div>
           <span class="foot-txt">${placesTxt}</span>
-          <span class="count-pill">${isInscrit ? `${ICON.checkCircle} Inscrit` : `${ICON.plus} Rejoindre`}</span>
+          <span class="count-pill">${isInscrit ? `${ICON.checkCircle} Tu joues` : `${ICON.plus} Je joue`}</span>
         </div>
       </div>`;
   }
@@ -3743,7 +3743,7 @@ function loadMatchsList(filter) {
   const q = query(collection(db, 'matchs'), where('statut', '==', statut));
   const unsub = onSnapshot(q, async snap => {
     if (snap.empty) {
-      el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? ICON.scroll : ICON.calendar}</div><p>Aucun match ici pour l'instant.</p></div>`;
+      el.innerHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? ICON.scroll : ICON.calendar}</div><p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Rien de calé. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
       return;
     }
     // Tri par date de création décroissante côté client
@@ -3777,8 +3777,8 @@ async function openMatchDetail(matchId) {
     if (firstLoad) {
       firstLoad = false;
       document.getElementById('modal-title').innerHTML =
-        m.statut === 'sondage' ? `${ICON.poll} Sondage créneau` :
-        m.statut === 'confirmé' ? `${ICON.ball} Match confirmé` : `${ICON.scroll} Match terminé`;
+        m.statut === 'sondage' ? `${ICON.poll} On joue quand ?` :
+        m.statut === 'confirmé' ? `${ICON.ball} C'est calé` : `${ICON.scroll} Le résumé`;
     }
     await renderMatchDetail(matchId, m);
   });
@@ -3832,10 +3832,10 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCr
   const wpos = waitlist.indexOf(uid);
   const full = inscrits.length >= MIN_CONFIRM;
   let label, cls;
-  if (isTit) { label = `${ICON.x} Me désinscrire`; cls = 'btn-outline'; }
-  else if (wpos !== -1) { label = `${ICON.x} Quitter l'attente (#${wpos + 1})`; cls = 'btn-outline'; }
-  else if (full) { label = `${ICON.clock} Me mettre remplaçant`; cls = 'btn-orange'; }
-  else { label = `${ICON.check} M'inscrire au match`; cls = 'btn-orange'; }
+  if (isTit) { label = `${ICON.x} Je ne joue plus`; cls = 'btn-outline'; }
+  else if (wpos !== -1) { label = `${ICON.x} Quitter le banc (#${wpos + 1})`; cls = 'btn-outline'; }
+  else if (full) { label = `${ICON.clock} Rejoindre le banc`; cls = 'btn-orange'; }
+  else { label = `${ICON.check} Je joue !`; cls = 'btn-orange'; }
   const waitPill = waitlist.length ? `<span class="pc-wait">${ICON.clock} ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : '';
   const chip = isCreateur
     ? (waitPill ? `<div class="players-chip">${waitPill}</div>` : '')
@@ -3849,7 +3849,7 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCr
     <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
     <div class="btn-2col">
       <button class="btn-sm btn-wa" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager</button>
-      <button class="btn-sm btn-outline" onclick="window.openMatchChat('${matchId}')">${ICON.chat} Discussion</button>
+      <button class="btn-sm btn-outline" onclick="window.openMatchChat('${matchId}')">${ICON.chat} Vestiaire</button>
     </div>`;
 }
 
@@ -3895,7 +3895,7 @@ async function renderMatchDetail(matchId, m) {
 
   // ---- Sondage actif ----
   if (m.statut === 'sondage') {
-    html += `<div class="section-sub">Choisis ton/tes créneaux</div>`;
+    html += `<div class="section-sub">Coche tes dispos</div>`;
     html += (m.creneauxProposes || []).map(c => {
       const voteCount = (votes[c.id] || []).length;
       const hasVoted = (votes[c.id] || []).includes(uid);
@@ -3942,7 +3942,7 @@ async function renderMatchDetail(matchId, m) {
   else if (m.statut === 'confirmé') {
     html += `
       <div style="background:var(--card);border:1px solid var(--green);border-radius:12px;padding:14px;margin-bottom:14px">
-        <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">Créneau confirmé</div>
+        <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">C'est calé · rendez-vous</div>
         <div style="font-size:17px;font-weight:600">${formatDate(m.dateFinale)}</div>
         <div style="font-size:13px;color:var(--text-sec);margin-top:2px">${ICON.pin} ${m.lieuFinal || '—'}</div>
       </div>`;
@@ -4060,7 +4060,7 @@ async function _doJoinMatch(matchId) {
   if (inscrits.includes(uid)) return;
   if (inscrits.length >= MIN_CONFIRM) {
     await updateDoc(ref, { waitlist: arrayUnion(uid) });
-    showToast('Match complet — tu es remplaçant ⏳', 'success');
+    showToast('Match plein — tu es sur le banc, prêt à entrer.', 'success');
   } else {
     await updateDoc(ref, { joueursInscrits: arrayUnion(uid), waitlist: arrayRemove(uid) });
     celebrate('Inscrit !');
@@ -4083,7 +4083,7 @@ async function toggleInscription(matchId) {
     let promoted = null;
     if (newWait.length) { promoted = newWait.shift(); newInscrits.push(promoted); }
     await updateDoc(ref, { joueursInscrits: newInscrits, waitlist: newWait });
-    showToast(promoted ? 'Désinscrit · un remplaçant prend ta place 🔄' : 'Tu t\'es désinscrit du match.', '');
+    showToast(promoted ? 'Tu laisses ta place — un remplaçant entre sur le terrain.' : 'Tu ne joues plus ce match.', '');
     checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
     return;
   }
@@ -4211,11 +4211,11 @@ function openCreateMatch() {
   creneauxBuilt = [{ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom }];
   openModal('Proposer un match', `
     <div class="create-form">
-      <div class="section-sub">Créneaux proposés</div>
+      <div class="section-sub">Propose tes créneaux</div>
       <div id="creneaux-list">${buildCreneauxHtml()}</div>
-      <button class="add-creneau-btn" onclick="addCreneau()">+ Ajouter un créneau</button>
+      <button class="add-creneau-btn" onclick="addCreneau()">+ Un autre créneau</button>
       <div class="divider"></div>
-      <button class="btn-primary" onclick="submitCreateMatch()">PROPOSER LE MATCH</button>
+      <button class="btn-primary" onclick="submitCreateMatch()">ENVOYER AUX COLLÈGUES</button>
     </div>`);
 }
 window.openCreateMatch = openCreateMatch;
@@ -5207,7 +5207,7 @@ async function renderClassement() {
   const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   if (users.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">${ICON.trophy}</div><p>Aucun joueur encore inscrit.</p></div>`;
+    el.innerHTML = `<div class="empty-state"><div class="icon">${ICON.trophy}</div><p>Le classement attend ses premiers buteurs.</p></div>`;
     return;
   }
 
@@ -5594,7 +5594,7 @@ window.openMatchChat = async function(matchId) {
   const qy = query(collection(db, 'matchs', matchId, 'messages'), orderBy('createdAt', 'asc'));
   _chatUnsub = onSnapshot(qy, snap => {
     const b = document.getElementById('chat-msgs'); if (!b) return;
-    if (snap.empty) { b.innerHTML = '<div class="chat-empty">Aucun message.<br>Lance la discussion ! 💬</div>'; return; }
+    if (snap.empty) { b.innerHTML = '<div class="chat-empty">Vestiaire vide.<br>Lance la causerie d\'avant-match.</div>'; return; }
     let html = '';
     snap.docs.forEach(d => {
       const msg = d.data();
