@@ -2266,15 +2266,18 @@ if ('serviceWorker' in navigator) {
 }
 
 // ===== INSTALLATION PWA (« Ajouter à l'écran d'accueil ») =====
-// Bannière non intrusive pour qui n'a pas encore installé l'app :
-//  - Android / Chrome desktop : on capte beforeinstallprompt et on déclenche
-//    l'invite native au clic ;
-//  - iOS Safari (pas d'API) : on explique le geste Partager → écran d'accueil.
+// Le widget s'affiche pour TOUTE personne pas encore installée — sans
+// dépendre de beforeinstallprompt (qui ne se déclenche jamais sur iPhone
+// et reste capricieux ailleurs). Au clic : invite native si disponible,
+// sinon mode d'emploi adapté à l'appareil.
 let _deferredInstall = null;
 const _isStandalone = () =>
   window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
 const _isIOS = () =>
-  /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+  (/iphone|ipad|ipod/i.test(navigator.userAgent) ||
+   (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) && !window.MSStream;
+const _isAndroid = () => /android/i.test(navigator.userAgent);
+const _isMobile = () => _isIOS() || _isAndroid() || /mobile/i.test(navigator.userAgent);
 function _installDismissedRecently() {
   const t = +localStorage.getItem('cs5_install_dismissed') || 0;
   return t && (Date.now() - t) < 7 * 24 * 3600 * 1000; // re-proposer après 7 jours
@@ -2283,15 +2286,22 @@ function _appVisible() {
   const app = document.getElementById('app');
   return app && !app.classList.contains('hidden');
 }
+function _canOfferInstall() {
+  // Pas déjà installée, et un moyen d'installer existe (invite native,
+  // mobile avec mode d'emploi, ou desktop si le navigateur le propose).
+  return !_isStandalone() && (_deferredInstall || _isMobile());
+}
 function maybeShowInstall() {
   const banner = document.getElementById('install-banner');
   if (!banner) return;
-  if (_isStandalone() || _installDismissedRecently() || !_appVisible()) return;
-  // Android/desktop : seulement si le navigateur juge l'app installable.
-  // iOS : pas d'event, mais on peut guider l'utilisateur.
-  if (!_deferredInstall && !_isIOS()) return;
+  if (!_appVisible() || _installDismissedRecently() || !_canOfferInstall()) return;
   const sub = document.getElementById('ib-sub');
-  if (_isIOS() && !_deferredInstall && sub) sub.textContent = "Depuis Safari : Partager → écran d'accueil";
+  if (sub) {
+    sub.textContent = _deferredInstall
+      ? "Accès direct depuis ton écran d'accueil"
+      : (_isIOS() ? "Safari : Partager → Sur l'écran d'accueil"
+                  : "Ton navigateur → menu → Ajouter à l'écran d'accueil");
+  }
   banner.classList.remove('hidden');
 }
 function hideInstallBanner() {
@@ -2311,21 +2321,32 @@ window.triggerInstall = async function() {
     hideInstallBanner();
     if (outcome === 'accepted') { try { showToast('Installation en cours ✨', 'success'); } catch (_) {} }
     else { localStorage.setItem('cs5_install_dismissed', String(Date.now())); }
-  } else if (_isIOS()) {
-    showInstallIOSHelp();
   } else {
-    hideInstallBanner();
+    showInstallHelp();
   }
 };
-function showInstallIOSHelp() {
-  const share = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m8 8 4-4 4 4"/><path d="M20 14v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6"/></svg>`;
-  const plus = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/></svg>`;
-  openModal('Installer sur iPhone', `
-    <p class="ios-help-intro">Deux gestes depuis <b>Safari</b>, et l'app vit sur ton écran d'accueil comme une vraie appli.</p>
-    <ol class="ios-steps">
-      <li><span class="ios-ic">${share}</span><div>Touche <b>Partager</b> dans la barre Safari</div></li>
-      <li><span class="ios-ic">${plus}</span><div>Choisis <b>Sur l'écran d'accueil</b></div></li>
-    </ol>`);
+function showInstallHelp() {
+  const ic = (p) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const share = ic('<path d="M12 16V4"/><path d="m8 8 4-4 4 4"/><path d="M20 14v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-6"/>');
+  const plus = ic('<rect x="3" y="3" width="18" height="18" rx="4"/><path d="M12 8v8M8 12h8"/>');
+  const menu = ic('<circle cx="12" cy="5" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="12" cy="19" r="1.6"/>');
+  let title, steps;
+  if (_isIOS()) {
+    title = 'Installer sur iPhone';
+    steps = `<li><span class="ios-ic">${share}</span><div>Touche <b>Partager</b> dans la barre Safari</div></li>
+             <li><span class="ios-ic">${plus}</span><div>Choisis <b>Sur l'écran d'accueil</b></div></li>`;
+  } else if (_isAndroid()) {
+    title = 'Installer sur Android';
+    steps = `<li><span class="ios-ic">${menu}</span><div>Ouvre le <b>menu ⋮</b> de Chrome (en haut à droite)</div></li>
+             <li><span class="ios-ic">${plus}</span><div>Touche <b>Installer l'application</b> (ou « Ajouter à l'écran d'accueil »)</div></li>`;
+  } else {
+    title = 'Installer sur ordinateur';
+    steps = `<li><span class="ios-ic">${plus}</span><div>Clique l'<b>icône d'installation</b> dans la barre d'adresse</div></li>
+             <li><span class="ios-ic">${menu}</span><div>Ou <b>menu ⋮</b> → <b>Installer Cap Saclay Five</b></div></li>`;
+  }
+  openModal(title, `
+    <p class="ios-help-intro">Quelques secondes, et l'app vit sur ton écran d'accueil comme une vraie appli — plein écran, hors-ligne, plus rapide.</p>
+    <ol class="ios-steps">${steps}</ol>`);
 }
 window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
@@ -4904,7 +4925,7 @@ window.openEditProfile = openEditProfile;
 // Feuille Réglages : tout ce qui n'est pas l'identité (partage, compte, admin)
 window.openSettings = function() {
   const isAdmin = currentUser?.email === 'letxbrace@gmail.com';
-  const canInstall = !_isStandalone() && (_deferredInstall || _isIOS());
+  const canInstall = !_isStandalone();
   openModal('Réglages', `
     ${canInstall ? `<button class="profile-action-btn" onclick="closeModal();window.triggerInstall()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Installer l'application</button>` : ''}
     <button class="profile-action-btn" onclick="window.exportFutCard()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Exporter ma carte PNG</button>
