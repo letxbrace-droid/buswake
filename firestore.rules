@@ -39,7 +39,7 @@ service cloud.firestore {
     // au propriétaire du compte.
     function onlyGamificationAndSocial() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['xp', 'niveau', 'badges', 'stats', 'noteSum', 'noteCount',
+        .hasOnly(['xp', 'badges', 'stats', 'noteSum', 'noteCount',
                   'presences', 'lapins', 'streak',
                   'friends', 'friendRequestsSent', 'friendRequestsReceived']);
     }
