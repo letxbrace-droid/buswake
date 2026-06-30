@@ -981,6 +981,29 @@
     .hh-foot { display:flex; align-items:center; gap:10px; margin-top:14px; }
     .hh-cta { width:100%; margin-top:16px; }
 
+    /* ===== MOMENT DE SUCCÈS (rejoindre / confirmer) ===== */
+    #celebrate { position:fixed; inset:0; z-index:300; display:flex; flex-direction:column; align-items:center; justify-content:center;
+      pointer-events:none; opacity:0; transition:opacity .2s; }
+    #celebrate.show { opacity:1; }
+    .cel-ring { position:relative; width:104px; height:104px; display:grid; place-items:center;
+      animation:celPop .5s cubic-bezier(.34,1.56,.5,1) both; }
+    @keyframes celPop { 0%{transform:scale(.4);opacity:0} 55%{transform:scale(1.1);opacity:1} 100%{transform:scale(1)} }
+    .cel-disc { position:absolute; inset:-10px; border-radius:50%;
+      background:radial-gradient(circle, rgba(0,216,138,.28), rgba(0,216,138,0) 70%); }
+    .cel-check { width:96px; height:96px; position:relative; z-index:1; filter:drop-shadow(0 6px 20px rgba(0,216,138,.4)); }
+    .cel-check .circ { stroke-dasharray:170; stroke-dashoffset:170; animation:celDraw .55s cubic-bezier(.6,.2,.1,1) forwards; }
+    .cel-check .ck { stroke-dasharray:40; stroke-dashoffset:40; animation:celDraw .4s .2s cubic-bezier(.6,.2,.1,1) forwards; }
+    @keyframes celDraw { to { stroke-dashoffset:0; } }
+    .cel-label { margin-top:16px; font-family:'Anton',sans-serif; font-size:22px; letter-spacing:.5px; color:#fff;
+      text-shadow:0 2px 12px rgba(0,0,0,.5); animation:celPop .5s .1s cubic-bezier(.34,1.56,.5,1) both; }
+    .cel-particle { position:absolute; left:50%; top:50%; border-radius:50%; pointer-events:none;
+      animation:celSpark .85s cubic-bezier(.2,.6,.2,1) forwards; }
+    @keyframes celSpark {
+      0% { transform:translate(-50%,-50%) scale(1); opacity:1; }
+      100% { transform:translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(.3); opacity:0; }
+    }
+    @media (prefers-reduced-motion: reduce) { .cel-particle { display:none; } }
+
     /* Carte match v2 */
     .mc { position:relative; background:linear-gradient(180deg,var(--card),#10141c); border:1px solid var(--border);
       border-radius:16px; overflow:hidden; margin-bottom:12px; cursor:pointer;
@@ -3156,6 +3179,30 @@ function relChipHTML(d) {
 // ===== HAPTIQUE (vibration légère, Android) =====
 function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {} }
 window.haptic = haptic;
+
+// Moment de succès : check qui se trace + petite gerbe verte + vibration.
+// Sobre (pas de confettis kitsch) — réservé aux instants forts.
+function celebrate(label) {
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  haptic([18, 40, 30]); // double-buzz "succès"
+  let el = document.getElementById('celebrate');
+  if (!el) { el = document.createElement('div'); el.id = 'celebrate'; document.body.appendChild(el); }
+  const cols = ['#00D88A', '#00FF9D', '#7CFFC4', '#FFD700'];
+  const parts = reduce ? '' : Array.from({ length: 14 }).map(() => {
+    const a = Math.random() * Math.PI * 2, d = 58 + Math.random() * 72;
+    const sz = 5 + Math.random() * 6;
+    return `<span class="cel-particle" style="--dx:${(Math.cos(a) * d).toFixed(0)}px;--dy:${(Math.sin(a) * d).toFixed(0)}px;width:${sz.toFixed(0)}px;height:${sz.toFixed(0)}px;background:${cols[Math.floor(Math.random() * cols.length)]};animation-delay:${(Math.random() * 60).toFixed(0)}ms"></span>`;
+  }).join('');
+  el.innerHTML = `<div class="cel-ring"><div class="cel-disc"></div>${parts}
+    <svg class="cel-check" viewBox="0 0 64 64" fill="none">
+      <circle class="circ" cx="32" cy="32" r="27" stroke="var(--orange)" stroke-width="3" fill="rgba(0,216,138,.12)"/>
+      <path class="ck" d="M20 33l8 8 16-18" stroke="var(--orange)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg></div>${label ? `<div class="cel-label">${label}</div>` : ''}`;
+  el.classList.add('show');
+  clearTimeout(el._t);
+  el._t = setTimeout(() => { el.classList.remove('show'); }, 1150);
+}
+window.celebrate = celebrate;
 document.addEventListener('click', (e) => {
   const t = e.target.closest('.btn-primary,.btn-orange,.btn-green,.btn-red,.nav-btn,.creneau-vote,.motm-vote-player,.rate-star,.profile-action-btn,.delete-account-btn,.pill-tab,.fadd,.faccept,.ob-next-btn');
   if (t) haptic(12);
@@ -4016,7 +4063,7 @@ async function _doJoinMatch(matchId) {
     showToast('Match complet — tu es remplaçant ⏳', 'success');
   } else {
     await updateDoc(ref, { joueursInscrits: arrayUnion(uid), waitlist: arrayRemove(uid) });
-    showToast('Tu es inscrit ! 🎉', 'success');
+    celebrate('Inscrit !');
   }
   checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
 }
@@ -4105,7 +4152,7 @@ async function confirmerMatch(matchId, creneauId) {
     lieuFinal: creneau.lieu,
     ...(creneau.lat && creneau.lon ? { lieuCoords: { lat: creneau.lat, lon: creneau.lon } } : {}),
   });
-  showToast('Match confirmé ! ⚽', 'success');
+  celebrate('Match confirmé !');
 }
 window.confirmerMatch = confirmerMatch;
 
