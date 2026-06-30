@@ -964,6 +964,23 @@
     /* Section label */
     .mlist-lbl { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.1em; font-weight:700; margin:16px 0 8px; }
 
+    /* Héros d'accueil (un seul focus, une action) */
+    .home-hero { position:relative; background:linear-gradient(180deg,var(--card),#0e1219); border:1px solid var(--border); border-radius:20px; overflow:hidden; margin-bottom:16px; box-shadow:0 16px 40px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.05); }
+    .home-hero::before { content:""; position:absolute; left:0; right:0; top:0; height:3px; z-index:2; }
+    .home-hero.confirme::before { background:linear-gradient(90deg,var(--orange-dark),var(--orange2)); }
+    .home-hero.sondage::before { background:linear-gradient(90deg,#2a6fc4,var(--blue)); }
+    .hh-glow { position:absolute; inset:0; pointer-events:none; background:radial-gradient(120% 80% at 50% -20%,rgba(0,216,138,.12),transparent 60%); }
+    .home-hero.sondage .hh-glow { background:radial-gradient(120% 80% at 50% -20%,rgba(0,176,255,.12),transparent 60%); }
+    .hh-body { position:relative; z-index:1; padding:18px 18px 16px; }
+    .hh-eyebrow { font-size:11px; font-weight:700; letter-spacing:.1em; text-transform:uppercase; display:flex; align-items:center; gap:6px; }
+    .hh-eyebrow .ic { width:14px; height:14px; }
+    .hh-date { font-family:'Anton',sans-serif; font-size:30px; line-height:1.05; margin-top:6px; letter-spacing:.4px; }
+    .hh-meta { font-size:13px; color:var(--text-sec); margin-top:6px; display:flex; align-items:center; gap:6px; }
+    .hh-meta .ic { width:15px; height:15px; }
+    .hh-gauge { margin-top:14px; }
+    .hh-foot { display:flex; align-items:center; gap:10px; margin-top:14px; }
+    .hh-cta { width:100%; margin-top:16px; }
+
     /* Carte match v2 */
     .mc { position:relative; background:linear-gradient(180deg,var(--card),#10141c); border:1px solid var(--border);
       border-radius:16px; overflow:hidden; margin-bottom:12px; cursor:pointer;
@@ -3328,33 +3345,44 @@ async function renderHome() {
   let html = '';
   const fills = [], motms = [];
 
-  // Prochain match confirmé — tri côté client par dateFinale asc, futurs seulement
-  const confirmes = snapC ? snapC.docs
-    .filter(d => {
-      const dFin = d.data().dateFinale;
-      if (!dFin) return false;
-      return (dFin.toDate ? dFin.toDate() : new Date(dFin)) > new Date();
-    })
-    .sort((a, b) => {
-      const ta = a.data().dateFinale?.toMillis?.() ?? 0;
-      const tb = b.data().dateFinale?.toMillis?.() ?? 0;
-      return ta - tb;
-    }) : [];
+  // Éligibilité à créer un match (utilisée aussi par l'écran Matchs)
+  const eligibility = await checkCanCreateMatch(currentUser?.uid);
+  window._canCreateMatch = eligibility;
 
-  if (confirmes.length > 0) {
-    html += `<div class="mlist-lbl">Prochain match</div>`;
-    html += matchCardHTML(confirmes[0].id, confirmes[0].data(), 'confirmé', fills, motms);
+  // Prochain match confirmé (le plus proche, à venir)
+  const confirmes = snapC ? snapC.docs.filter(d => {
+    const dFin = d.data().dateFinale;
+    return dFin && (dFin.toDate ? dFin.toDate() : new Date(dFin)) > new Date();
+  }).sort((a, b) => (a.data().dateFinale?.toMillis?.() ?? 0) - (b.data().dateFinale?.toMillis?.() ?? 0)) : [];
+
+  // Sondages (plus récents d'abord)
+  const sondages = snapS ? snapS.docs.slice().sort((a, b) =>
+    (b.data().createdAt?.toMillis?.() ?? 0) - (a.data().createdAt?.toMillis?.() ?? 0)) : [];
+
+  // ===== UN SEUL HÉROS : le focus du moment =====
+  let heroId = null;
+  if (confirmes.length) { html += homeHeroHTML(confirmes[0].id, confirmes[0].data(), 'confirmé', fills); heroId = confirmes[0].id; }
+  else if (sondages.length) { html += homeHeroHTML(sondages[0].id, sondages[0].data(), 'sondage', fills); heroId = sondages[0].id; }
+
+  // Aucun match : le héros DEVIENT l'action de création
+  if (!heroId) {
+    html += `<div class="home-hero"><div class="hh-glow"></div><div class="hh-body" style="text-align:center;padding:30px 20px 24px">
+      <img src="./logo.png" alt="" class="empty-logo" style="margin:0 auto 12px">
+      <div class="hh-date" style="font-size:23px">Aucun match au programme</div>
+      <div class="hh-meta" style="justify-content:center">Lance le premier — les collègues suivent.</div>
+      ${eligibility.can
+        ? `<button class="btn-primary hh-cta" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>`
+        : `<div style="margin-top:14px;padding:12px 14px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);border-radius:12px;font-size:12.5px;color:#FFD37A;line-height:1.5">${ICON.warn} Tu es déjà titulaire dans un match actif.</div>`}
+    </div></div>`;
   }
 
-  // Sondages — tri côté client par createdAt desc
-  const sondages = snapS ? snapS.docs.slice().sort((a, b) => {
-    const ta = a.data().createdAt?.toMillis?.() ?? 0;
-    const tb = b.data().createdAt?.toMillis?.() ?? 0;
-    return tb - ta;
-  }) : [];
-  if (sondages.length > 0) {
-    html += `<div class="mlist-lbl">Sondages en cours · ${sondages.length}</div>`;
-    html += sondages.slice(0, 3).map(d => matchCardHTML(d.id, d.data(), 'sondage', fills, motms)).join('');
+  // ===== Le reste, démoté =====
+  const rest = [];
+  confirmes.forEach(d => { if (d.id !== heroId) rest.push(['confirmé', d]); });
+  sondages.forEach(d => { if (d.id !== heroId) rest.push(['sondage', d]); });
+  if (rest.length) {
+    html += `<div class="mlist-lbl">À suivre aussi</div>`;
+    html += rest.slice(0, 4).map(([st, d]) => matchCardHTML(d.id, d.data(), st, fills, motms)).join('');
   }
 
   // ===== Dernières activités (fil compact) =====
@@ -3380,34 +3408,61 @@ async function renderHome() {
       </div>`).join('') + `</div>`;
   }
 
-  if (!confirmes.length && !sondages.length) {
-    html += `
-      <div class="empty-state">
-        <img src="./logo.png" alt="" class="empty-logo">
-        <p>Aucun match en cours.<br>Sois le premier à en proposer un !</p>
-      </div>`;
-  }
-
-  // Règle Métier : vérifier l'éligibilité à créer un match
-  const eligibility = await checkCanCreateMatch(currentUser?.uid);
-  window._canCreateMatch = eligibility;
-
-  if (eligibility.can) {
-    html += `<div style="margin-top:16px">
-      <button class="cta-propose" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>
-    </div>`;
-  } else {
-    html += `<div style="margin-top:16px">
-      <button class="cta-propose locked">${ICON.plus} Proposer un match</button>
-      <div style="margin-top:10px;padding:12px 14px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);border-radius:12px;font-size:13px;color:#FFD37A;text-align:center;line-height:1.5">
-        ${ICON.warn} Tu es déjà titulaire dans un match actif.<br>
-        <span style="color:rgba(255,255,255,.65)">Désiste-toi d'abord pour en proposer un nouveau.</span>
-      </div>
-    </div>`;
+  // Action secondaire discrète (si un héros occupe déjà le devant)
+  if (heroId && eligibility.can) {
+    html += `<button class="btn-sm btn-outline" style="width:100%;margin-top:14px" onclick="openCreateMatch()">${ICON.plus} Proposer un autre match</button>`;
   }
 
   el.innerHTML = html;
   hydrateMatchCards(fills, motms);
+}
+
+// Héros de l'accueil : un seul focus, une action claire.
+function homeHeroHTML(id, m, statut, fills) {
+  const inscrits = m.joueursInscrits || [];
+  const n = inscrits.length;
+  const isInscrit = inscrits.includes(currentUser?.uid);
+
+  if (statut === 'confirmé') {
+    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+    const places = Math.max(0, MIN_CONFIRM - n);
+    if (fills) fills.push({ id, uids: inscrits });
+    const cta = isInscrit
+      ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.checkCircle} Tu es inscrit · voir le match</button>`
+      : (n >= MIN_CONFIRM
+          ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.clock} Match complet · rejoindre l'attente</button>`
+          : `<button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ICON.plus} Rejoindre le match</button>`);
+    return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
+      <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} Prochain match · ${countdownLabel(m.dateFinale)}</div>
+      <div class="hh-date">${dateDayLabel(m.dateFinale)}</div>
+      <div class="hh-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
+      <div class="fillbar hh-gauge"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+      <div class="hh-foot"><div class="av-stack" id="mcav-${id}"></div><span class="foot-txt">${places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet'}</span></div>
+      ${cta}
+    </div></div>`;
+  }
+
+  // sondage
+  const vMap = m.votes || {};
+  const creneaux = m.creneauxProposes || [];
+  const voterUids = [...new Set(Object.values(vMap).flat())];
+  const ivoted = voterUids.includes(currentUser?.uid);
+  const best = getBestCreneau(m);
+  const maxV = Math.max(1, ...creneaux.map(c => (vMap[c.id] || []).length));
+  const sortedC = [...creneaux].sort((a, b) => (vMap[b.id] || []).length - (vMap[a.id] || []).length);
+  const bars = creneaux.length ? '<div class="vb hh-gauge">' + sortedC.slice(0, 3).map((c, i) => {
+    const cnt = (vMap[c.id] || []).length; const pct = Math.round((cnt / maxV) * 100);
+    return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
+  }).join('') + '</div>' : '';
+  if (fills) fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
+  return `<div class="home-hero sondage"><div class="hh-glow"></div><div class="hh-body">
+    <div class="hh-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ? · vote ouvert</div>
+    <div class="hh-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
+    ${best ? `<div class="hh-meta">${ICON.pin} ${best.lieu}</div>` : ''}
+    ${bars}
+    <div class="hh-foot"><div class="av-stack" id="mcav-${id}"></div><span class="foot-txt"><b>${voterUids.length}</b> ont voté</span></div>
+    <button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ivoted ? `${ICON.check} Modifier mon vote` : `${ICON.poll} Voter pour un créneau`}</button>
+  </div></div>`;
 }
 
 // Charge les avatars de joueurs en asynchrone
