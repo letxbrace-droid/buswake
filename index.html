@@ -526,7 +526,25 @@
     .creneau-vote .vote-count { display:flex; flex-direction:column; align-items:center; gap:2px; }
     .vote-num { font-family:'Anton',sans-serif; font-size:24px; font-weight:700; color:var(--orange); text-shadow:0 0 10px var(--orange-glow); }
     .vote-label { font-size:10px; color:var(--text-sec); text-transform:uppercase; letter-spacing:.5px; }
-    .vote-check { width:22px; height:22px; border-radius:50%; background:var(--orange); color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:8px; flex-shrink:0; box-shadow:0 0 8px var(--orange-glow); }
+    .vote-check { width:22px; height:22px; border-radius:50%; background:var(--green); color:#04130c; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:8px; flex-shrink:0; box-shadow:0 0 10px rgba(0,230,118,.4); }
+    .creneau-vote.voted { border-color:var(--green) !important; background:rgba(0,230,118,.06) !important; }
+    .creneau-vote.voted .vote-num { color:var(--green); text-shadow:0 0 10px rgba(0,230,118,.4); }
+
+    /* Panneau créateur compact (sondage) */
+    .creator-panel { background:linear-gradient(180deg,var(--card),#10141c); border:1px solid var(--border); border-radius:14px; padding:13px 14px; margin:2px 0 10px; box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
+    .cp-row { display:flex; align-items:center; justify-content:space-between; }
+    .cp-label { font-size:12px; font-weight:700; color:var(--text-sec); display:inline-flex; align-items:center; gap:6px; }
+    .cp-label .ic { width:15px; height:15px; }
+    .cp-val { font-family:'Anton',sans-serif; font-size:18px; color:var(--text-sec); letter-spacing:.5px; }
+    .cp-val.ok { color:var(--green); }
+    .cp-hint { font-size:12px; color:var(--text-muted); text-align:center; margin-top:10px; }
+    .btn-disabled { background:var(--surface); color:var(--text-muted); border:1px solid var(--border); cursor:not-allowed; box-shadow:none; }
+    .btn-ghost-danger { width:100%; background:transparent; border:1px solid rgba(255,23,68,.22); color:var(--red); opacity:.72; border-radius:10px; padding:10px; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:12.5px; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px; transition:opacity .15s, transform .1s; }
+    .btn-ghost-danger .ic { width:15px; height:15px; }
+    .btn-ghost-danger:hover { opacity:1; }
+    .btn-ghost-danger:active { transform:scale(.98); }
+    .btn-2col { display:flex; gap:8px; }
+    .btn-2col > button { flex:1; }
 
     /* Joueurs inscrits */
     .joueurs-list { display:flex; flex-wrap:wrap; gap:8px; }
@@ -3230,9 +3248,10 @@ function buildJoueursListHtml(joueursAvecDist, matchId, isCreateur) {
   if (!joueursAvecDist.length)
     return '<span style="color:var(--text-muted);font-size:13px">Personne encore.</span>';
   const hasAnyDist = joueursAvecDist.some(j => j.dist !== null || j.codePostal);
-  let h = hasAnyDist ? `<div class="dept-filter-wrap">
+  let h = (hasAnyDist && joueursAvecDist.length > 6) ? `<div class="dept-filter-wrap">
+    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="color:var(--text-sec);flex-shrink:0"><circle cx="11" cy="11" r="7"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
     <input class="dept-filter-input" type="tel" maxlength="5"
-      placeholder="🔍 Filtrer par dépt. ex: 91"
+      placeholder="Filtrer par département (ex : 91)"
       oninput="filterJoueursDept(this.value)">
   </div>` : '';
   h += `<div class="jd-list">`;
@@ -3736,15 +3755,21 @@ function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCr
   else if (wpos !== -1) { label = `${ICON.x} Quitter l'attente (#${wpos + 1})`; cls = 'btn-outline'; }
   else if (full) { label = `${ICON.clock} Me mettre remplaçant`; cls = 'btn-orange'; }
   else { label = `${ICON.check} M'inscrire au match`; cls = 'btn-orange'; }
-  const chip = `<div class="players-chip"><span>${ICON.users} ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitlist.length ? `<span class="pc-wait">${ICON.clock} ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : ''}</div>`;
+  const waitPill = waitlist.length ? `<span class="pc-wait">${ICON.clock} ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : '';
+  const chip = isCreateur
+    ? (waitPill ? `<div class="players-chip">${waitPill}</div>` : '')
+    : `<div class="players-chip"><span>${ICON.users} ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitPill}</div>`;
   return `<div class="divider"></div>
-    ${chip}${venueCoords ? '<div style="font-size:10px;color:var(--text-muted);margin:-4px 0 8px">· triés par distance</div>' : ''}
+    <div class="section-sub" style="margin-bottom:8px">Joueurs${venueCoords ? ' · triés par distance' : ''}</div>
+    ${chip}
     ${buildJoueursListHtml(joueursAvecDist, matchId, isCreateur)}
-    ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 8px" onclick="window.openAddPlayer('${matchId}')">${ICON.plus} Ajouter / inviter un joueur</button>` : ''}
+    ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 0" onclick="window.openAddPlayer('${matchId}')">${ICON.plus} Ajouter / inviter un joueur</button>` : ''}
     <div class="divider"></div>
     <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
-    <button class="btn-sm btn-wa" style="width:100%;margin-bottom:8px" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager sur WhatsApp</button>
-    <button class="btn-sm btn-outline" style="width:100%" onclick="window.openMatchChat('${matchId}')">${ICON.chat} Discussion du match</button>`;
+    <div class="btn-2col">
+      <button class="btn-sm btn-wa" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager</button>
+      <button class="btn-sm btn-outline" onclick="window.openMatchChat('${matchId}')">${ICON.chat} Discussion</button>
+    </div>`;
 }
 
 async function renderMatchDetail(matchId, m) {
@@ -3809,23 +3834,27 @@ async function renderMatchDetail(matchId, m) {
     }).join('');
 
     if (isCreateur) {
-      const enoughPlayers = inscrits.length >= MIN_CONFIRM;
-      html += `<div class="divider"></div><div class="section-sub">Actions créateur</div>`;
-      if (best) {
-        html += `<p style="font-size:13px;color:var(--text-sec);margin-bottom:10px">Créneau le plus voté : <strong style="color:var(--text)">${formatDate(best.date)}</strong> – ${best.lieu}</p>`;
-        if (enoughPlayers) {
-          html += `<button class="btn-sm btn-green" style="width:100%;margin-bottom:8px" onclick="confirmerMatch('${matchId}','${best.id}')">${ICON.check} CONFIRMER CE MATCH</button>`;
-        } else {
-          html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-bottom:8px;line-height:1.5">
-            ${ICON.warn} Il faut <strong>${MIN_CONFIRM} joueurs</strong> inscrits pour confirmer le match.<br>
-            <span style="color:var(--text-sec)">Actuellement ${inscrits.length}/${MIN_CONFIRM} — encore ${MIN_CONFIRM - inscrits.length} joueur${MIN_CONFIRM - inscrits.length > 1 ? 's' : ''}.</span>
-          </div>`;
-        }
-      }
-      html += `<button class="btn-sm btn-red" style="width:100%;opacity:.7" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>`;
+      const enough = inscrits.length >= MIN_CONFIRM;
+      const left = MIN_CONFIRM - inscrits.length;
+      const pct = Math.min(100, Math.round((inscrits.length / MIN_CONFIRM) * 100));
+      html += `<div class="divider"></div>
+        <div class="creator-panel">
+          <div class="cp-row">
+            <span class="cp-label">${ICON.users} Inscrits</span>
+            <span class="cp-val ${enough ? 'ok' : ''}">${inscrits.length}/${MIN_CONFIRM}</span>
+          </div>
+          <div class="fillbar" style="margin-top:9px"><span class="track"><span class="fill" style="width:${pct}%"></span></span></div>
+          ${best
+            ? `<button class="btn-sm ${enough ? 'btn-green' : 'btn-disabled'}" style="width:100%;margin-top:12px" ${enough ? `onclick="confirmerMatch('${matchId}','${best.id}')"` : 'disabled'}>${ICON.check} ${enough ? 'Confirmer le match' : `Encore ${left} joueur${left > 1 ? 's' : ''}`}</button>`
+            : `<div class="cp-hint">En attente de votes sur les créneaux…</div>`}
+        </div>`;
     }
 
     html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur);
+
+    if (isCreateur) {
+      html += `<button class="btn-ghost-danger" style="margin-top:10px" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>`;
+    }
   }
 
   // ---- Match confirmé ----
