@@ -740,6 +740,32 @@
     .ios-ic svg { width:20px; height:20px; }
     .ios-help-intro { font-size:13.5px; color:var(--text-sec); }
 
+    /* ===== ACCUEIL À FROID (aucun match) — moteur, pas écran mort ===== */
+    .cold-hero { position:relative; border-radius:22px; overflow:hidden; background:#0B0D12; border:1px solid var(--border); box-shadow:0 22px 60px rgba(0,0,0,.6); }
+    .ch-pitch { position:absolute; inset:0; opacity:.9; pointer-events:none; background:
+      radial-gradient(120% 70% at 50% -10%, rgba(0,216,138,.16) 0%, transparent 55%),
+      linear-gradient(180deg,#0e1a16 0%, #0B0D12 60%); }
+    .ch-pitch::before { content:''; position:absolute; left:50%; top:34px; width:120px; height:120px; border:1.5px solid rgba(0,216,138,.18); border-radius:50%; transform:translateX(-50%); }
+    .ch-pitch::after { content:''; position:absolute; left:0; right:0; top:94px; height:1.5px; background:rgba(0,216,138,.16); }
+    .ch-body { position:relative; z-index:2; padding:26px 22px 8px; text-align:center; }
+    .ch-eyebrow { display:inline-flex; align-items:center; gap:7px; font-size:10.5px; letter-spacing:1.6px; font-weight:700; color:var(--text-sec); text-transform:uppercase; margin-bottom:16px; }
+    .ch-dot { width:7px; height:7px; border-radius:50%; background:var(--orange); box-shadow:0 0 10px var(--orange); }
+    .ch-title { font-family:'Anton',sans-serif; font-size:30px; line-height:1.02; letter-spacing:.3px; color:#fff; text-shadow:0 2px 14px rgba(0,0,0,.5); }
+    .ch-sub { font-size:13.5px; color:var(--text-sec); line-height:1.5; margin:12px auto 0; max-width:280px; }
+    .ch-cta { margin-top:20px; display:inline-flex; align-items:center; justify-content:center; gap:9px; width:100%; }
+    .ch-cta svg { width:19px; height:19px; }
+    .ch-quick-lbl { font-size:11px; color:var(--text-muted); letter-spacing:.4px; margin:20px 0 9px; font-weight:600; }
+    .ch-slots { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .ch-slot { display:flex; flex-direction:column; align-items:center; gap:2px; padding:11px 4px; border-radius:13px; background:var(--card); border:1px solid var(--border); cursor:pointer; transition:border-color .15s, transform .12s; }
+    .ch-slot:active { transform:scale(.96); border-color:var(--orange); }
+    .ch-slot b { font-size:13px; color:#fff; font-weight:700; }
+    .ch-slot span { font-family:'Anton',sans-serif; font-size:15px; color:var(--orange); }
+    .ch-locked { margin-top:16px; padding:12px 14px; background:rgba(255,176,32,.12); border:1px solid rgba(255,176,32,.35); border-radius:12px; font-size:12.5px; color:#FFD37A; line-height:1.5; }
+    .ch-proof { position:relative; z-index:2; display:flex; align-items:center; justify-content:center; gap:11px; padding:16px; margin-top:14px; border-top:1px solid var(--border); background:rgba(255,255,255,.02); }
+    .ch-proof .av-stack { padding-left:8px; }
+    .ch-proof-txt { font-size:12.5px; color:var(--text-sec); }
+    .ch-proof-txt b { color:#fff; }
+
     .atout-bar-wrap { margin-bottom:10px; }
     .atout-bar-label { display:flex; justify-content:space-between; font-size:13px; margin-bottom:5px; }
     .atout-bar-label span:last-child { color:var(--orange); font-weight:700; }
@@ -3139,16 +3165,41 @@ async function renderHome() {
   if (confirmes.length) { html += homeHeroHTML(confirmes[0].id, confirmes[0].data(), 'confirmé', fills); heroId = confirmes[0].id; }
   else if (sondages.length) { html += homeHeroHTML(sondages[0].id, sondages[0].data(), 'sondage', fills); heroId = sondages[0].id; }
 
-  // Aucun match : le héros DEVIENT l'action de création
+  // Aucun match : l'accueil "à froid" devient un moteur — il vend l'action.
+  let coldActiveUids = null;
   if (!heroId) {
-    html += `<div class="home-hero"><div class="hh-glow"></div><div class="hh-body" style="text-align:center;padding:30px 20px 24px">
-      <img src="./logo.png" alt="" class="empty-logo" style="margin:0 auto 12px">
-      <div class="hh-date" style="font-size:23px">Aucun match au programme</div>
-      <div class="hh-meta" style="justify-content:center">Lance le premier — les collègues suivent.</div>
-      ${eligibility.can
-        ? `<button class="btn-primary hh-cta" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>`
-        : `<div style="margin-top:14px;padding:12px 14px;background:rgba(255,176,32,.12);border:1px solid rgba(255,176,32,.35);border-radius:12px;font-size:12.5px;color:#FFD37A;line-height:1.5">${ICON.warn} Tu es déjà titulaire dans un match actif.</div>`}
-    </div></div>`;
+    // Joueurs déjà présents (anti-désert) — calculé sur les snapshots déjà chargés
+    const activeSet = new Set();
+    [snapC, snapS, snapT].forEach(sn => sn && sn.docs.forEach(d => (d.data().joueursInscrits || []).forEach(u => activeSet.add(u))));
+    coldActiveUids = [...activeSet];
+    const now = new Date();
+    const dateEyebrow = now.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }).toUpperCase();
+    const satLbl = (() => {
+      let diff = (6 - now.getDay() + 7) % 7; if (diff === 0) diff = 7;
+      const d = new Date(now); d.setDate(d.getDate() + diff);
+      return d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+    })();
+    html += `<div class="cold-hero">
+      <div class="ch-pitch"></div>
+      <div class="ch-body">
+        <div class="ch-eyebrow"><span class="ch-dot"></span>${dateEyebrow}</div>
+        <div class="ch-title">Personne n'a encore<br>lancé le match.</div>
+        <div class="ch-sub">Sois celui qui donne le coup d'envoi. Les collègues du dépôt suivent.</div>
+        ${eligibility.can
+          ? `<button class="btn-primary ch-cta" onclick="openCreateMatch()">${ICON.zap} Proposer un match</button>
+        <div class="ch-quick-lbl">Le plus rapide — déjà pré-rempli</div>
+        <div class="ch-slots">
+          <button class="ch-slot" onclick="quickPropose('tonight')"><b>Ce soir</b><span>19:00</span></button>
+          <button class="ch-slot" onclick="quickPropose('tomorrow')"><b>Demain</b><span>19:00</span></button>
+          <button class="ch-slot" onclick="quickPropose('saturday')"><b style="text-transform:capitalize">${satLbl}</b><span>11:00</span></button>
+        </div>`
+          : `<div class="ch-locked">${ICON.warn} Tu es déjà titulaire dans un match actif.</div>`}
+      </div>
+      ${coldActiveUids.length ? `<div class="ch-proof">
+        <div class="av-stack" id="ch-proof-avs"></div>
+        <div class="ch-proof-txt"><b>${coldActiveUids.length} collègue${coldActiveUids.length > 1 ? 's' : ''}</b> jouent déjà ici</div>
+      </div>` : ''}
+    </div>`;
   }
 
   // ===== Le reste, démoté =====
@@ -3190,6 +3241,9 @@ async function renderHome() {
 
   el.innerHTML = html;
   hydrateMatchCards(fills, motms);
+  if (coldActiveUids && coldActiveUids.length && document.getElementById('ch-proof-avs')) {
+    renderStackAvatars(coldActiveUids, 'ch-proof-avs', 5);
+  }
 }
 
 // Héros de l'accueil : un seul focus, une action claire.
@@ -4004,6 +4058,29 @@ function openCreateMatch() {
   renderCmModal();
 }
 window.openCreateMatch = openCreateMatch;
+
+// Créneau express pour l'accueil "à froid" : ouvre le formulaire déjà
+// configuré (terrain le plus proche + créneau choisi) → il ne reste qu'à valider.
+function _quickSlot(kind) {
+  const d = new Date();
+  if (kind === 'tomorrow') { d.setDate(d.getDate() + 1); d.setHours(19, 0, 0, 0); }
+  else if (kind === 'saturday') {
+    let diff = (6 - d.getDay() + 7) % 7; if (diff === 0) diff = 7;
+    d.setDate(d.getDate() + diff); d.setHours(11, 0, 0, 0);
+  } else { d.setHours(19, 0, 0, 0); } // 'tonight'
+  return { id: genId(), date: _ymd(d), heure: _pad(d.getHours()) + ':' + _pad(d.getMinutes()), dateObj: d };
+}
+window.quickPropose = function(kind) {
+  if (!(window._canCreateMatch?.can ?? true)) {
+    showToast('Tu es déjà titulaire dans un match actif. Désiste-toi d\'abord.', 'error'); return;
+  }
+  _cmSuggest = _cmBuildSuggest();
+  _cmExtra = null;
+  const cards = _cmVenueCards();
+  _cmVenue = cards[0] || null;       // terrain le plus probable pré-sélectionné
+  _cmSlots = [_quickSlot(kind)];     // créneau express déjà coché
+  renderCmModal();
+};
 window.cmPickVenue = function(x) { _cmVenue = x; renderCmModal(); };
 window.cmToggleSlot = function(id) {
   const i = _cmSlots.findIndex(z => z.id === id);
