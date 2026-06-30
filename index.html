@@ -197,31 +197,6 @@
     }
     .form-group input:focus::placeholder { opacity:.4; transform:translateX(4px); transition:all .2s; }
 
-    /* ===== MULTI-STEP REGISTRATION ===== */
-    .reg-progress-bar { height:3px; background:var(--border); border-radius:2px; margin-bottom:18px; overflow:hidden; }
-    .reg-progress-fill { height:100%; background:linear-gradient(90deg,var(--orange),var(--orange2)); border-radius:2px; transition:width .4s cubic-bezier(.4,0,.2,1); box-shadow:0 0 8px var(--orange-glow); }
-    .reg-step-labels { display:flex; justify-content:space-between; margin-bottom:20px; }
-    .rsl { font-size:10px; font-weight:700; letter-spacing:.8px; text-transform:uppercase; color:var(--text-muted); transition:color .3s; }
-    .rsl.active { color:var(--orange); }
-    .reg-step { animation-fill-mode:both; }
-    @keyframes regSlideInR { from { opacity:0; transform:translateX(36px); } to { opacity:1; transform:none; } }
-    @keyframes regSlideInL { from { opacity:0; transform:translateX(-36px); } to { opacity:1; transform:none; } }
-    .reg-step.slide-in-r { animation:regSlideInR .28s cubic-bezier(.25,.46,.45,.94); }
-    .reg-step.slide-in-l { animation:regSlideInL .28s cubic-bezier(.25,.46,.45,.94); }
-
-    /* Sliders STEP 3 — Premium vert fluo */
-    .reg-stats-list { display:flex; flex-direction:column; gap:14px; margin:14px 0 20px; }
-    .rsi-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:7px; }
-    .rsi-name { font-size:11px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-sec); }
-    .rsi-val { font-family:'Anton',sans-serif; font-size:22px; font-weight:700; color:var(--green); min-width:32px; text-align:right; }
-    .reg-stat-slider { -webkit-appearance:none; appearance:none; width:100%; height:5px; border-radius:3px; outline:none; cursor:pointer; }
-    .reg-stat-slider::-webkit-slider-thumb { -webkit-appearance:none; width:22px; height:22px; border-radius:50%; background:#fff; box-shadow:0 0 0 3px var(--green), 0 0 18px var(--green-glow), 0 2px 8px rgba(0,0,0,.5); cursor:pointer; transition:transform .2s; }
-    .reg-stat-slider::-webkit-slider-thumb:active { transform:scale(1.3); }
-    .reg-stat-slider::-moz-range-thumb { width:20px; height:20px; border-radius:50%; background:#fff; border:3px solid var(--green); box-shadow:0 0 12px var(--green-glow); }
-
-    /* FUT card mini preview */
-    .reg-fut-preview { display:flex; justify-content:center; margin-bottom:8px; }
-    .reg-fut-preview .fut-card-v3 { transform:scale(.62); transform-origin:top center; margin-bottom:-105px; }
     .form-group select option { background:#111; }
     .form-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
 
@@ -599,19 +574,6 @@
 
     /* ===== CREATE MATCH ===== */
     .create-form { padding:0; }
-    .creneau-builder {
-      background:var(--card); border:1px solid var(--border);
-      border-radius:13px; padding:14px; margin-bottom:8px; position:relative;
-    }
-    .remove-creneau { position:absolute; top:10px; right:10px; background:transparent; border:none; color:var(--text-muted); cursor:pointer; font-size:18px; transition:color .2s; }
-    .remove-creneau:hover { color:var(--red); }
-    .add-creneau-btn {
-      width:100%; padding:13px;
-      border:2px dashed var(--border); border-radius:var(--r-sm);
-      background:transparent; color:var(--text-sec);
-      cursor:pointer; font-size:14px; transition:all .2s; font-family:'Space Grotesk',sans-serif;
-    }
-    .add-creneau-btn:hover { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.04); }
 
     /* ===== CRÉATION MATCH — LIEU EN CARTES + CRÉNEAUX EN CHIPS ===== */
     .cm-venue { display:flex; align-items:center; gap:11px; background:var(--card); border:1.5px solid var(--border); border-radius:14px; padding:11px 13px; margin-bottom:8px; cursor:pointer; transition:border-color .15s, background .15s; }
@@ -1173,15 +1135,6 @@
     .poste-btn.selected .p-abbr { color:var(--orange); }
     .poste-btn.selected .p-label { color:var(--orange); opacity:.7; }
 
-    /* ===== THEME DOTS ===== */
-    .theme-picker { display:flex; gap:6px; align-items:center; }
-    .t-dot {
-      width:16px; height:16px; border-radius:50%;
-      cursor:pointer; border:2px solid transparent;
-      transition:all .2s; flex-shrink:0;
-    }
-    .t-dot:hover { transform:scale(1.15); }
-    .t-dot.active { border-color:#fff; box-shadow:0 0 6px currentColor; transform:scale(1.1); }
 
     /* ===== TOOLTIP SLIDER PREMIUM V3 ===== */
     .slider-wrap { position:relative; padding-top:30px; margin-bottom:2px; }
@@ -1218,10 +1171,6 @@
     }
 
     /* ===== THEME SECTION in profil ===== */
-    .theme-section { display:flex; align-items:center; gap:10px; margin-bottom:16px; padding:14px; background:var(--card); border:1px solid var(--border); border-radius:var(--r); }
-    .theme-section .ts-label { font-size:13px; color:var(--text-sec); font-weight:500; flex:1; }
-    .theme-section .theme-picker { gap:8px; }
-    .theme-section .t-dot { width:22px; height:22px; }
 
     @media (min-width:480px) {
       .screen { padding:20px 20px calc(var(--nav-h) + 20px); }
@@ -1271,15 +1220,6 @@
       border:1px solid var(--border); border-radius:10px;
       margin-bottom:10px;
     }
-    .venue-item {
-      padding:10px 14px; font-size:13px; cursor:pointer;
-      border-bottom:1px solid var(--border);
-      transition:background .15s;
-    }
-    .venue-item:last-child { border-bottom:none; }
-    .venue-item:hover, .venue-item.selected { background:var(--orange-glow-soft); color:var(--orange); }
-    .venue-item .vi-name { font-weight:600; }
-    .venue-item .vi-dist { font-size:11px; color:var(--text-sec); margin-top:2px; }
     .map-or-manual {
       display:flex; align-items:center; gap:10px;
       color:var(--text-muted); font-size:11px; margin:8px 0;
@@ -1695,14 +1635,6 @@
     .obs-line { margin-top:6px; font-size:15px; color:var(--text); letter-spacing:1px; }
 
     /* ===== VENUE DROPDOWN ===== */
-    .venue-pick { position:relative; }
-    .venue-dd { position:absolute; left:0; right:0; top:calc(100% + 4px); z-index:60; background:var(--card2); border:1px solid var(--border-light); border-radius:12px; overflow:hidden auto; display:none; box-shadow:0 16px 40px rgba(0,0,0,.55); max-height:240px; }
-    .venue-dd.open { display:block; }
-    .venue-opt { padding:10px 13px; cursor:pointer; border-bottom:1px solid var(--border); transition:background .15s; }
-    .venue-opt:last-child { border-bottom:none; }
-    .venue-opt:hover { background:rgba(0,216,138,.09); }
-    .vo-name { display:block; font-size:13.5px; font-weight:600; color:var(--text); }
-    .vo-meta { display:block; font-size:11px; color:var(--text-sec); margin-top:2px; }
 
     /* ================================================== */
     /* ===== OLED · iOS SLIDERS · 3D BLOCKS (override) ==== */
@@ -1719,7 +1651,7 @@
     /* --- Blocs 3D : élévation + reflet interne + halo doux --- */
     .match-list-card, .poll-card, .stat-box, .hero-match, .equipe-block,
     .badge-item, .ob-mini-card, .ob-team, .pitch, .creneau-vote,
-    .club-card, .poste-btn, .friend-item, .seg, .reg-fut-preview {
+    .club-card, .poste-btn, .friend-item, .seg {
       box-shadow:
         inset 0 1px 0 rgba(255,255,255,.06),
         0 2px 6px rgba(0,0,0,.6),
@@ -1774,10 +1706,10 @@
     input[type=range]:active::-moz-range-thumb { box-shadow:0 4px 12px rgba(0,0,0,.65), 0 0 0 12px rgba(0,216,138,.2); }
 
     /* --- Barres de vote / progression : rail iOS lumineux --- */
-    .mlc-vb-track, .vote-track, .atout-bar-bg, .ovr-bar, .pdp-stat-bar, .reg-progress-bar {
+    .mlc-vb-track, .vote-track, .atout-bar-bg, .ovr-bar, .pdp-stat-bar {
       border-radius:99px !important; background:rgba(255,255,255,.12) !important;
     }
-    .mlc-vb-fill, .vote-fill, .atout-bar-fill, .ovr-bar i, .pdp-stat-bar div, .reg-progress-fill {
+    .mlc-vb-fill, .vote-fill, .atout-bar-fill, .ovr-bar i, .pdp-stat-bar div {
       border-radius:99px !important;
       background:linear-gradient(90deg, var(--orange-dark), var(--orange)) !important;
       box-shadow:0 0 10px var(--orange-glow);
@@ -1785,8 +1717,7 @@
 
     /* --- Hiérarchie typo/couleur --- */
     .section-title { color:#fff; font-weight:700; }
-    .section-sub, .input-label, .rsi-name { color:var(--text-sec); }
-    .rsi-val { color:var(--orange); }
+    .section-sub, .input-label { color:var(--text-sec); }
 
     /* ===== iOS NAV BAR ===== */
     .screen-navbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; gap:10px; }
@@ -1868,7 +1799,6 @@
     .modal-title { display:flex; align-items:center; gap:8px; }
     .hero-label, .hero-lieu, .lieu-str, .jd-dist-pill, .rank-badge { display:inline-flex; align-items:center; gap:5px; }
     .players-chip span { display:inline-flex; align-items:center; gap:5px; }
-    .rsi-name { display:inline-flex; align-items:center; gap:7px; }
     .p-icon .ic { width:1.5em; height:1.5em; }
     .rel-chip { display:inline-flex; align-items:center; gap:5px; }
     /* Invitation à compléter le profil (après inscription allégée) */
@@ -2223,54 +2153,6 @@
         <p style="font-size:11.5px;color:var(--text-muted);text-align:center;margin-top:12px;line-height:1.5">Ta carte FUT — équipe, poste, atouts — se complète juste après, en 30 s.</p>
       </div>
 
-      <!-- Étape 2 — Profil Foot -->
-      <div class="reg-step" id="reg-step-2" style="display:none">
-        <div class="form-group">
-          <label>Équipe préférée</label>
-          <input type="hidden" id="reg-equipe" value="PSG">
-          <div class="club-scroll" id="reg-club-grid"></div>
-        </div>
-        <div class="form-group" style="margin-top:16px">
-          <label>Ton poste</label>
-          <input type="hidden" id="reg-poste" value="attaquant">
-          <div class="poste-grid" id="reg-poste-grid"></div>
-        </div>
-        <div style="display:flex;gap:10px;margin-top:18px">
-          <button class="btn-sm btn-outline" style="flex:1;padding:14px" onclick="regNextStep(1)">← Retour</button>
-          <button class="btn-primary" style="flex:2;margin-top:0" onclick="regNextStep(3)">Suivant →</button>
-        </div>
-      </div>
-
-      <!-- Étape 3 — Carte FUT (effet Wow) -->
-      <div class="reg-step" id="reg-step-3" style="display:none">
-        <div class="reg-fut-preview" id="reg-fut-preview"></div>
-        <div class="reg-stats-list">
-          <div>
-            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg> VITESSE</span><span class="rsi-val" id="rv-vitesse">70</span></div>
-            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-vitesse" oninput="syncRegAtout('vitesse',this)">
-          </div>
-          <div>
-            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17 9 7l3.5 6 3-4 4.5 9"/></svg> DRIBBLE</span><span class="rsi-val" id="rv-dribble">70</span></div>
-            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-dribble" oninput="syncRegAtout('dribble',this)">
-          </div>
-          <div>
-            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg> FRAPPE</span><span class="rsi-val" id="rv-frappe">70</span></div>
-            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-frappe" oninput="syncRegAtout('frappe',this)">
-          </div>
-          <div>
-            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> DÉFENSE</span><span class="rsi-val" id="rv-defense">70</span></div>
-            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-defense" oninput="syncRegAtout('defense',this)">
-          </div>
-          <div>
-            <div class="rsi-header"><span class="rsi-name"><svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/></svg> PHYSIQUE</span><span class="rsi-val" id="rv-physique">70</span></div>
-            <input class="reg-stat-slider" type="range" min="20" max="99" value="70" id="a-physique" oninput="syncRegAtout('physique',this)">
-          </div>
-        </div>
-        <div style="display:flex;gap:10px">
-          <button class="btn-sm btn-outline" style="flex:1;padding:14px" onclick="regNextStep(2)">← Retour</button>
-          <button class="btn-primary" style="flex:2;margin-top:0" onclick="doRegister()">Créer mon compte <svg class="ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2 3 14h9l-1 8 10-12h-9z"/></svg></button>
-        </div>
-      </div>
     </div>
 
     <div class="auth-error" id="auth-error"></div>
@@ -2591,72 +2473,10 @@ const VENUES_91 = [
   { n:'Five Arpajon',             v:'Arpajon',                cp:'91290', lat:48.590, lon:2.247, t:'indoor' },
 ];
 
-window._venueDD = {};
-window._venueT = {};
 function _venueHome() {
   return (currentUserData && currentUserData.domicileLat)
     ? { lat: currentUserData.domicileLat, lon: currentUserData.domicileLon } : null;
 }
-function _venueStatic(q, home) {
-  let list = VENUES_91.slice();
-  if (q) list = list.filter(x => (x.n + ' ' + x.v + ' ' + x.cp).toLowerCase().includes(q));
-  if (home) list.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
-  return list.slice(0, 4).map(x => ({
-    n: x.n,
-    v: x.v + (home ? ' · ' + Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) + ' km' : ''),
-    lat: x.lat, lon: x.lon, t: x.t
-  }));
-}
-function _venueRender(cid, list) {
-  const dd = document.getElementById('venue-dd-' + cid);
-  if (!dd) return;
-  window._venueDD[cid] = list;
-  if (!list.length) { dd.innerHTML = ''; dd.classList.remove('open'); return; }
-  const mark = t => t === 'indoor' ? '🏟️' : (t === 'urban' ? '🥅' : '📍');
-  dd.innerHTML = list.map((x, i) => `<div class="venue-opt" onmousedown="venuePick('${cid}',${i})">
-      <span class="vo-name">${mark(x.t)} ${x.n}</span>
-      <span class="vo-meta">${x.v || ''}</span>
-    </div>`).join('');
-  dd.classList.add('open');
-}
-window.venueSuggest = function(cid) {
-  const inp = document.getElementById('cd-lieu-' + cid);
-  if (!inp) return;
-  const raw = (inp.value || '').trim();
-  const q = raw.toLowerCase();
-  const home = _venueHome();
-  // 1) salles curées tout de suite
-  _venueRender(cid, _venueStatic(q, home));
-  // 2) n'importe quelle adresse via Photon (OSM), avec debounce
-  clearTimeout(window._venueT[cid]);
-  if (raw.length < 3) return;
-  window._venueT[cid] = setTimeout(async () => {
-    try {
-      const url = 'https://photon.komoot.io/api/?lang=fr&limit=6&q=' + encodeURIComponent(raw)
-        + (home ? `&lat=${home.lat}&lon=${home.lon}` : '');
-      const j = await (await fetch(url)).json();
-      const photon = (j.features || []).map(f => {
-        const p = f.properties || {}; const co = (f.geometry && f.geometry.coordinates) || [];
-        const name = p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || 'Lieu';
-        const sub = [p.city || p.county, p.postcode].filter(Boolean).join(' ');
-        return { n: name, v: sub, lat: co[1], lon: co[0], t: 'addr' };
-      }).filter(x => x.lat && x.lon);
-      if ((document.getElementById('cd-lieu-' + cid)?.value || '').trim() !== raw) return; // a changé
-      _venueRender(cid, [..._venueStatic(q, home), ...photon].slice(0, 8));
-    } catch (_) {}
-  }, 320);
-};
-window.venuePick = function(cid, i) {
-  const x = (window._venueDD[cid] || [])[i];
-  if (!x) return;
-  const inp = document.getElementById('cd-lieu-' + cid);
-  const dd = document.getElementById('venue-dd-' + cid);
-  if (inp) inp.value = x.v ? (x.n + ' — ' + x.v) : x.n;
-  const cc = creneauxBuilt.find(z => z.id === cid);
-  if (cc) { cc.lieu = inp ? inp.value : x.n; cc.lat = x.lat; cc.lon = x.lon; }
-  window._selectedVenueCoords = { lat: x.lat, lon: x.lon };
-  if (dd) { dd.classList.remove('open'); dd.innerHTML = ''; }
-};
 
 // ===== THÈMES DE COULEUR =====
 // Identité verrouillée sur le vert — plus de sélecteur de thème.
@@ -2756,14 +2576,6 @@ async function addXP(uid, amount) {
 }
 
 // ===== LIEUX PAR DÉFAUT (démo) =====
-const LIEUX_DEMO = [
-  { id: 'l1', nom: 'Urban Soccer Nation', adresse: '10 Rue Léon Frot, Paris 11e', type: 'indoor' },
-  { id: 'l2', nom: 'MyCamp Paris 19', adresse: '12 Ave Corentin Cariou, Paris 19e', type: 'indoor' },
-  { id: 'l3', nom: 'Five Paris Porte de la Villette', adresse: '39 Av. Corentin Cariou, Paris 19e', type: 'indoor' },
-  { id: 'l4', nom: 'Soccer Park Ivry', adresse: 'Ivry-sur-Seine, 94200', type: 'indoor' },
-  { id: 'l5', nom: 'Terrain libre (à préciser)', adresse: '', type: 'stade' },
-];
-
 // ===== AUTH HELPERS =====
 function showAuthTab(tab) {
   document.getElementById('form-login').style.display = tab === 'login' ? '' : 'none';
@@ -2773,110 +2585,8 @@ function showAuthTab(tab) {
   const toggle = document.getElementById('auth-toggle');
   if (toggle) toggle.classList.toggle('register', tab === 'register');
   document.getElementById('auth-error').textContent = '';
-  // Reset to step 1 when switching to register
-  if (tab === 'register') {
-    _regCurrentStep = 1;
-    document.querySelectorAll('.reg-step').forEach(s => s.style.display = 'none');
-    const s1 = document.getElementById('reg-step-1');
-    if (s1) s1.style.display = 'block';
-    if (document.getElementById('reg-progress-fill')) document.getElementById('reg-progress-fill').style.width = '33%';
-    document.querySelectorAll('.rsl').forEach((el, i) => el.classList.toggle('active', i === 0));
-  }
 }
 window.showAuthTab = showAuthTab;
-
-let _regCurrentStep = 1;
-window.regNextStep = function(nextStep) {
-  const dir = nextStep > _regCurrentStep ? 1 : -1;
-  // Validation step 1
-  if (dir > 0 && _regCurrentStep === 1) {
-    const email = document.getElementById('reg-email')?.value.trim();
-    const pwd = document.getElementById('reg-pwd')?.value;
-    const pseudo = document.getElementById('reg-pseudo')?.value.trim();
-    const errEl = document.getElementById('auth-error');
-    if (!email || !pwd || !pseudo) { if(errEl) errEl.textContent = 'Remplis tous les champs obligatoires.'; return; }
-    if (pwd.length < 6) { if(errEl) errEl.textContent = 'Mot de passe : 6 caractères minimum.'; return; }
-    if (errEl) errEl.textContent = '';
-  }
-  const curr = document.getElementById('reg-step-' + _regCurrentStep);
-  const next = document.getElementById('reg-step-' + nextStep);
-  if (!curr || !next) return;
-  curr.style.display = 'none';
-  next.style.display = 'block';
-  next.classList.remove('slide-in-r', 'slide-in-l');
-  void next.offsetWidth;
-  next.classList.add(dir > 0 ? 'slide-in-r' : 'slide-in-l');
-  // Init step 2 grids
-  if (nextStep === 2) {
-    setTimeout(() => {
-      renderClubGrid('reg-club-grid', 'reg-equipe', document.getElementById('reg-equipe').value || 'PSG');
-      renderPosteGrid('reg-poste-grid', 'reg-poste', document.getElementById('reg-poste').value || 'attaquant');
-    }, 30);
-  }
-  // Init step 3 sliders + FUT preview
-  if (nextStep === 3) {
-    setTimeout(() => {
-      document.querySelectorAll('.reg-stat-slider').forEach(r => updateGreenSliderGradient(r));
-      updateRegFutCard();
-    }, 30);
-  }
-  // Update progress bar
-  const pct = { 1: 33, 2: 66, 3: 100 }[nextStep] || 33;
-  const fill = document.getElementById('reg-progress-fill');
-  if (fill) fill.style.width = pct + '%';
-  // Update step labels
-  document.querySelectorAll('.rsl').forEach((el, i) => el.classList.toggle('active', i + 1 <= nextStep));
-  _regCurrentStep = nextStep;
-  navigator.vibrate?.(40);
-};
-
-function updateGreenSliderGradient(input) {
-  const min = +input.min || 20, max = +input.max || 99, val = +input.value || 70;
-  const pct = ((val - min) / (max - min)) * 100;
-  input.style.background = `linear-gradient(90deg, var(--green) ${pct.toFixed(1)}%, rgba(255,255,255,.12) ${pct.toFixed(1)}%)`;
-  input.style.boxShadow = `0 0 10px rgba(0,230,118,.${Math.floor(pct/25)+1})`;
-}
-
-window.syncRegAtout = function(name, input) {
-  const el = document.getElementById('rv-' + name);
-  if (el) el.textContent = input.value;
-  updateGreenSliderGradient(input);
-  updateRegFutCard();
-};
-
-function updateRegFutCard() {
-  const preview = document.getElementById('reg-fut-preview');
-  if (!preview) return;
-  const g = id => +(document.getElementById(id)?.value || 70);
-  const a = { vitesse:g('a-vitesse'), dribble:g('a-dribble'), frappe:g('a-frappe'), defense:g('a-defense'), physique:g('a-physique') };
-  const pas = Math.round((a.vitesse + a.dribble) / 2);
-  const ovr = Math.round(a.vitesse*.15 + a.dribble*.2 + a.frappe*.25 + a.defense*.15 + a.physique*.15 + pas*.1);
-  const name = (document.getElementById('reg-pseudo')?.value || 'JOUEUR').toUpperCase().slice(0,12);
-  const posteId = document.getElementById('reg-poste')?.value || 'attaquant';
-  const posteData = POSTES.find(p => p.id === posteId) || POSTES[2];
-  const equipe = document.getElementById('reg-equipe')?.value || 'PSG';
-  const rarity = ovr >= 85 ? 'gold' : ovr >= 75 ? 'silver' : '';
-  const statsMap = {vitesse:'PAC',dribble:'DRI',frappe:'TIR',defense:'DEF',physique:'PHY'};
-  preview.innerHTML = `
-    <div class="fut-card-v3 ${rarity}">
-      <div class="fc3-top">
-        <div class="fc3-meta">
-          <div class="fc3-overall">${ovr}</div>
-          <div class="fc3-pos">${posteData.abbr}</div>
-          <div class="fc3-badge-row">${clubShield(equipe,22)}</div>
-        </div>
-        <div class="fc3-photo-zone"><div class="fc3-photo-placeholder"><svg class="ph-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.5" r="3.8"/><path d="M5 20c.8-3.4 3.4-5 7-5s6.2 1.6 7 5"/></svg></div></div>
-      </div>
-      <div class="fc3-bottom">
-        <div class="fc3-name">${name}</div>
-        <div class="fc3-divider"></div>
-        <div class="fc3-stats">
-          ${Object.entries(a).map(([k,v]) => `<div class="fc3-stat"><span class="sn">${v}</span><span class="sl">${statsMap[k]}</span></div>`).join('')}
-          <div class="fc3-stat"><span class="sn">${pas}</span><span class="sl">PAS</span></div>
-        </div>
-      </div>
-    </div>`;
-}
 
 // Met à jour gradient + tooltip du slider
 function updateRangeGradient(input) {
@@ -4195,45 +3905,6 @@ let creneauxBuilt = [];
 function genId() { return Math.random().toString(36).substr(2, 9); }
 
 // Sauvegarde les valeurs actuelles du DOM dans creneauxBuilt (avant tout re-render)
-function syncCreneauxFromDOM() {
-  creneauxBuilt.forEach(c => {
-    const d = document.getElementById('cd-date-' + c.id);
-    const h = document.getElementById('cd-heure-' + c.id);
-    const l = document.getElementById('cd-lieu-' + c.id);
-    if (d) c.date = d.value;
-    if (h) c.heure = h.value;
-    if (l) c.lieu = l.value;
-  });
-}
-
-// Construit le HTML des créneaux (avec option selected correcte)
-function buildCreneauxHtml() {
-  const today = new Date().toISOString().split('T')[0];
-  return creneauxBuilt.map(c => {
-    return `
-    <div class="creneau-builder" id="creneau-${c.id}">
-      <button class="remove-creneau" onclick="removeCreneau('${c.id}')">✕</button>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:8px">
-        <div>
-          <span class="input-label">Date</span>
-          <input class="input-field" type="date" id="cd-date-${c.id}" value="${c.date}" min="${today}">
-        </div>
-        <div>
-          <span class="input-label">Heure</span>
-          <input class="input-field" type="time" id="cd-heure-${c.id}" value="${c.heure}">
-        </div>
-      </div>
-      <span class="input-label">Lieu du match</span>
-      <div class="venue-pick form-group" style="margin-bottom:0">
-        <input class="input-field" type="text" id="cd-lieu-${c.id}" value="${c.lieu}" autocomplete="off"
-          placeholder="Salle, ville ou adresse…"
-          oninput="venueSuggest('${c.id}')" onfocus="venueSuggest('${c.id}')"
-          onblur="setTimeout(function(){var d=document.getElementById('venue-dd-${c.id}');if(d)d.classList.remove('open');},150)">
-        <div class="venue-dd" id="venue-dd-${c.id}"></div>
-      </div>
-    </div>`;
-  }).join('');
-}
 
 // ===== CRÉATION MATCH — lieu en cartes + créneaux en chips (zéro saisie) =====
 let _cmVenue = null;      // terrain choisi {n, v, lat, lon}
@@ -4387,181 +4058,7 @@ window.cmSubmit = function() {
   window.submitCreateMatch();
 };
 
-// Ajoute un créneau SANS rouvrir la modal — met à jour seulement #creneaux-list
-window.addCreneau = function() {
-  syncCreneauxFromDOM();
-  creneauxBuilt.push({ id: genId(), date: '', heure: '19:00', lieu: LIEUX_DEMO[0].nom });
-  const el = document.getElementById('creneaux-list');
-  if (el) el.innerHTML = buildCreneauxHtml();
-};
-
-// Supprime un créneau SANS rouvrir la modal
-window.removeCreneau = function(id) {
-  if (creneauxBuilt.length <= 1) { showToast('Au minimum 1 créneau requis.', 'error'); return; }
-  syncCreneauxFromDOM();
-  creneauxBuilt = creneauxBuilt.filter(c => c.id !== id);
-  const el = document.getElementById('creneaux-list');
-  if (el) el.innerHTML = buildCreneauxHtml();
-};
-
-// ===== CARTE SÉLECTION LIEU (Leaflet + Overpass + Geolocalisation + Recherche ville) =====
-let _venueMap = null;
-window.openVenueMap = function(inputId) {
-  const inputEl = document.getElementById(inputId);
-  openModal(`${ICON.pin} Choisir un terrain`, `
-    <input class="input-field" id="venue-search-input"
-      placeholder="🔍 Cherche une ville : Orsay, Massy, Paris 13e…"
-      style="margin-bottom:10px">
-    <div class="venue-map-wrap">
-      <div id="venue-map"></div>
-    </div>
-    <div id="venue-list" class="venue-list">
-      <div class="venue-item"><div class="vi-name">📡 Géolocalisation en cours…</div></div>
-    </div>
-    <div class="map-or-manual">— ou saisie manuelle —</div>
-    <input class="input-field" id="venue-manual-input" placeholder="Nom du terrain / adresse…"
-      value="${inputEl?.value || ''}" style="margin-bottom:10px">
-    <button class="btn-primary" onclick="confirmVenueSelection('${inputId}')">
-      CONFIRMER CE LIEU
-    </button>
-  `);
-
-  requestAnimationFrame(() => {
-    setTimeout(() => {
-      if (_venueMap) { _venueMap.remove(); _venueMap = null; }
-      const map = L.map('venue-map', { zoomControl:true }).setView([48.8566, 2.3522], 12);
-      _venueMap = map;
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution:'© OpenStreetMap', maxZoom:19
-      }).addTo(map);
-
-      function queryVenuesAround(lat, lon, zoom) {
-        map.setView([lat, lon], zoom || 13);
-        // Clear markers
-        map.eachLayer(l => { if (l instanceof L.Marker) map.removeLayer(l); });
-
-        const d = 0.12;
-        const bb = `${lat-d},${lon-d*1.8},${lat+d},${lon+d*1.8}`;
-        // Only commercial indoor 5-a-side / futsal venues — no clubs or public complexes
-        const oq = `[out:json][timeout:15];(
-          node["name"~"five|futsal|urban soccer|urban foot|foot five|speed soccer|city stade|footeo|urbain foot|mini foot indoor",i](${bb});
-          way["name"~"five|futsal|urban soccer|urban foot|foot five|speed soccer|city stade|footeo|urbain foot|mini foot indoor",i](${bb});
-          node["sport"="futsal"](${bb});
-          way["sport"="futsal"](${bb});
-          node["sport"="soccer"]["indoor"="yes"](${bb});
-          way["sport"="soccer"]["indoor"="yes"](${bb});
-        );out center 30;`;
-
-        const listEl = document.getElementById('venue-list');
-        if (listEl) listEl.innerHTML = '<div class="venue-item"><div class="vi-name">⏳ Chargement des terrains…</div></div>';
-
-        fetch('https://overpass-api.de/api/interpreter', {
-          method:'POST', body:'data=' + encodeURIComponent(oq)
-        })
-        .then(r => r.json())
-        .then(data => {
-          const INDOOR_KW = ['five','futsal','urban','indoor','speed soccer','city stade','footeo','mini foot'];
-          const EXCL_KW  = ['club sportif','association','complexe sportif','stade municipal','gymnase','lycée','collège','école','mairie','omnisports'];
-          const venues = (data.elements || [])
-            .filter(e => {
-              if (!e.tags?.name) return false;
-              const n = e.tags.name.toLowerCase();
-              // Must match an indoor keyword OR have sport=futsal tag
-              const isIndoor = INDOOR_KW.some(k => n.includes(k)) || e.tags?.sport === 'futsal' || e.tags?.indoor === 'yes';
-              const isExcl   = EXCL_KW.some(k => n.includes(k));
-              return isIndoor && !isExcl;
-            })
-            .map(e => ({
-              name: e.tags.name,
-              lat: e.lat ?? e.center?.lat,
-              lon: e.lon ?? e.center?.lon,
-              addr: [e.tags['addr:street'], e.tags['addr:housenumber'], e.tags['addr:city']].filter(Boolean).join(' ')
-            }))
-            .filter(v => v.lat && v.lon);
-
-          const lEl = document.getElementById('venue-list');
-          if (!lEl) return;
-          if (venues.length === 0) {
-            lEl.innerHTML = '<div class="venue-item"><div class="vi-name">Aucun terrain Five/Futsal/Urban trouvé près d\'ici — recherche une ville ou saisis le nom manuellement</div></div>';
-            return;
-          }
-          window._venueResults = venues;
-          lEl.innerHTML = venues.slice(0,25).map((v,i) => `
-            <div class="venue-item" id="vi-${i}" onclick="selectVenueItem(${i})">
-              <div class="vi-name">${v.name}</div>
-              <div class="vi-dist">${v.addr || '📍 ' + v.lat.toFixed(4) + ', ' + v.lon.toFixed(4)}</div>
-            </div>`).join('');
-
-          const icon = L.divIcon({ html:'⚽', className:'', iconSize:[22,22] });
-          venues.slice(0,25).forEach((v,i) => {
-            L.marker([v.lat, v.lon], { icon })
-              .addTo(map)
-              .bindPopup(`<b>${v.name}</b><br>${v.addr || ''}`)
-              .on('click', () => selectVenueItem(i));
-          });
-        })
-        .catch(() => {
-          const lEl = document.getElementById('venue-list');
-          if (lEl) lEl.innerHTML = '<div class="venue-item"><div class="vi-name">Erreur réseau — saisis l\'adresse manuellement.</div></div>';
-        });
-      }
-      window._queryVenuesAround = queryVenuesAround;
-
-      // 1. Géolocalisation GPS
-      if (navigator.geolocation) {
-        navigator.geolocation.getCurrentPosition(
-          pos => queryVenuesAround(pos.coords.latitude, pos.coords.longitude, 13),
-          ()  => queryVenuesAround(48.8566, 2.3522, 12),
-          { timeout: 6000 }
-        );
-      } else {
-        queryVenuesAround(48.8566, 2.3522, 12);
-      }
-
-      // 2. Recherche par nom de ville (Nominatim)
-      let searchTimer = null;
-      const searchEl = document.getElementById('venue-search-input');
-      if (searchEl) {
-        searchEl.addEventListener('input', function() {
-          clearTimeout(searchTimer);
-          const q = this.value.trim();
-          if (q.length < 3) return;
-          searchTimer = setTimeout(async () => {
-            try {
-              const r = await fetch(
-                `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=fr`,
-                { headers: { 'Accept-Language':'fr', 'User-Agent':'CapSaclayFive/1.0' } }
-              );
-              const res = await r.json();
-              if (res.length > 0) queryVenuesAround(parseFloat(res[0].lat), parseFloat(res[0].lon), 13);
-            } catch(e) {}
-          }, 650);
-        });
-      }
-    }, 120);
-  });
-};
-
-window._venueTargetInput = null;
-window.selectVenueItem = function(i) {
-  const v = (window._venueResults || [])[i];
-  if (!v) return;
-  document.querySelectorAll('.venue-item').forEach(el => el.classList.remove('selected'));
-  const el = document.getElementById('vi-' + i);
-  if (el) el.classList.add('selected');
-  const manualEl = document.getElementById('venue-manual-input');
-  if (manualEl) manualEl.value = v.name + (v.addr ? ' — ' + v.addr : '');
-  window._selectedVenueCoords = (v.lat && v.lon) ? { lat: v.lat, lon: v.lon } : null;
-};
-
-window.confirmVenueSelection = function(inputId) {
-  const manualEl = document.getElementById('venue-manual-input');
-  const val = manualEl?.value?.trim();
-  if (!val) { showToast('Saisis ou sélectionne un lieu.', 'error'); return; }
-  const target = document.getElementById(inputId);
-  if (target) target.value = val;
-  closeModal();
-};
+// (Ancien sélecteur de terrain Leaflet retiré — remplacé par les cartes de terrain)
 
 window.submitCreateMatch = async function() {
   if (!currentUser) return;
@@ -4574,7 +4071,6 @@ window.submitCreateMatch = async function() {
     renderScreen('home');
     return;
   }
-  syncCreneauxFromDOM(); // sauvegarde les valeurs du formulaire
   const uid = currentUser.uid;
   const creneaux = creneauxBuilt.map(c => {
     const dateVal = c.date;
