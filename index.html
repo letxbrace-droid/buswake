@@ -994,6 +994,19 @@
     .mc-score .tn { font-size:11px; color:var(--text-sec); text-align:center; margin-top:2px; font-weight:600; }
     .mc-motm { display:inline-flex; align-items:center; gap:6px; font-size:11.5px; font-weight:700; color:var(--gold); }
     .mc-motm .ic { width:14px; height:14px; }
+
+    /* ===== SKELETONS (écrans de chargement) ===== */
+    /* .sk = bloc gris avec reflet animé qui balaie (shimmer) → fait patienter
+       sans spinner, en montrant déjà la forme du contenu à venir. */
+    .sk { position:relative; overflow:hidden; background:rgba(255,255,255,.05); border-radius:8px; }
+    .sk::after { content:""; position:absolute; inset:0; transform:translateX(-100%);
+      background:linear-gradient(90deg,transparent,rgba(255,255,255,.08),transparent); animation:skShimmer 1.3s infinite; }
+    @keyframes skShimmer { 100% { transform:translateX(100%); } }
+    .sk-card { background:linear-gradient(180deg,var(--card),#10141c); border:1px solid var(--border);
+      border-radius:16px; padding:14px 16px; margin-bottom:12px; }
+    .sk-line { border-radius:6px; }
+    .sk-row { display:flex; align-items:center; }
+    @media (prefers-reduced-motion: reduce) { .sk::after { animation:none; } }
     .input-row { display:flex; gap:8px; }
     .input-row input { flex:1; }
     .section-actions { display:flex; gap:8px; margin-bottom:14px; }
@@ -3279,7 +3292,7 @@ document.getElementById('main-modal').addEventListener('click', function(e) {
 // ===== ÉCRAN ACCUEIL =====
 async function renderHome() {
   const el = document.getElementById('home-content');
-  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  el.innerHTML = matchSkeleton(2);
 
   const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'));
   const snapC = await getDocsFromServer(qConfirme).catch(() => getDocs(qConfirme).catch(() => null));
@@ -3291,6 +3304,7 @@ async function renderHome() {
   const snapT = await getDocsFromServer(qTermine).catch(() => getDocs(qTermine).catch(() => null));
 
   let html = '';
+  const fills = [], motms = [];
 
   // Prochain match confirmé — tri côté client par dateFinale asc, futurs seulement
   const confirmes = snapC ? snapC.docs
@@ -3306,20 +3320,8 @@ async function renderHome() {
     }) : [];
 
   if (confirmes.length > 0) {
-    const m = confirmes[0].data();
-    const joueursCount = (m.joueursInscrits || []).length;
-    html += `
-      <div class="hero-match card-hover" onclick="openMatchDetail('${confirmes[0].id}')">
-        <div class="hero-label">${ICON.ball} Prochain match confirmé</div>
-        <div class="hero-date">${formatDate(m.dateFinale)}</div>
-        <div class="hero-lieu">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
-        <div class="hero-players">
-          <div class="player-avatars" id="home-avatars-${confirmes[0].id}"></div>
-          <div class="player-count">${joueursCount} joueur${joueursCount>1?'s':''} inscrit${joueursCount>1?'s':''}</div>
-        </div>
-      </div>`;
-    // Charger avatars async
-    renderAvatarsAsync(confirmes[0].id, m.joueursInscrits || [], 'home-avatars-' + confirmes[0].id);
+    html += `<div class="mlist-lbl">Prochain match</div>`;
+    html += matchCardHTML(confirmes[0].id, confirmes[0].data(), 'confirmé', fills, motms);
   }
 
   // Sondages — tri côté client par createdAt desc
@@ -3329,32 +3331,8 @@ async function renderHome() {
     return tb - ta;
   }) : [];
   if (sondages.length > 0) {
-    html += `<div class="section-title"><svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V11"/><path d="M10 20V4"/><path d="M16 20v-6"/></svg>Sondages en cours <span class="badge-dot">${sondages.length}</span></div>`;
-    for (const d of sondages.slice(0, 3)) {
-      const m = d.data();
-      const votes = m.votes || {};
-      const bestCreneau = getBestCreneau(m);
-      html += `
-        <div class="poll-card" onclick="openMatchDetail('${d.id}')">
-          <div class="poll-card-header">
-            <div>
-              <div class="poll-card-title">Match du ${m.creneauxProposes && m.creneauxProposes.length > 0 ? formatDateShort(m.creneauxProposes[0].date) : '?'}</div>
-              <div class="poll-card-sub">${m.creneauxProposes ? m.creneauxProposes.length : 0} créneaux proposés</div>
-            </div>
-            <span class="tag tag-sondage">Sondage</span>
-          </div>
-          <div class="poll-creneaux">
-            ${(m.creneauxProposes || []).slice(0, 2).map(c => {
-              const voteCount = (votes[c.id] || []).length;
-              const hasVoted = (votes[c.id] || []).includes(currentUser?.uid);
-              return `<div class="creneau-preview">
-                <span>${formatDateShort(c.date)} – ${c.lieu}</span>
-                <span class="votes">${voteCount} vote${voteCount>1?'s':''}${hasVoted?' ✓':''}</span>
-              </div>`;
-            }).join('')}
-          </div>
-        </div>`;
-    }
+    html += `<div class="mlist-lbl">Sondages en cours · ${sondages.length}</div>`;
+    html += sondages.slice(0, 3).map(d => matchCardHTML(d.id, d.data(), 'sondage', fills, motms)).join('');
   }
 
   // ===== Dernières activités (fil compact) =====
@@ -3371,7 +3349,7 @@ async function renderHome() {
       sub: na + ' ' + (m.scoreA ?? '?') + '–' + (m.scoreB ?? '?') + ' ' + nb, id:d.id }); });
   acts.sort((x, y) => y.t - x.t);
   if (acts.length) {
-    html += `<div class="section-title" style="margin-top:18px"><svg class="sec-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>Dernières activités</div>`;
+    html += `<div class="mlist-lbl" style="margin-top:18px">Dernières activités</div>`;
     html += `<div class="activity-list">` + acts.slice(0, 5).map(it => `
       <div class="activity-item" onclick="openMatchDetail('${it.id}')">
         <div class="act-ic" style="color:${it.color}">${it.icon}</div>
@@ -3407,6 +3385,7 @@ async function renderHome() {
   }
 
   el.innerHTML = html;
+  hydrateMatchCards(fills, motms);
 }
 
 // Charge les avatars de joueurs en asynchrone
@@ -3451,7 +3430,7 @@ async function renderMatchs() {
       <button class="seg-btn ${matchsFilter==='confirme'?'active':''}" id="seg-confirme" onclick="setMatchFilter('confirme')">${ICON.checkCircle}Confirmés<span class="seg-count" id="cnt-confirme"></span></button>
       <button class="seg-btn ${matchsFilter==='termine'?'active':''}" id="seg-termine" onclick="setMatchFilter('termine')">${ICON.scroll}Histo<span class="seg-count" id="cnt-termine"></span></button>
     </div>
-    <div id="matchs-list"><div class="loader"><div class="spinner"></div></div></div>`;
+    <div id="matchs-list">${matchSkeleton(3)}</div>`;
   requestAnimationFrame(() => positionSegThumb(matchsFilter));
   loadMatchsList(matchsFilter);
   loadMatchCounts();
@@ -3511,6 +3490,144 @@ function countdownLabel(ts) {
   return `Dans ${days} jours · ${time}`;
 }
 
+// Construit une carte match "tech" selon le statut. Empile les ids à
+// hydrater (avatars / nom MOTM) dans fills/motms, puis appeler hydrateMatchCards.
+function matchCardHTML(id, m, statut, fills, motms) {
+  const inscrits = m.joueursInscrits || [];
+  const n = inscrits.length;
+  const isInscrit = inscrits.includes(currentUser?.uid);
+
+  if (statut === 'sondage') {
+    const vMap = m.votes || {};
+    const creneaux = m.creneauxProposes || [];
+    const voterUids = [...new Set(Object.values(vMap).flat())];
+    const ivoted = voterUids.includes(currentUser?.uid);
+    const best = getBestCreneau(m);
+    const maxV = Math.max(1, ...creneaux.map(c => (vMap[c.id] || []).length));
+    const sortedC = [...creneaux].sort((a, b) => (vMap[b.id] || []).length - (vMap[a.id] || []).length);
+    const voteBars = creneaux.length
+      ? '<div class="vb">' + sortedC.slice(0, 3).map((c, i) => {
+          const cnt = (vMap[c.id] || []).length;
+          const pct = Math.round((cnt / maxV) * 100);
+          return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
+        }).join('') + '</div>'
+      : '<div class="mc-eyebrow" style="margin-top:6px;color:var(--text-sec)">Aucun créneau proposé</div>';
+    if (fills) fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
+    return `
+      <div class="mc sondage" onclick="openMatchDetail('${id}')">
+        <div class="mc-top">
+          <div>
+            <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> Sondage · vote ouvert</div>
+            <div class="mc-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
+          </div>
+          <span class="mc-chip chip-sondage">Sondage</span>
+        </div>
+        <div class="mc-body">${voteBars}</div>
+        <div class="mc-foot">
+          <div class="av-stack" id="mcav-${id}"></div>
+          <span class="foot-txt"><b>${voterUids.length}</b> ont voté</span>
+          <span class="count-pill" style="color:var(--blue)">${ivoted ? `${ICON.check} Voté` : `${ICON.poll} Voter`}</span>
+        </div>
+      </div>`;
+  }
+
+  if (statut === 'confirmé') {
+    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+    const places = Math.max(0, MIN_CONFIRM - n);
+    const placesTxt = places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet';
+    if (fills) fills.push({ id, uids: inscrits });
+    return `
+      <div class="mc confirme" onclick="openMatchDetail('${id}')">
+        <div class="mc-top">
+          <div>
+            <div class="mc-eyebrow" style="color:var(--orange)">${countdownLabel(m.dateFinale)}</div>
+            <div class="mc-date">${dateDayLabel(m.dateFinale)}</div>
+          </div>
+          <span class="mc-chip chip-confirme">Confirmé</span>
+        </div>
+        <div class="mc-body">
+          <div class="mc-eyebrow" style="margin-top:2px;color:var(--text-sec)">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
+          <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+        </div>
+        <div class="mc-foot">
+          <div class="av-stack" id="mcav-${id}"></div>
+          <span class="foot-txt">${placesTxt}</span>
+          <span class="count-pill">${isInscrit ? `${ICON.checkCircle} Inscrit` : `${ICON.plus} Rejoindre`}</span>
+        </div>
+      </div>`;
+  }
+
+  // terminé
+  const teamA = m.equipes?.[0]?.nom || 'Équipe A';
+  const teamB = m.equipes?.[1]?.nom || 'Équipe B';
+  const motmHtml = m.hommeDuMatchUid
+    ? `<span class="mc-motm" id="mcmotm-${id}">${ICON.trophy} MOTM · …</span>`
+    : `<span class="count-pill" style="color:var(--gold)" onclick="event.stopPropagation();window.openMotmVote('${id}')">${ICON.trophy} Vote MOTM</span>`;
+  if (m.hommeDuMatchUid && motms) motms.push({ id, uid: m.hommeDuMatchUid });
+  return `
+    <div class="mc histo" onclick="openMatchDetail('${id}')">
+      <div class="mc-top">
+        <div>
+          <div class="mc-eyebrow" style="color:var(--gold)">Terminé · ${dateDayLabel(m.dateFinale)}</div>
+          <div class="mc-score"><div><div class="n">${m.scoreA ?? '?'}</div><div class="tn">${escapeHtml(teamA)}</div></div><span class="sep">–</span><div><div class="n">${m.scoreB ?? '?'}</div><div class="tn">${escapeHtml(teamB)}</div></div></div>
+        </div>
+        <span class="mc-chip chip-histo">Terminé</span>
+      </div>
+      <div class="mc-foot">
+        ${motmHtml}
+        <span class="count-pill" style="color:var(--text-sec);margin-left:auto">${ICON.users} ${n} joueur${n > 1 ? 's' : ''}</span>
+      </div>
+    </div>`;
+}
+// Hydrate les cartes (avatars empilés + nom du MOTM) après insertion
+function hydrateMatchCards(fills, motms) {
+  (fills || []).forEach(f => renderStackAvatars(f.uids, 'mcav-' + f.id));
+  (motms || []).forEach(async mm => {
+    const u = await getUserData(mm.uid);
+    const span = document.getElementById('mcmotm-' + mm.id);
+    if (span) span.innerHTML = `${ICON.trophy} MOTM · ${escapeHtml(u?.pseudo || 'Inconnu')}`;
+  });
+}
+// Squelette de cartes match (placeholder animé pendant le chargement)
+function matchSkeleton(n = 3) {
+  let s = '';
+  for (let i = 0; i < n; i++) {
+    s += `<div class="sk-card">
+      <div class="sk-row" style="justify-content:space-between;align-items:flex-start">
+        <div style="flex:1">
+          <div class="sk sk-line" style="width:42%;height:9px"></div>
+          <div class="sk sk-line" style="width:62%;height:18px;margin-top:9px"></div>
+        </div>
+        <div class="sk" style="width:74px;height:24px;border-radius:99px"></div>
+      </div>
+      <div class="sk sk-line" style="width:100%;height:7px;margin-top:14px"></div>
+      <div class="sk sk-line" style="width:78%;height:7px;margin-top:8px"></div>
+      <div class="sk-row" style="margin-top:16px;gap:10px">
+        <div class="sk" style="width:84px;height:24px;border-radius:99px"></div>
+        <div class="sk sk-line" style="width:90px;height:10px"></div>
+        <div class="sk sk-line" style="width:54px;height:10px;margin-left:auto"></div>
+      </div>
+    </div>`;
+  }
+  return s;
+}
+// Squelette de lignes (classement, listes simples)
+function listSkeleton(n = 6) {
+  let rows = '';
+  for (let i = 0; i < n; i++) {
+    rows += `<div class="sk-row" style="gap:11px;padding:9px 13px;border-bottom:1px solid var(--border)">
+      <div class="sk" style="width:20px;height:14px"></div>
+      <div class="sk" style="width:38px;height:38px;border-radius:50%"></div>
+      <div style="flex:1">
+        <div class="sk sk-line" style="width:46%;height:11px"></div>
+        <div class="sk sk-line" style="width:66%;height:8px;margin-top:7px"></div>
+      </div>
+      <div class="sk sk-line" style="width:42px;height:13px"></div>
+    </div>`;
+  }
+  return `<div class="players-glass">${rows}</div>`;
+}
+
 function loadMatchsList(filter) {
   const el = document.getElementById('matchs-list');
   if (!el) return;
@@ -3535,104 +3652,11 @@ function loadMatchsList(filter) {
       const tb = b.data().createdAt?.toMillis?.() ?? 0;
       return tb - ta;
     });
-    let html = '';
     const fills = [];   // avatars empilés à charger : {id, uids}
     const motms = [];   // noms MOTM à charger : {id, uid}
-    for (const d of docs) {
-      const m = d.data();
-      const id = d.id;
-      const inscrits = m.joueursInscrits || [];
-      const n = inscrits.length;
-      const isInscrit = inscrits.includes(currentUser?.uid);
-
-      if (statut === 'sondage') {
-        const vMap = m.votes || {};
-        const creneaux = m.creneauxProposes || [];
-        const voterUids = [...new Set(Object.values(vMap).flat())];
-        const ivoted = voterUids.includes(currentUser?.uid);
-        const best = getBestCreneau(m);
-        const maxV = Math.max(1, ...creneaux.map(c => (vMap[c.id] || []).length));
-        const sortedC = [...creneaux].sort((a, b) => (vMap[b.id] || []).length - (vMap[a.id] || []).length);
-        const voteBars = creneaux.length
-          ? '<div class="vb">' + sortedC.slice(0, 3).map((c, i) => {
-              const cnt = (vMap[c.id] || []).length;
-              const pct = Math.round((cnt / maxV) * 100);
-              return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
-            }).join('') + '</div>'
-          : '<div class="mc-eyebrow" style="margin-top:6px;color:var(--text-sec)">Aucun créneau proposé</div>';
-        html += `
-          <div class="mc sondage" onclick="openMatchDetail('${id}')">
-            <div class="mc-top">
-              <div>
-                <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> Sondage · vote ouvert</div>
-                <div class="mc-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
-              </div>
-              <span class="mc-chip chip-sondage">Sondage</span>
-            </div>
-            <div class="mc-body">${voteBars}</div>
-            <div class="mc-foot">
-              <div class="av-stack" id="mcav-${id}"></div>
-              <span class="foot-txt"><b>${voterUids.length}</b> ont voté</span>
-              <span class="count-pill" style="color:var(--blue)">${ivoted ? `${ICON.check} Voté` : `${ICON.poll} Voter`}</span>
-            </div>
-          </div>`;
-        fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
-
-      } else if (statut === 'confirmé') {
-        const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
-        const places = Math.max(0, MIN_CONFIRM - n);
-        const placesTxt = places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet';
-        html += `
-          <div class="mc confirme" onclick="openMatchDetail('${id}')">
-            <div class="mc-top">
-              <div>
-                <div class="mc-eyebrow" style="color:var(--orange)">${countdownLabel(m.dateFinale)}</div>
-                <div class="mc-date">${dateDayLabel(m.dateFinale)}</div>
-              </div>
-              <span class="mc-chip chip-confirme">Confirmé</span>
-            </div>
-            <div class="mc-body">
-              <div class="mc-eyebrow" style="margin-top:2px;color:var(--text-sec)">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
-              <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
-            </div>
-            <div class="mc-foot">
-              <div class="av-stack" id="mcav-${id}"></div>
-              <span class="foot-txt">${placesTxt}</span>
-              <span class="count-pill">${isInscrit ? `${ICON.checkCircle} Inscrit` : `${ICON.plus} Rejoindre`}</span>
-            </div>
-          </div>`;
-        fills.push({ id, uids: inscrits });
-
-      } else { // terminé
-        const teamA = m.equipes?.[0]?.nom || 'Équipe A';
-        const teamB = m.equipes?.[1]?.nom || 'Équipe B';
-        const motmHtml = m.hommeDuMatchUid
-          ? `<span class="mc-motm" id="mcmotm-${id}">${ICON.trophy} MOTM · …</span>`
-          : `<span class="count-pill" style="color:var(--gold)" onclick="event.stopPropagation();window.openMotmVote('${id}')">${ICON.trophy} Vote MOTM</span>`;
-        html += `
-          <div class="mc histo" onclick="openMatchDetail('${id}')">
-            <div class="mc-top">
-              <div>
-                <div class="mc-eyebrow" style="color:var(--gold)">Terminé · ${dateDayLabel(m.dateFinale)}</div>
-                <div class="mc-score"><div><div class="n">${m.scoreA ?? '?'}</div><div class="tn">${escapeHtml(teamA)}</div></div><span class="sep">–</span><div><div class="n">${m.scoreB ?? '?'}</div><div class="tn">${escapeHtml(teamB)}</div></div></div>
-              </div>
-              <span class="mc-chip chip-histo">Terminé</span>
-            </div>
-            <div class="mc-foot">
-              ${motmHtml}
-              <span class="count-pill" style="color:var(--text-sec);margin-left:auto">${ICON.users} ${n} joueur${n > 1 ? 's' : ''}</span>
-            </div>
-          </div>`;
-        if (m.hommeDuMatchUid) motms.push({ id, uid: m.hommeDuMatchUid });
-      }
-    }
+    const html = docs.map(d => matchCardHTML(d.id, d.data(), statut, fills, motms)).join('');
     el.innerHTML = html;
-    fills.forEach(f => renderStackAvatars(f.uids, 'mcav-' + f.id));
-    motms.forEach(async mm => {
-      const u = await getUserData(mm.uid);
-      const span = document.getElementById('mcmotm-' + mm.id);
-      if (span) span.innerHTML = `${ICON.trophy} MOTM · ${escapeHtml(u?.pseudo || 'Inconnu')}`;
-    });
+    hydrateMatchCards(fills, motms);
   }, err => {
     console.error('Firestore matchs query error:', err);
     el.innerHTML = `<div class="empty-state"><div class="icon" style="color:var(--red)">${ICON.warn}</div><p>Erreur de chargement.<br><small style="color:var(--red)">${err.code}</small></p></div>`;
@@ -5062,7 +5086,7 @@ window.saveProfile = async function() {
 // ===== CLASSEMENT =====
 async function renderClassement() {
   const el = document.getElementById('classement-content');
-  el.innerHTML = '<div class="loader"><div class="spinner"></div></div>';
+  el.innerHTML = `<div class="sk" style="height:118px;border-radius:18px;margin:6px 0 16px"></div>${listSkeleton(7)}`;
 
   const q = query(collection(db, 'users'), orderBy('xp', 'desc'));
   const snap = await getDocs(q);
