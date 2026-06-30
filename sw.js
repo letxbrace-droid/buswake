@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v53';
+const CACHE = 'cs5-v54';
 const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png','./logo.png'];
 
 self.addEventListener('install', e => {
@@ -17,6 +17,24 @@ self.addEventListener('fetch', e => {
   if (e.request.method !== 'GET') return;
   const url = new URL(e.request.url);
   if (url.origin !== location.origin) return;
+
+  // La PAGE (navigation + index.html) : network-first → toujours la
+  // dernière version quand on est en ligne, repli sur le cache hors-ligne.
+  // Évite que les correctifs restent invisibles à cause d'un cache figé.
+  const isDoc = e.request.mode === 'navigate'
+    || url.pathname === '/' || url.pathname.endsWith('/')
+    || url.pathname.endsWith('index.html');
+  if (isDoc) {
+    e.respondWith(
+      fetch(e.request).then(res => {
+        if (res.ok) caches.open(CACHE).then(c => c.put(e.request, res.clone()));
+        return res;
+      }).catch(() => caches.match(e.request).then(c => c || caches.match('./index.html')))
+    );
+    return;
+  }
+
+  // Le reste (assets statiques) : cache-first, mise à jour en arrière-plan.
   e.respondWith(
     caches.match(e.request).then(cached => {
       const network = fetch(e.request).then(res => {
