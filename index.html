@@ -3097,15 +3097,29 @@ function showToast(msg, type = '') {
 window.showToast = showToast;
 
 // ===== FORMAT DATE =====
-function formatDate(ts) {
-  if (!ts) return '—';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
+// Convertit une valeur de date hétérogène en Date locale.
+//  - Timestamp Firestore (.toDate) ou nombre (ms) : tels quels ;
+//  - chaîne 'YYYY-MM-DD' (les créneaux) : interprétée en heure LOCALE avec
+//    l'heure fournie (sinon 20:00), pour éviter le décalage UTC (minuit UTC
+//    = 02:00 à Paris) qui affichait de fausses heures et des « Passé ».
+function _toDate(ts, heure) {
+  if (!ts && ts !== 0) return null;
+  if (typeof ts === 'number') return new Date(ts);
+  if (ts.toDate) return ts.toDate();
+  if (typeof ts === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(ts)) {
+    return new Date(ts + 'T' + (heure || '20:00') + ':00');
+  }
+  return new Date(ts);
+}
+function formatDate(ts, heure) {
+  const d = _toDate(ts, heure);
+  if (!d) return '—';
   return d.toLocaleDateString('fr-FR', { weekday:'short', day:'numeric', month:'short' })
     + ' à ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
 }
-function formatDateShort(ts) {
-  if (!ts) return '—';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
+function formatDateShort(ts, heure) {
+  const d = _toDate(ts, heure);
+  if (!d) return '—';
   return d.toLocaleDateString('fr-FR', { day:'numeric', month:'short' })
     + ' ' + d.toLocaleTimeString('fr-FR', { hour:'2-digit', minute:'2-digit' });
 }
@@ -3327,9 +3341,10 @@ function homeHeroHTML(id, m, statut, fills) {
       : (n >= MIN_CONFIRM
           ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.clock} Match plein · rejoindre le banc</button>`
           : `<button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ICON.plus} Je joue !</button>`);
+    const _whenMs = _matchWhen(m).ms; // date + heure réelles (dateFinale ne stocke que la date)
     return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
-      <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} Prochain match · ${countdownLabel(m.dateFinale)}</div>
-      <div class="hh-date">${dateDayLabel(m.dateFinale)}</div>
+      <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} Prochain match · ${countdownLabel(_whenMs)}</div>
+      <div class="hh-date">${dateDayLabel(_whenMs)}</div>
       <div class="hh-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
       <div class="fillbar hh-gauge"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
       <div class="hh-foot"><div class="av-stack" id="mcav-${id}"></div><span class="foot-txt">${places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet'}</span></div>
@@ -3347,12 +3362,12 @@ function homeHeroHTML(id, m, statut, fills) {
   const sortedC = [...creneaux].sort((a, b) => (vMap[b.id] || []).length - (vMap[a.id] || []).length);
   const bars = creneaux.length ? '<div class="vb hh-gauge">' + sortedC.slice(0, 3).map((c, i) => {
     const cnt = (vMap[c.id] || []).length; const pct = Math.round((cnt / maxV) * 100);
-    return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
+    return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date, c.heure)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
   }).join('') + '</div>' : '';
   if (fills) fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
   return `<div class="home-hero sondage"><div class="hh-glow"></div><div class="hh-body">
     <div class="hh-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ? · vote ouvert</div>
-    <div class="hh-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
+    <div class="hh-date">${best ? dateDayLabel(best.date, best.heure) : 'À planifier'}</div>
     ${best ? `<div class="hh-meta">${ICON.pin} ${best.lieu}</div>` : ''}
     ${bars}
     <div class="hh-foot"><div class="av-stack" id="mcav-${id}"></div><span class="foot-txt"><b>${voterUids.length}</b> ont voté</span></div>
@@ -3445,18 +3460,22 @@ async function renderStackAvatars(uids, containerId, max = 4) {
   c.innerHTML = h;
 }
 // Libellés de date pour les cartes
-function dateDayLabel(ts) {
-  if (!ts) return '—';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
+function dateDayLabel(ts, heure) {
+  const d = _toDate(ts, heure);
+  if (!d) return '—';
   return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
 }
-function countdownLabel(ts) {
-  if (!ts) return '';
-  const d = ts.toDate ? ts.toDate() : new Date(ts);
+function countdownLabel(ts, heure) {
+  const d = _toDate(ts, heure);
+  if (!d) return '';
   const time = d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-  const diff = d - new Date();
+  const now = new Date();
+  const diff = d - now;
   if (diff < 0) return 'Passé · ' + time;
-  const days = Math.floor(diff / 86400000);
+  // Écart en jours CALENDAIRES (pas un floor des millisecondes), sinon un
+  // match dans 2 jours à 19h passé 19h aujourd'hui s'affichait « Demain ».
+  const sod = x => { const y = new Date(x); y.setHours(0, 0, 0, 0); return y.getTime(); };
+  const days = Math.round((sod(d) - sod(now)) / 86400000);
   if (days === 0) return (diff < 3600000 ? 'Bientôt · ' : "Aujourd'hui · ") + time;
   if (days === 1) return 'Demain · ' + time;
   return `Dans ${days} jours · ${time}`;
@@ -3481,7 +3500,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
       ? '<div class="vb">' + sortedC.slice(0, 3).map((c, i) => {
           const cnt = (vMap[c.id] || []).length;
           const pct = Math.round((cnt / maxV) * 100);
-          return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
+          return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date, c.heure)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
         }).join('') + '</div>'
       : '<div class="mc-eyebrow" style="margin-top:6px;color:var(--text-sec)">Aucun créneau proposé</div>';
     if (fills) fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
@@ -3490,7 +3509,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
         <div class="mc-top">
           <div>
             <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ?</div>
-            <div class="mc-date">${best ? dateDayLabel(best.date) : 'À planifier'}</div>
+            <div class="mc-date">${best ? dateDayLabel(best.date, best.heure) : 'À planifier'}</div>
           </div>
           <span class="mc-chip chip-sondage">Sondage</span>
         </div>
@@ -3508,12 +3527,13 @@ function matchCardHTML(id, m, statut, fills, motms) {
     const places = Math.max(0, MIN_CONFIRM - n);
     const placesTxt = places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet';
     if (fills) fills.push({ id, uids: inscrits });
+    const _whenMs = _matchWhen(m).ms; // date + heure réelles (dateFinale ne stocke que la date)
     return `
       <div class="mc confirme" onclick="openMatchDetail('${id}')">
         <div class="mc-top">
           <div>
-            <div class="mc-eyebrow" style="color:var(--orange)">${countdownLabel(m.dateFinale)}</div>
-            <div class="mc-date">${dateDayLabel(m.dateFinale)}</div>
+            <div class="mc-eyebrow" style="color:var(--orange)">${countdownLabel(_whenMs)}</div>
+            <div class="mc-date">${dateDayLabel(_whenMs)}</div>
           </div>
           <span class="mc-chip chip-confirme">Confirmé</span>
         </div>
@@ -3900,7 +3920,7 @@ async function renderMatchDetail(matchId, m) {
       return `
         <div class="creneau-vote${hasVoted ? ' voted' : ''}${isTop ? ' top' : ''}" onclick="voterCreneau('${matchId}','${c.id}')">
           <div class="info">
-            <div class="date-str">${formatDate(c.date)}</div>
+            <div class="date-str">${formatDate(c.date, c.heure)}</div>
             <div class="lieu-str">${ICON.pin} ${c.lieu}${isTop ? ' <strong style="color:var(--green)">· Plus voté</strong>' : ''}</div>
           </div>
           <div class="vote-count">
@@ -3940,7 +3960,7 @@ async function renderMatchDetail(matchId, m) {
     html += `
       <div style="background:var(--card);border:1px solid var(--green);border-radius:12px;padding:14px;margin-bottom:14px">
         <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">C'est calé · rendez-vous</div>
-        <div style="font-size:17px;font-weight:600">${formatDate(m.dateFinale)}</div>
+        <div style="font-size:17px;font-weight:600">${formatDate(_matchWhen(m).ms)}</div>
         <div style="font-size:13px;color:var(--text-sec);margin-top:2px">${ICON.pin} ${m.lieuFinal || '—'}</div>
       </div>`;
 
@@ -5609,7 +5629,7 @@ window.shareMatchWA = async function(matchId) {
   const placesTxt = places > 0 ? `${places} place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'complet';
   let txt;
   if (m.statut === 'sondage') {
-    const cr = (m.creneauxProposes || []).map(c => `• ${formatDate(c.date)} — ${c.lieu}`).join('\n');
+    const cr = (m.creneauxProposes || []).map(c => `• ${formatDate(c.date, c.heure)} — ${c.lieu}`).join('\n');
     txt = `⚽ *CAP SACLAY FIVE* — Sondage\n\nOn cherche nos dispos pour le prochain foot à 5 :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
   } else if (m.statut === 'confirmé') {
     txt = `⚽ *CAP SACLAY FIVE* — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
