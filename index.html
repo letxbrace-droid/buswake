@@ -2461,6 +2461,10 @@ let currentUserData = null;   // données Firestore de l'utilisateur
 let currentScreen = 'home';
 let activeListeners = [];     // pour nettoyer les onSnapshot
 let _matchDetailRenderGen = 0; // incrémenté pour annuler les renderMatchDetail en vol
+// Vrai quand un sous-panneau (score, équipes, notes, MOTM) occupe le
+// modal-body : le listener temps réel du match suspend son re-render pour
+// ne pas effacer la saisie en cours si un autre joueur bouge le match.
+let _detailPanelOpen = false;
 
 // ===== GAMIFICATION =====
 const RANGS = [
@@ -3784,6 +3788,7 @@ function loadMatchsList(filter) {
 
 // ===== DÉTAIL MATCH =====
 async function openMatchDetail(matchId) {
+  _detailPanelOpen = false; // on revient sur le détail : le listener peut rendre
   openModal('Chargement…', '<div class="loader"><div class="spinner"></div></div>');
   // Écoute temps réel du match
   const matchRef = doc(db, 'matchs', matchId);
@@ -3791,6 +3796,8 @@ async function openMatchDetail(matchId) {
   const unsub = onSnapshot(matchRef, async snap => {
     if (!snap.exists()) { window.closeModal(); return; }
     const m = snap.data();
+    // Un sous-panneau (score, équipes…) est ouvert : ne pas écraser sa saisie.
+    if (_detailPanelOpen) return;
     if (firstLoad) {
       firstLoad = false;
       document.getElementById('modal-title').innerHTML =
@@ -3802,7 +3809,7 @@ async function openMatchDetail(matchId) {
   activeListeners.push(unsub);
   // Nettoyer ce listener quand le modal se ferme
   const origClose = window.closeModal;
-  window.closeModal = () => { _matchDetailRenderGen++; unsub(); window.closeModal = origClose; origClose(); };
+  window.closeModal = () => { _matchDetailRenderGen++; _detailPanelOpen = false; unsub(); window.closeModal = origClose; origClose(); };
 }
 window.openMatchDetail = openMatchDetail;
 
@@ -4419,6 +4426,7 @@ let eqData = [
 ];
 
 async function openComposerEquipes(matchId) {
+  _detailPanelOpen = true; // suspend le re-render live du détail pendant la compo
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
   const m = snap.data();
@@ -4759,6 +4767,7 @@ window.confirmAnnulerMatch = async function(matchId) {
 
 // ===== TERMINER MATCH =====
 async function openTerminerMatch(matchId) {
+  _detailPanelOpen = true; // suspend le re-render live pendant la saisie du score
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
   const m = snap.data();
@@ -4831,8 +4840,9 @@ window.selectHdm = function(uid) {
 };
 
 window.terminerMatch = async function(matchId) {
-  const scoreA = parseInt(document.getElementById('score-a')?.value ?? 0);
-  const scoreB = parseInt(document.getElementById('score-b')?.value ?? 0);
+  // Champ vide → parseInt('') = NaN, qui polluait le score enregistré. || 0.
+  const scoreA = parseInt(document.getElementById('score-a')?.value, 10) || 0;
+  const scoreB = parseInt(document.getElementById('score-b')?.value, 10) || 0;
   const hdmUid = window._hdmSelected;
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
@@ -5753,6 +5763,7 @@ document.getElementById('addplayer-modal').addEventListener('click', function(e)
 
 // ===== NOTATION ENTRE JOUEURS (post-match) =====
 window.openRatePlayers = async function(matchId) {
+  _detailPanelOpen = true; // suspend le re-render live pendant la notation
   openModal(`${ICON.star} Noter les joueurs`, '<div class="loader"><div class="spinner"></div></div>');
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
@@ -5817,6 +5828,7 @@ window.submitRatings = async function(matchId) {
 
 // ===== MOTM COMMUNITY VOTE =====
 window.openMotmVote = async function(matchId) {
+  _detailPanelOpen = true; // suspend le re-render live pendant le vote MOTM
   openModal(`${ICON.trophy} Vote Homme du Match`, '<div class="loader"><div class="spinner"></div></div>');
   const ref = doc(db, 'matchs', matchId);
   const snap = await getDoc(ref);
