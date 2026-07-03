@@ -2427,17 +2427,33 @@ window.enableNotifications = async function() {
     showToast('Erreur notif : ' + (e.code || e.message), 'error');
   }
 };
-// Messages reçus quand l'app est ouverte
+// Messages reçus quand l'app est ouverte (les Functions envoient en data-only)
 isSupported().then(ok => {
   if (!ok) return;
   try {
     _fcm = getMessaging(app);
     onMessage(_fcm, p => {
+      const d = p.data || {};
       const n = p.notification || {};
-      showToast('🔔 ' + (n.title || 'Notification') + (n.body ? ' — ' + n.body : ''), '');
+      const title = d.title || n.title || 'Notification';
+      const body = d.body || n.body || '';
+      showToast('🔔 ' + title + (body ? ' — ' + body : ''), '');
     });
   } catch (_) {}
 });
+
+// Rafraîchit silencieusement le jeton FCM à la connexion (les jetons
+// expirent ; sans ça, les notifs s'éteignent au bout de quelques semaines).
+async function refreshFcmToken() {
+  try {
+    if (!currentUser || !('Notification' in window) || Notification.permission !== 'granted') return;
+    if (!(await isSupported().catch(() => false))) return;
+    const reg = await navigator.serviceWorker.ready;
+    if (!_fcm) _fcm = getMessaging(app);
+    const token = await getToken(_fcm, { vapidKey: VAPID_KEY, serviceWorkerRegistration: reg });
+    if (token) await updateDoc(doc(db, 'users', currentUser.uid), { fcmTokens: arrayUnion(token) });
+  } catch (_) { /* silencieux : la notif est un bonus, jamais un blocage */ }
+}
 
 // ===== ÉTAT GLOBAL =====
 let currentUser = null;       // objet Firebase Auth
@@ -5954,6 +5970,7 @@ onAuthStateChanged(auth, async (user) => {
     renderHome();
     consumePendingMatch();
     setTimeout(maybeShowInstall, 2500);
+    setTimeout(refreshFcmToken, 4000);
   } else {
     currentUser = null;
     currentUserData = null;

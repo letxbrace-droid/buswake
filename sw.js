@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v62';
+const CACHE = 'cs5-v63';
 const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png','./logo.png','./og-image.jpg'];
 
 self.addEventListener('install', e => {
@@ -61,13 +61,16 @@ try {
   });
   const messaging = firebase.messaging();
   messaging.onBackgroundMessage(payload => {
+    // Les Cloud Functions envoient des messages DATA-ONLY (title/body dans
+    // data) : c'est nous qui affichons — jamais de notification en double.
+    const d = payload.data || {};
     const n = payload.notification || {};
-    self.registration.showNotification(n.title || 'Cap Saclay Five', {
-      body: n.body || '',
+    self.registration.showNotification(d.title || n.title || 'Cap Saclay Five', {
+      body: d.body || n.body || '',
       icon: './icon-512.png',
       badge: './icon-512.png',
       vibrate: [80, 40, 80],
-      data: payload.data || {}
+      data: { matchId: d.matchId || '' }
     });
   });
 } catch (e) {
@@ -76,10 +79,18 @@ try {
 
 self.addEventListener('notificationclick', e => {
   e.notification.close();
+  // Deep-link : la notif d'un match ouvre directement ce match (#j=id).
+  const matchId = (e.notification.data && e.notification.data.matchId) || '';
+  const target = matchId ? './#j=' + matchId : './';
   e.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then(cls => {
-      for (const c of cls) { if ('focus' in c) return c.focus(); }
-      if (clients.openWindow) return clients.openWindow('./');
+      for (const c of cls) {
+        if ('focus' in c) {
+          if (matchId && 'navigate' in c) return c.navigate(target).then(w => (w || c).focus());
+          return c.focus();
+        }
+      }
+      if (clients.openWindow) return clients.openWindow(target);
     })
   );
 });
