@@ -6010,81 +6010,25 @@ document.getElementById('modal-sheet').addEventListener('touchend', e => {
 
 <!--
 ===== RÈGLES DE SÉCURITÉ FIRESTORE =====
-Source de vérité : voir le fichier firestore.rules à la racine du repo.
-À copier dans la console Firebase → Firestore → Règles (ou
-`firebase deploy --only firestore:rules` si tu utilises la CLI) :
+Source de vérité UNIQUE : le fichier firestore.rules à la racine du repo.
+(La copie qui vivait ici dérivait à chaque évolution — supprimée.)
 
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
+Déploiement : `firebase deploy --only firestore:rules` depuis la racine,
+ou copier le contenu de firestore.rules dans la console Firebase →
+Firestore → Règles → Publier.
 
-    function isSignedIn() { return request.auth != null; }
-    function isOwner(uid) { return request.auth != null && request.auth.uid == uid; }
-    function isAdmin() { return request.auth != null && request.auth.token.email == 'letxbrace@gmail.com'; }
-
-    // Anti-fuite : pseudo = chaîne 1–24 caractères et jamais égal à l'email.
-    function validUserData() {
-      let d = request.resource.data;
-      return (!('pseudo' in d) || (
-                d.pseudo is string &&
-                d.pseudo.size() >= 1 &&
-                d.pseudo.size() <= 24 &&
-                (!('email' in d) || d.pseudo != d.email)
-              ))
-             && (!('email' in d) || d.email is string)
-             && (!('xp' in d) || d.xp is number);
-    }
-
-    // Champs qu'un AUTRE joueur peut modifier (gamification + social) :
-    // XP/badges/stats à la fin d'un match, demandes/listes d'amis.
-    function onlyGamificationAndSocial() {
-      return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['xp', 'badges', 'stats', 'noteSum', 'noteCount',
-                  'presences', 'lapins', 'streak',
-                  'friends', 'friendRequestsSent', 'friendRequestsReceived']);
-    }
-
-    // Utilisateurs : lecture pour les connectés (classement).
-    match /users/{uid} {
-      allow read: if isSignedIn();
-      allow create: if isOwner(uid) && validUserData();
-      // Le propriétaire modifie tout son doc (pseudo, email, atouts... validés).
-      allow update: if isOwner(uid) && validUserData();
-      // Les autres joueurs ne touchent QUE la gamification et le social.
-      allow update: if isSignedIn() && onlyGamificationAndSocial();
-      allow delete: if isOwner(uid);
-    }
-
-    // Matchs : lecture/écriture pour tout authentifié, suppression au créateur.
-    match /matchs/{matchId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
-      allow delete: if isSignedIn()
-        && (isAdmin()
-            || !('createurUid' in resource.data)
-            || resource.data.createurUid == request.auth.uid);
-    }
-
-    // Chat éphémère par match : texte court, créé par son auteur.
-    match /matchs/{matchId}/messages/{msgId} {
-      allow read: if isSignedIn();
-      allow create: if isSignedIn()
-        && request.resource.data.uid == request.auth.uid
-        && request.resource.data.text is string
-        && request.resource.data.text.size() > 0
-        && request.resource.data.text.size() <= 500;
-      allow update: if false;
-      allow delete: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
-    }
-
-    // Lieux : lecture pour tous les connectés, écriture admin only.
-    match /lieux/{lieuId} {
-      allow read: if isSignedIn();
-      allow write: if false; // Gérer via Firebase Admin SDK
-    }
-  }
-}
+En résumé :
+- users : le propriétaire modifie tout (pseudo validé) ; les autres ne
+  touchent que gamification/social (xp, badges, stats, notes, amis).
+- matchs : le CRÉATEUR gère le cycle de vie (confirmer, équipes, scores,
+  présence, ajout/retrait de joueurs) ; les AUTRES joueurs n'écrivent que
+  la participation (votes, s'inscrire/se désister, ratings, motmVotes).
+  Champs sensibles (statut, scores, dateFinale…) hors de portée d'un
+  joueur lambda. Matchs hérités sans createurUid : gérables par tous.
+- messages : création par son auteur (≤ 500 caractères), pas d'édition.
+- lieux : lecture seule (écriture via Admin SDK).
+- _notifs (marqueurs anti-spam) : écrits par les Cloud Functions (Admin
+  SDK, hors règles).
 
 ===== DÉPLOIEMENT GITHUB PAGES =====
 1. Va dans Settings → Pages de ce repo

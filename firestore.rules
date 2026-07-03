@@ -55,12 +55,54 @@ service cloud.firestore {
       allow delete: if isOwner(uid);
     }
 
-    // Matchs : lecture/écriture pour tout authentifié (votes, inscriptions,
-    // résultats). Suppression réservée au créateur du match.
+    // ----- Matchs -----
+    // Deux niveaux d'écriture :
+    //  - le CRÉATEUR (ou l'admin, ou tout connecté pour les anciens matchs
+    //    sans créateur) gère le cycle de vie : confirmation, équipes,
+    //    scores, présence, ajout/retrait de joueurs ;
+    //  - les AUTRES joueurs ne touchent qu'aux champs de PARTICIPATION :
+    //    votes, inscription/désistement (avec promotion auto du banc),
+    //    notes entre joueurs, vote homme du match.
+    // Les champs sensibles (statut, scores, équipes, date/lieu finals,
+    // créateur) sont donc hors de portée d'un joueur lambda.
+    // Les marqueurs _notifs sont écrits par les Cloud Functions (Admin SDK,
+    // qui contourne ces règles) — aucun client n'a besoin d'y toucher.
+
+    // Vrai si l'appelant gère ce match (créateur / admin / match hérité).
+    function managesMatch() {
+      return isAdmin()
+        || !('createurUid' in resource.data)
+        || resource.data.createurUid == request.auth.uid;
+    }
+    // L'update ne touche qu'aux champs de participation, avec des tailles
+    // saines (10 titulaires + banc ; large marge à 30).
+    function onlyParticipation() {
+      let changed = request.resource.data.diff(resource.data).affectedKeys();
+      return changed.hasOnly(['votes', 'joueursInscrits', 'waitlist',
+                              'ratings', 'motmVotes'])
+        && request.resource.data.get('joueursInscrits', []).size() <= 30
+        && request.resource.data.get('waitlist', []).size() <= 30
+        // Un joueur n'écrit que SA fiche de notes (ratings.{son uid}).
+        && (!changed.hasAny(['ratings'])
+            || request.resource.data.ratings
+                 .diff(resource.data.get('ratings', {}))
+                 .affectedKeys().hasOnly([request.auth.uid]));
+    }
+
     match /matchs/{matchId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update: if isSignedIn();
+      // Création : on ne crée qu'en son propre nom, toujours en sondage.
+      allow create: if isSignedIn()
+        && request.resource.data.createurUid == request.auth.uid
+        && request.resource.data.statut == 'sondage';
+      // Gestion complète par le créateur — sans transfert de propriété,
+      // et avec un statut toujours valide.
+      allow update: if isSignedIn() && managesMatch()
+        && request.resource.data.get('createurUid', null)
+             == resource.data.get('createurUid', null)
+        && request.resource.data.statut in ['sondage', 'confirmé', 'terminé'];
+      // Participation par les autres joueurs.
+      allow update: if isSignedIn() && onlyParticipation();
       // Suppression : le créateur, l'admin (maintenance), ou tout connecté
       // pour les anciens matchs sans créateur enregistré (données héritées).
       allow delete: if isSignedIn()
