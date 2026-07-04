@@ -791,6 +791,7 @@
     .md-hdm .ic { width:15px; height:15px; }
     .md-hdm b { font-family:Anton,sans-serif; font-size:17px; letter-spacing:.5px; color:#fff; }
     .eq-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 0 8px currentColor; vertical-align:middle; }
+    .md-goal-art { position:absolute; right:-34px; top:-26px; width:230px; opacity:.16; pointer-events:none; }
 
     /* ===== MATCHS À REJOINDRE — priorité + groupes par temps ===== */
     .sec-lbl { font-size:11px; letter-spacing:1.4px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin:22px 2px 11px; display:flex; align-items:center; gap:7px; }
@@ -2095,7 +2096,7 @@
 
     <!-- Slide unique : marque + promesse + Organise · Vote · Joue -->
     <div class="ob-slide">
-      <img src="./logo.png" alt="" class="ob-logo-img">
+      <img src="./art-bolt.png" alt="" class="ob-logo-img">
       <div class="ob-brand">CAP SACLAY <span>FIVE</span></div>
       <div class="ob-tag">Le foot à 5 entre collègues,<br>version pro.</div>
       <div class="ob-flow">
@@ -4056,6 +4057,7 @@ async function renderMatchDetail(matchId, m) {
       hdmHtml = `<div class="md-hdm">${ICON.trophy} HOMME DU MATCH <b>${escapeHtml((hdmData?.pseudo || 'Inconnu').toUpperCase())}</b></div>`;
     }
     html += `<div class="md-hero">
+      <img src="./art-goal.png" class="md-goal-art" alt="">
       <div class="md-eyebrow" style="color:var(--gold)">${ICON.flag} Terminé · ${dateDayLabel(_matchWhen(m).ms)}</div>
       <div class="md-score">
         <div><div class="n">${m.scoreA ?? '?'}</div><div class="t">${escapeHtml(m.equipes?.[0]?.nom || 'Équipe A')}</div></div>
