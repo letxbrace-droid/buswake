@@ -767,6 +767,31 @@
     .ch-proof-txt { font-size:12.5px; color:var(--text-sec); }
     .ch-proof-txt b { color:#fff; }
 
+    /* ===== DÉTAIL DE MATCH — héros + zone gestion (passe Jobs) ===== */
+    .md-hero { position:relative; border-radius:18px; overflow:hidden; background:#0B0D12; border:1px solid var(--border); padding:16px 16px 15px; margin-bottom:4px; }
+    .md-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(100% 70% at 50% -10%,rgba(0,216,138,.14),transparent 60%); pointer-events:none; }
+    .md-hero > * { position:relative; }
+    .md-eyebrow { display:flex; align-items:center; gap:7px; font-size:10.5px; letter-spacing:1.4px; font-weight:700; text-transform:uppercase; color:var(--orange); }
+    .md-eyebrow .ic { width:14px; height:14px; }
+    .md-big { font-family:Anton,sans-serif; font-size:26px; line-height:1.05; color:#fff; margin-top:8px; letter-spacing:.3px; }
+    .md-meta { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-sec); margin-top:6px; }
+    .md-meta .ic { width:14px; height:14px; flex-shrink:0; }
+    .md-hero .fillbar { margin-top:12px; }
+    .md-cta { width:100%; margin-top:14px; }
+    .md-sec { font-size:11px; letter-spacing:1.3px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin:18px 2px 10px; }
+    .md-admin { margin-top:20px; background:var(--surface); border:1px solid var(--border); border-radius:16px; padding:14px; }
+    .md-admin-lbl { font-size:10px; letter-spacing:1.6px; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:11px; display:flex; align-items:center; gap:6px; }
+    .md-admin-lbl .ic { width:13px; height:13px; }
+    .md-note { background:rgba(255,170,0,.08); border:1px solid rgba(255,170,0,.3); border-radius:10px; padding:10px 12px; font-size:12px; color:#FFAA00; text-align:center; margin-bottom:8px; }
+    .md-score { display:flex; align-items:flex-start; justify-content:center; gap:22px; margin-top:12px; }
+    .md-score .n { font-family:Anton,sans-serif; font-size:46px; color:#fff; line-height:1; }
+    .md-score .t { font-size:11px; color:var(--text-sec); margin-top:5px; text-align:center; }
+    .md-score .sep { font-family:Anton,sans-serif; font-size:30px; color:var(--text-muted); margin-top:6px; }
+    .md-hdm { display:flex; align-items:center; justify-content:center; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid rgba(255,215,0,.25); color:var(--gold); font-size:11px; font-weight:700; letter-spacing:1.2px; }
+    .md-hdm .ic { width:15px; height:15px; }
+    .md-hdm b { font-family:Anton,sans-serif; font-size:17px; letter-spacing:.5px; color:#fff; }
+    .eq-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 0 8px currentColor; vertical-align:middle; }
+
     /* ===== MATCHS À REJOINDRE — priorité + groupes par temps ===== */
     .sec-lbl { font-size:11px; letter-spacing:1.4px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin:22px 2px 11px; display:flex; align-items:center; gap:7px; }
     .sec-lbl svg { width:14px; height:14px; }
@@ -3853,32 +3878,36 @@ const ICON = {
   flame:    _icS('<path d="M12 2c1.2 3 4.2 4.6 4.2 8.2a4.2 4.2 0 0 1-8.4 0c0-1 .3-1.9.9-2.6C8.1 9.4 9.3 11 9.3 11c.2-3 1.6-6 2.7-9z"/>'),
 };
 window.ICON = ICON;
-function inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur) {
+// CTA d'inscription — affiché dans le héros du détail (l'action d'abord).
+function mdJoinCta(matchId, m, uid) {
   const inscrits = m.joueursInscrits || [];
   const waitlist = m.waitlist || [];
-  const isTit = inscrits.includes(uid);
   const wpos = waitlist.indexOf(uid);
   const full = inscrits.length >= MIN_CONFIRM;
   let label, cls;
-  if (isTit) { label = `${ICON.x} Je ne joue plus`; cls = 'btn-outline'; }
-  else if (wpos !== -1) { label = `${ICON.x} Quitter le banc (#${wpos + 1})`; cls = 'btn-outline'; }
-  else if (full) { label = `${ICON.clock} Rejoindre le banc`; cls = 'btn-orange'; }
-  else { label = `${ICON.check} Je joue !`; cls = 'btn-orange'; }
+  if (inscrits.includes(uid)) { label = `${ICON.check} Tu joues · Je ne joue plus`; cls = 'btn-sm btn-outline'; }
+  else if (wpos !== -1) { label = `${ICON.clock} Sur le banc (#${wpos + 1}) · Quitter`; cls = 'btn-sm btn-outline'; }
+  else if (full) { label = `${ICON.clock} Rejoindre le banc`; cls = 'btn-sm btn-orange'; }
+  else { label = `${ICON.check} Je joue !`; cls = 'btn-primary'; }
+  return `<button class="${cls} md-cta" onclick="toggleInscription('${matchId}')">${label}</button>`;
+}
+// Section joueurs + barre discrète Partager / Vestiaire.
+function playersSectionHtml(matchId, m, joueursAvecDist, venueCoords, isCreateur) {
+  const inscrits = m.joueursInscrits || [];
+  const waitlist = m.waitlist || [];
   const waitPill = waitlist.length ? `<span class="pc-wait">${ICON.clock} ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : '';
-  const chip = isCreateur
-    ? (waitPill ? `<div class="players-chip">${waitPill}</div>` : '')
-    : `<div class="players-chip"><span>${ICON.users} ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitPill}</div>`;
-  return `<div class="divider"></div>
-    <div class="section-sub" style="margin-bottom:8px">Joueurs${venueCoords ? ' · triés par distance' : ''}</div>
-    ${chip}
+  return `<div class="md-sec">Joueurs${venueCoords ? ' · triés par distance' : ''}</div>
+    <div class="players-chip"><span>${ICON.users} ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitPill}</div>
     ${buildJoueursListHtml(joueursAvecDist, matchId, isCreateur)}
-    ${isCreateur ? `<button class="btn-sm btn-outline" style="width:100%;margin:2px 0 0" onclick="window.openAddPlayer('${matchId}')">${ICON.plus} Ajouter / inviter un joueur</button>` : ''}
-    <div class="divider"></div>
-    <button class="btn-sm ${cls}" style="width:100%;margin-bottom:8px" onclick="toggleInscription('${matchId}')">${label}</button>
-    <div class="btn-2col">
+    <div class="btn-2col" style="margin-top:14px">
       <button class="btn-sm btn-wa" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager</button>
       <button class="btn-sm btn-outline" onclick="window.openMatchChat('${matchId}')">${ICON.chat} Vestiaire</button>
     </div>`;
+}
+// Pastille couleur d'équipe (remplace l'emoji logo).
+function eqDot(couleur) {
+  const c = couleur || 'var(--orange)';
+  return `<span class="eq-dot" style="background:${c};color:${c}"></span>`;
 }
 
 async function renderMatchDetail(matchId, m) {
@@ -3923,7 +3952,19 @@ async function renderMatchDetail(matchId, m) {
 
   // ---- Sondage actif ----
   if (m.statut === 'sondage') {
-    html += `<div class="section-sub">Coche tes dispos</div>`;
+    const n = inscrits.length;
+    const nbC = (m.creneauxProposes || []).length;
+    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+    // Héros : le contexte + L'action, avant tout le reste.
+    html += `<div class="md-hero">
+      <div class="md-eyebrow">${ICON.poll} Sondage en cours · ${n}/${MIN_CONFIRM} inscrits</div>
+      <div class="md-big">On cherche le créneau.</div>
+      <div class="md-meta">${ICON.calendar} ${nbC} créneau${nbC > 1 ? 'x' : ''} proposé${nbC > 1 ? 's' : ''} — vote en dessous</div>
+      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+      ${mdJoinCta(matchId, m, uid)}
+    </div>`;
+
+    html += `<div class="md-sec">Coche tes dispos</div>`;
     html += (m.creneauxProposes || []).map(c => {
       const voteCount = (votes[c.id] || []).length;
       const hasVoted = (votes[c.id] || []).includes(uid);
@@ -3942,68 +3983,64 @@ async function renderMatchDetail(matchId, m) {
         </div>`;
     }).join('');
 
+    html += playersSectionHtml(matchId, m, joueursAvecDist, venueCoords, isCreateur);
+
+    // Zone gestion : tout ce qui n'appartient qu'au créateur, au même endroit.
     if (isCreateur) {
       const enough = inscrits.length >= MIN_CONFIRM;
       const left = MIN_CONFIRM - inscrits.length;
-      const pct = Math.min(100, Math.round((inscrits.length / MIN_CONFIRM) * 100));
-      html += `<div class="divider"></div>
-        <div class="creator-panel">
-          <div class="cp-row">
-            <span class="cp-label">${ICON.users} Inscrits</span>
-            <span class="cp-val ${enough ? 'ok' : ''}">${inscrits.length}/${MIN_CONFIRM}</span>
-          </div>
-          <div class="fillbar" style="margin-top:9px"><span class="track"><span class="fill" style="width:${pct}%"></span></span></div>
-          ${best
-            ? `<button class="btn-sm ${enough ? 'btn-green' : 'btn-disabled'}" style="width:100%;margin-top:12px" ${enough ? `onclick="confirmerMatch('${matchId}','${best.id}')"` : 'disabled'}>${ICON.check} ${enough ? 'Confirmer le match' : `Encore ${left} joueur${left > 1 ? 's' : ''}`}</button>`
-            : `<div class="cp-hint">En attente de votes sur les créneaux…</div>`}
-        </div>`;
-    }
-
-    html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur);
-
-    if (isCreateur) {
-      html += `<button class="btn-ghost-danger" style="margin-top:10px" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>`;
+      html += `<div class="md-admin">
+        <div class="md-admin-lbl">${ICON.shield} Gestion · créateur</div>
+        ${best
+          ? `<button class="btn-sm ${enough ? 'btn-green' : 'btn-disabled'}" style="width:100%;margin-bottom:8px" ${enough ? `onclick="confirmerMatch('${matchId}','${best.id}')"` : 'disabled'}>${ICON.check} ${enough ? 'Confirmer le match' : `Encore ${left} joueur${left > 1 ? 's' : ''} avant de confirmer`}</button>`
+          : `<div class="cp-hint" style="margin-bottom:8px">En attente de votes sur les créneaux…</div>`}
+        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="window.openAddPlayer('${matchId}')">${ICON.plus} Ajouter / inviter un joueur</button>
+        <button class="btn-ghost-danger" style="width:100%" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>
+      </div>`;
     }
   }
 
   // ---- Match confirmé ----
   else if (m.statut === 'confirmé') {
-    html += `
-      <div style="background:var(--card);border:1px solid var(--green);border-radius:12px;padding:14px;margin-bottom:14px">
-        <div style="font-size:11px;color:var(--green);font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:4px">C'est calé · rendez-vous</div>
-        <div style="font-size:17px;font-weight:600">${formatDate(_matchWhen(m).ms)}</div>
-        <div style="font-size:13px;color:var(--text-sec);margin-top:2px">${ICON.pin} ${m.lieuFinal || '—'}</div>
-      </div>`;
+    const n = inscrits.length;
+    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+    const w = _matchWhen(m);
+    html += `<div class="md-hero">
+      <div class="md-eyebrow">${ICON.ball} ${countdownLabel(w.ms)}</div>
+      <div class="md-big">${dateDayLabel(w.ms)}${w.heure ? ' · ' + w.heure.replace(':', 'h') : ''}</div>
+      <div class="md-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
+      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+      ${mdJoinCta(matchId, m, uid)}
+    </div>`;
 
     // Équipes
     if (m.equipes && m.equipes.length > 0) {
-      html += `<div class="section-sub">Équipes</div>`;
+      html += `<div class="md-sec">Équipes</div>`;
       html += m.equipes.map(eq => `
         <div class="equipe-block" style="border-left-color:${eq.couleur || 'var(--orange)'}">
-          <div class="equipe-nom">${eq.logo || '⚽'} ${eq.nom}</div>
+          <div class="equipe-nom">${eqDot(eq.couleur)}${eq.nom}</div>
           <div class="equipe-joueurs">
             ${(eq.joueurs || []).map(u => `<div class="joueur-chip"><div class="j-avatar" style="background:${eq.couleur||'var(--orange)'}">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('')}
           </div>
         </div>`).join('');
     }
 
-    html += inscriptionControls(matchId, m, joueursAvecDist, uid, venueCoords, isCreateur);
+    html += playersSectionHtml(matchId, m, joueursAvecDist, venueCoords, isCreateur);
 
     if (isCreateur) {
       const hasTeams = (m.equipes || []).some(eq => (eq.joueurs || []).length > 0);
       const totalAssigned = (m.equipes || []).reduce((s, eq) => s + (eq.joueurs || []).length, 0);
       const MIN_PLAYERS = 4;
       const canStart = hasTeams && totalAssigned >= MIN_PLAYERS;
-      html += `
-        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">${ICON.shuffle} Composer les équipes</button>`;
-      if (canStart) {
-        html += `<button class="btn-sm btn-red" style="width:100%;margin-bottom:8px" onclick="openTerminerMatch('${matchId}')">${ICON.flag} Terminer le match</button>`;
-      } else {
-        html += `<div style="background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.3);border-radius:10px;padding:10px 12px;font-size:12px;color:#FFAA00;text-align:center;margin-bottom:8px">
-          ${ICON.warn} Compose les équipes avant de pouvoir démarrer le match (min. ${MIN_PLAYERS} joueurs assignés)
-        </div>`;
-      }
-      html += `<button class="btn-sm" style="width:100%;opacity:.6;border:1px solid var(--border);border-radius:10px;padding:10px;color:var(--text-sec);background:transparent;cursor:pointer" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>`;
+      html += `<div class="md-admin">
+        <div class="md-admin-lbl">${ICON.shield} Gestion · créateur</div>
+        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="openComposerEquipes('${matchId}')">${ICON.shuffle} Composer les équipes</button>
+        ${canStart
+          ? `<button class="btn-sm btn-red" style="width:100%;margin-bottom:8px" onclick="openTerminerMatch('${matchId}')">${ICON.flag} Terminer le match</button>`
+          : `<div class="md-note">${ICON.warn} Compose les équipes avant de pouvoir démarrer le match (min. ${MIN_PLAYERS} joueurs assignés)</div>`}
+        <button class="btn-sm btn-outline" style="width:100%;margin-bottom:8px" onclick="window.openAddPlayer('${matchId}')">${ICON.plus} Ajouter / inviter un joueur</button>
+        <button class="btn-ghost-danger" style="width:100%" onclick="annulerMatch('${matchId}')">${ICON.trash} Annuler ce match</button>
+      </div>`;
     }
   }
 
@@ -4011,41 +4048,35 @@ async function renderMatchDetail(matchId, m) {
   else if (m.statut === 'terminé') {
     const motmAlreadyVoted = currentUser ? Object.values(m.motmVotes||{}).some(a=>(a||[]).includes(uid)) : false;
     const iRated = currentUser && m.ratings && m.ratings[uid];
-    html += `<div style="display:flex;gap:8px;margin-bottom:14px">
-      <button class="btn-sm ${motmAlreadyVoted?'btn-outline':'btn-orange'}" style="flex:1" onclick="window.openMotmVote('${matchId}')">
+    // Le score EST le héros ; l'homme du match en ligne dorée intégrée.
+    let hdmHtml = '';
+    if (m.hommeDuMatchUid) {
+      const hdmData = await getUserData(m.hommeDuMatchUid);
+      hdmHtml = `<div class="md-hdm">${ICON.trophy} HOMME DU MATCH <b>${escapeHtml((hdmData?.pseudo || 'Inconnu').toUpperCase())}</b></div>`;
+    }
+    html += `<div class="md-hero">
+      <div class="md-eyebrow" style="color:var(--gold)">${ICON.flag} Terminé · ${dateDayLabel(_matchWhen(m).ms)}</div>
+      <div class="md-score">
+        <div><div class="n">${m.scoreA ?? '?'}</div><div class="t">${escapeHtml(m.equipes?.[0]?.nom || 'Équipe A')}</div></div>
+        <div class="sep">–</div>
+        <div><div class="n">${m.scoreB ?? '?'}</div><div class="t">${escapeHtml(m.equipes?.[1]?.nom || 'Équipe B')}</div></div>
+      </div>
+      ${hdmHtml}
+    </div>`;
+    html += `<div class="btn-2col" style="margin-top:12px">
+      <button class="btn-sm ${motmAlreadyVoted?'btn-outline':'btn-orange'}" onclick="window.openMotmVote('${matchId}')">
         ${motmAlreadyVoted ? `${ICON.trophy} MOTM ${ICON.check}` : `${ICON.trophy} Vote MOTM`}
       </button>
-      <button class="btn-sm ${iRated?'btn-outline':'btn-green'}" style="flex:1" onclick="window.openRatePlayers('${matchId}')">
+      <button class="btn-sm ${iRated?'btn-outline':'btn-green'}" onclick="window.openRatePlayers('${matchId}')">
         ${iRated ? `${ICON.star} Noté ${ICON.check}` : `${ICON.star} Noter les joueurs`}
       </button>
     </div>`;
-    html += `
-      <div class="score-display">
-        <div class="score-team">
-          <div class="score-num">${m.scoreA ?? '?'}</div>
-          <div class="score-name">${m.equipes?.[0]?.nom || 'Équipe A'}</div>
-        </div>
-        <div class="score-sep">–</div>
-        <div class="score-team">
-          <div class="score-num">${m.scoreB ?? '?'}</div>
-          <div class="score-name">${m.equipes?.[1]?.nom || 'Équipe B'}</div>
-        </div>
-      </div>`;
-
-    if (m.hommeDuMatchUid) {
-      const hdmData = await getUserData(m.hommeDuMatchUid);
-      html += `
-        <div style="background:rgba(243,156,18,.1);border:1px solid var(--gold);border-radius:12px;padding:12px;text-align:center;margin-bottom:14px">
-          <div style="font-size:11px;color:var(--gold);font-weight:600;letter-spacing:1px;display:flex;align-items:center;justify-content:center;gap:5px">${ICON.trophy} HOMME DU MATCH</div>
-          <div style="font-size:20px;font-family:Anton;font-weight:700;margin-top:4px">${hdmData?.pseudo || 'Inconnu'}</div>
-        </div>`;
-    }
 
     if (m.equipes && m.equipes.length > 0) {
-      html += `<div class="section-sub">Équipes</div>`;
+      html += `<div class="md-sec">Équipes</div>`;
       html += m.equipes.map(eq => `
         <div class="equipe-block" style="border-left-color:${eq.couleur || 'var(--orange)'}">
-          <div class="equipe-nom">${eq.logo || '⚽'} ${eq.nom}</div>
+          <div class="equipe-nom">${eqDot(eq.couleur)}${eq.nom}</div>
           <div class="equipe-joueurs">
             ${(eq.joueurs || []).map(u => `<div class="joueur-chip">${inscritsPseudos[u]}</div>`).join('')}
           </div>
