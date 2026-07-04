@@ -1,5 +1,5 @@
-const CACHE = 'cs5-v64';
-const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png','./logo.png','./og-image.jpg','./art-bolt.png','./art-goal.png'];
+const CACHE = 'cs5-v65';
+const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png','./logo.png','./og-image.jpg','./art-bolt.png','./art-goal.png','./art-player.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
