@@ -138,9 +138,11 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
       if (u && u.exists && u.get('pseudo')) pseudo = u.get('pseudo');
     }
     const map = await collectTokens(null, [after.createurUid]);
+    // Le mot du créateur devient le corps de la notif : plus humain qu'un texte générique.
+    const mot = String(after.message || '').trim();
     await send(map, {
       title: 'Nouveau match proposé ⚽',
-      body: pseudo + ' lance un match — vote pour ton créneau.',
+      body: mot ? pseudo + ' : « ' + mot.slice(0, 90) + ' »' : pseudo + ' lance un match — vote pour ton créneau.',
       matchId,
     });
     return;

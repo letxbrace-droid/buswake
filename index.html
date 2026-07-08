@@ -792,6 +792,10 @@
     .md-hdm b { font-family:Anton,sans-serif; font-size:17px; letter-spacing:.5px; color:#fff; }
     .eq-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 0 8px currentColor; vertical-align:middle; }
     .md-goal-art { position:absolute; right:-34px; top:-26px; width:230px; opacity:.16; pointer-events:none; }
+    .md-quote { display:flex; gap:10px; align-items:flex-start; background:var(--card); border:1px solid var(--border); border-left:3px solid var(--orange); border-radius:var(--r-sm); padding:11px 13px; margin-top:10px; }
+    .md-quote .ic { width:15px; height:15px; color:var(--orange); flex-shrink:0; margin-top:2px; }
+    .md-quote-txt { font-size:13.5px; color:var(--text); line-height:1.45; }
+    .md-quote-txt span { display:block; font-size:11.5px; color:var(--text-muted); margin-top:3px; }
 
     /* ===== MATCHS À REJOINDRE — priorité + groupes par temps ===== */
     .sec-lbl { font-size:11px; letter-spacing:1.4px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin:22px 2px 11px; display:flex; align-items:center; gap:7px; }
@@ -3880,6 +3884,13 @@ const ICON = {
   flame:    _icS('<path d="M12 2c1.2 3 4.2 4.6 4.2 8.2a4.2 4.2 0 0 1-8.4 0c0-1 .3-1.9.9-2.6C8.1 9.4 9.3 11 9.3 11c.2-3 1.6-6 2.7-9z"/>'),
 };
 window.ICON = ICON;
+// Mot du créateur — visible de tous sous le héros du détail.
+function mdQuoteHtml(m, pseudos) {
+  const msg = (m.message || '').trim();
+  if (!msg) return '';
+  const who = (pseudos && pseudos[m.createurUid]) || 'Le créateur';
+  return `<div class="md-quote">${ICON.chat}<div class="md-quote-txt">« ${escapeHtml(msg)} »<span>— ${escapeHtml(who)}</span></div></div>`;
+}
 // CTA d'inscription — affiché dans le héros du détail (l'action d'abord).
 function mdJoinCta(matchId, m, uid) {
   const inscrits = m.joueursInscrits || [];
@@ -3965,6 +3976,7 @@ async function renderMatchDetail(matchId, m) {
       <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
+    html += mdQuoteHtml(m, inscritsPseudos);
 
     html += `<div class="md-sec">Coche tes dispos</div>`;
     html += (m.creneauxProposes || []).map(c => {
@@ -4014,6 +4026,7 @@ async function renderMatchDetail(matchId, m) {
       <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
+    html += mdQuoteHtml(m, inscritsPseudos);
 
     // Équipes
     if (m.equipes && m.equipes.length > 0) {
@@ -4074,6 +4087,7 @@ async function renderMatchDetail(matchId, m) {
         ${iRated ? `${ICON.star} Noté ${ICON.check}` : `${ICON.star} Noter les joueurs`}
       </button>
     </div>`;
+    html += mdQuoteHtml(m, inscritsPseudos);
 
     if (m.equipes && m.equipes.length > 0) {
       html += `<div class="md-sec">Équipes</div>`;
@@ -4229,6 +4243,7 @@ let _cmVenue = null;      // terrain choisi {n, v, lat, lon}
 let _cmSlots = [];        // créneaux cochés [{id, date:'YYYY-MM-DD', heure, dateObj}]
 let _cmSuggest = [];      // créneaux suggérés
 let _cmExtra = null;      // terrain trouvé via recherche (épinglé en tête)
+let _cmMsg = '';         // mot du créateur (optionnel, visible de tous)
 
 function _pad(n) { return String(n).padStart(2, '0'); }
 function _ymd(d) { return d.getFullYear() + '-' + _pad(d.getMonth() + 1) + '-' + _pad(d.getDate()); }
@@ -4295,6 +4310,10 @@ function renderCmModal() {
       <div><span class="input-label">Heure</span><input class="input-field" type="time" id="cm-ch" value="19:00"></div>
       <button class="btn-sm btn-orange" style="height:44px" onclick="cmAddCustom()">${ICON.plus}</button>
     </div>
+    <div class="section-sub" style="margin-top:18px">${ICON.chat} Un mot pour les collègues ? <span style="text-transform:none;letter-spacing:0;color:var(--text-muted);font-weight:600">· optionnel</span></div>
+    <input class="input-field" id="cm-msg" maxlength="140" autocomplete="off"
+      placeholder="Ex : Prévoyez les chasubles, douches dispo…"
+      value="${escapeHtml(_cmMsg)}" oninput="cmMsgKeep(this.value)">
     <div class="divider"></div>
     <button class="btn-primary" onclick="cmSubmit()">ENVOYER AUX COLLÈGUES</button>
     <div class="cm-summary">${_cmVenue ? '1 lieu' : 'choisis un lieu'} · ${_cmSlots.length} créneau${_cmSlots.length > 1 ? 'x' : ''} · 0 saisie</div>
@@ -4309,6 +4328,7 @@ function openCreateMatch() {
   _cmSuggest = _cmBuildSuggest();
   _cmSlots = _cmSuggest.length ? [_cmSuggest[0]] : []; // pré-coche le 1er créneau
   _cmExtra = null;
+  _cmMsg = '';
   const cards = _cmVenueCards();
   _cmVenue = cards[0] || null; // pré-sélectionne le terrain le plus probable
   renderCmModal();
@@ -4332,11 +4352,14 @@ window.quickPropose = function(kind) {
   }
   _cmSuggest = _cmBuildSuggest();
   _cmExtra = null;
+  _cmMsg = '';
   const cards = _cmVenueCards();
   _cmVenue = cards[0] || null;       // terrain le plus probable pré-sélectionné
   _cmSlots = [_quickSlot(kind)];     // créneau express déjà coché
   renderCmModal();
 };
+// Le re-render du modal (choix lieu/créneau) recharge value=_cmMsg : rien ne se perd.
+window.cmMsgKeep = function(v) { _cmMsg = v; };
 window.cmPickVenue = function(x) { _cmVenue = x; renderCmModal(); };
 window.cmToggleSlot = function(id) {
   const i = _cmSlots.findIndex(z => z.id === id);
@@ -4432,6 +4455,7 @@ window.submitCreateMatch = async function() {
   await addDoc(collection(db, 'matchs'), {
     createurUid: uid,
     statut: 'sondage',
+    message: (_cmMsg || '').trim().slice(0, 140) || null,
     creneauxProposes: creneaux,
     votes,
     joueursInscrits: [uid],

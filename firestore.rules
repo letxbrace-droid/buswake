@@ -92,9 +92,14 @@ service cloud.firestore {
     match /matchs/{matchId} {
       allow read: if isSignedIn();
       // Création : on ne crée qu'en son propre nom, toujours en sondage.
+      // Le mot du créateur (message) est optionnel et borné à 200 caractères.
       allow create: if isSignedIn()
         && request.resource.data.createurUid == request.auth.uid
-        && request.resource.data.statut == 'sondage';
+        && request.resource.data.statut == 'sondage'
+        && (!('message' in request.resource.data)
+            || request.resource.data.message == null
+            || (request.resource.data.message is string
+                && request.resource.data.message.size() <= 200));
       // Gestion complète par le créateur — sans transfert de propriété,
       // et avec un statut toujours valide.
       allow update: if isSignedIn() && managesMatch()
