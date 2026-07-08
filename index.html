@@ -380,6 +380,9 @@
     .empty-state .icon { font-size:52px; margin-bottom:14px; line-height:1; }
     .empty-state .icon .ic { width:50px; height:50px; color:var(--orange); opacity:.55; vertical-align:middle; }
     .empty-state p { font-size:14px; line-height:1.7; }
+    .es-art { display:block; margin:0 auto 10px; opacity:.95; }
+    .empty-state .es-art { width:132px; max-width:56%; }
+    .friends-empty .es-art, .chat-empty .es-art { width:116px; }
 
     .btn-sm {
       min-height:44px; padding:10px 16px; border:none; border-radius:var(--r-sm);
@@ -3795,7 +3798,7 @@ function loadMatchsList(filter) {
   // On trie côté client après réception.
   const q = query(collection(db, 'matchs'), where('statut', '==', statut));
   const unsub = onSnapshot(q, async snap => {
-    const emptyHTML = `<div class="empty-state"><div class="icon">${filter === 'termine' ? ICON.scroll : ICON.calendar}</div><p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match à rejoindre. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
+    const emptyHTML = `<div class="empty-state">${filter === 'termine' ? '<img src="./art-empty-histo.png" class="es-art" alt="">' : `<div class="icon">${ICON.calendar}</div>`}<p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match à rejoindre. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
     if (snap.empty) { el.innerHTML = emptyHTML; return; }
     const fills = [];   // avatars empilés à charger : {id, uids}
     const motms = [];   // noms MOTM à charger : {id, uid}
@@ -5100,7 +5103,7 @@ async function renderProfil() {
             '<button class="friend-action-btn" onclick="event.stopPropagation();window.removeFriend(\'' + fid + '\')" style="color:var(--red);border-color:rgba(255,23,68,.3)">Retirer</button>' +
           '</div>').join('');
       } else if (receivedReqs.length === 0) {
-        fh = '<div class="friends-empty">Aucun ami pour l\'instant.<br>Cherche des joueurs ci-dessus !</div>';
+        fh = '<div class="friends-empty"><img src="./art-empty-amis.png" class="es-art" alt="">Aucun ami pour l\'instant.<br>Cherche des joueurs ci-dessus !</div>';
       }
       return fh;
     })()}
@@ -5220,7 +5223,7 @@ async function renderClassement() {
   const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
 
   if (users.length === 0) {
-    el.innerHTML = `<div class="empty-state"><div class="icon">${ICON.trophy}</div><p>Le classement attend ses premiers buteurs.</p></div>`;
+    el.innerHTML = `<div class="empty-state"><img src="./art-podium.png" class="es-art" alt=""><p>Le classement attend ses premiers buteurs.</p></div>`;
     return;
   }
 
@@ -5636,7 +5639,7 @@ window.openMatchChat = async function(matchId) {
   const qy = query(collection(db, 'matchs', matchId, 'messages'), orderBy('createdAt', 'asc'));
   _chatUnsub = onSnapshot(qy, snap => {
     const b = document.getElementById('chat-msgs'); if (!b) return;
-    if (snap.empty) { b.innerHTML = '<div class="chat-empty">Vestiaire vide.<br>Lance la causerie d\'avant-match.</div>'; return; }
+    if (snap.empty) { b.innerHTML = '<div class="chat-empty"><img src="./art-empty-vestiaire.png" class="es-art" alt="">Vestiaire vide.<br>Lance la causerie d\'avant-match.</div>'; return; }
     let html = '';
     snap.docs.forEach(d => {
       const msg = d.data();
