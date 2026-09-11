@@ -33,6 +33,9 @@
   <style>
     /* ===== DESIGN SYSTEM V2 — ULTRA PREMIUM ===== */
     :root {
+      /* NOM HÉRITÉ : --orange EST le vert de la marque (#00D88A), pas un orange.
+         Renommer les 132 usages toucherait aussi la classe .btn-orange générée
+         dans des chaînes JS — risque réel pour un gain de lisibilité seul. */
       --orange: #00D88A;
       --orange2: #00FF9D;
       --orange-dark: #00B876;
@@ -50,8 +53,11 @@
          pas de teinte décorative, s'adapte au fond, lisible (AA). */
       --text-sec: rgba(255,255,255,0.62);
       --text-muted: rgba(255,255,255,0.45);
-      --green: #00E676;
-      --green-glow: rgba(0,230,118,.3);
+      /* Alias de l'accent — il a longtemps valu #00E676, un vert voisin mais
+         DIFFÉRENT : deux verts à 6 % d'écart se lisent comme une erreur, pas
+         comme une intention. Une seule couleur d'accent, comme annoncé plus bas. */
+      --green: #00D88A;
+      --green-glow: rgba(0,216,138,.3);
       --red: #FF1744;
       --blue: #00B0FF;
       --gold: #FFD700;
@@ -373,7 +379,7 @@
 
     .tag { display:inline-flex; align-items:center; gap:4px; padding:4px 10px; border-radius:var(--r-lg); font-size:10px; font-weight:700; letter-spacing:.6px; text-transform:uppercase; }
     .tag-sondage { background:rgba(0,176,255,.12); color:#00B0FF; border:1px solid rgba(0,176,255,.25); }
-    .tag-confirme { background:rgba(0,230,118,.12); color:#00E676; border:1px solid rgba(0,230,118,.25); }
+    .tag-confirme { background:rgba(0,216,138,.12); color:var(--orange); border:1px solid rgba(0,216,138,.25); }
     .tag-termine { background:rgba(60,60,90,.2); color:var(--text-sec); border:1px solid var(--border); }
 
     .empty-state { text-align:center; padding:44px 20px; color:var(--text-sec); }
@@ -397,7 +403,7 @@
     .btn-orange:hover { transform:translateY(-1px); box-shadow:0 6px 20px var(--orange-glow); }
     .btn-outline { background:transparent; border:1px solid var(--border-light); color:var(--text-sec); }
     .btn-outline:hover { border-color:var(--orange); color:var(--orange); }
-    .btn-green { background:linear-gradient(135deg, #00D88A, #00E676); color:#000; box-shadow:0 4px 14px var(--green-glow); }
+    .btn-green { background:linear-gradient(135deg, var(--orange), var(--orange2)); color:#000; box-shadow:0 4px 14px var(--green-glow); }
     .btn-red { background:linear-gradient(135deg, #B71C1C, var(--red)); color:#fff; }
 
     .divider { height:1px; background:var(--border); margin:16px 0; }
@@ -505,16 +511,16 @@
     }
     .creneau-vote:hover { border-color:rgba(0,216,138,.4); background:var(--card2); }
     .creneau-vote.voted { border-color:var(--orange); background:rgba(0,216,138,.07); box-shadow:0 0 14px rgba(0,216,138,.1); }
-    .creneau-vote.top { border-color:var(--green); background:rgba(0,230,118,.05); box-shadow:0 0 14px rgba(0,230,118,.08); }
+    .creneau-vote.top { border-color:var(--green); background:rgba(0,216,138,.05); box-shadow:0 0 14px rgba(0,216,138,.08); }
     .creneau-vote .info { flex:1; }
     .creneau-vote .date-str { font-weight:600; font-size:15px; }
     .creneau-vote .lieu-str { font-size:12px; color:var(--text-sec); margin-top:2px; }
     .creneau-vote .vote-count { display:flex; flex-direction:column; align-items:center; gap:2px; }
     .vote-num { font-family:'Anton',sans-serif; font-size:24px; font-weight:700; color:var(--orange); text-shadow:0 0 10px var(--orange-glow); }
     .vote-label { font-size:10px; color:var(--text-sec); text-transform:uppercase; letter-spacing:.5px; }
-    .vote-check { width:22px; height:22px; border-radius:50%; background:var(--green); color:#04130c; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:8px; flex-shrink:0; box-shadow:0 0 10px rgba(0,230,118,.4); }
-    .creneau-vote.voted { border-color:var(--green) !important; background:rgba(0,230,118,.06) !important; }
-    .creneau-vote.voted .vote-num { color:var(--green); text-shadow:0 0 10px rgba(0,230,118,.4); }
+    .vote-check { width:22px; height:22px; border-radius:50%; background:var(--green); color:#04130c; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:8px; flex-shrink:0; box-shadow:0 0 10px rgba(0,216,138,.4); }
+    .creneau-vote.voted { border-color:var(--green) !important; background:rgba(0,216,138,.06) !important; }
+    .creneau-vote.voted .vote-num { color:var(--green); text-shadow:0 0 10px rgba(0,216,138,.4); }
 
     /* Panneau créateur compact (sondage) */
     .creator-panel { background:linear-gradient(180deg,var(--card),#10141c); border:1px solid var(--border); border-radius:var(--r-md); padding:13px 14px; margin:2px 0 10px; box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
@@ -842,7 +848,7 @@
     .mrow-manque { font-size:15px; font-weight:700; margin-bottom:3px; }
     .mrow-where { font-size:12px; color:var(--text-sec); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .mrow-cta { flex-shrink:0; font-size:12px; font-weight:700; color:var(--orange); background:rgba(0,216,138,.12); border:1px solid rgba(0,216,138,.28); padding:8px 13px; border-radius:var(--r-lg); }
-    .mrow-cta.is-joined { color:var(--green); background:rgba(0,230,118,.1); border-color:rgba(0,230,118,.3); }
+    .mrow-cta.is-joined { color:var(--green); background:rgba(0,216,138,.1); border-color:rgba(0,216,138,.3); }
     .mrow-cta.is-full { color:var(--text-muted); background:transparent; border-color:var(--border); }
 
     .atout-bar-wrap { margin-bottom:10px; }
@@ -1023,7 +1029,7 @@
       display:flex; align-items:center; gap:10px;
       box-shadow:0 8px 32px rgba(0,0,0,.4);
     }
-    .toast.success { border-color:rgba(0,230,118,.4); background:rgba(0,30,12,.9); }
+    .toast.success { border-color:rgba(0,216,138,.4); background:rgba(0,30,12,.9); }
     .toast.error { border-color:rgba(255,23,68,.4); background:rgba(30,0,8,.9); }
     .toast.levelup {
       border-color:rgba(255,215,0,.5); background:rgba(30,20,0,.9);
@@ -1287,7 +1293,7 @@
     .fut-club-shield { display:inline-flex; align-items:center; gap:8px; margin-top:6px; justify-content:center; }
     .fut-poste-badge {
       display:inline-flex; align-items:center; gap:5px;
-      background:rgba(0,230,118,.15); border:1px solid rgba(0,230,118,.3);
+      background:rgba(0,216,138,.15); border:1px solid rgba(0,216,138,.3);
       border-radius:var(--r-lg); padding:4px 12px;
       font-size:12px; font-weight:700; color:var(--green);
       margin-top:6px;
@@ -1663,7 +1669,7 @@
     .friend-action-btn.fadd{border-color:var(--orange);color:var(--orange);}
     .friend-action-btn.fadd:hover{background:var(--orange);color:#fff;}
     .friend-action-btn.faccept{border-color:var(--green);color:var(--green);}
-    .friend-status{font-size:11px;padding:3px 8px;border-radius:var(--r-sm);background:rgba(0,230,118,.1);color:var(--green);white-space:nowrap;}
+    .friend-status{font-size:11px;padding:3px 8px;border-radius:var(--r-sm);background:rgba(0,216,138,.1);color:var(--green);white-space:nowrap;}
     .friends-empty{font-size:13px;color:var(--text-muted);text-align:center;padding:12px 0;}
     .friend-chev{color:var(--text-muted);font-size:20px;margin-right:2px;}
 
