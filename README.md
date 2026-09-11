@@ -159,6 +159,7 @@ le code.
 | [ARCHITECTURE.md](./ARCHITECTURE.md) | Modèle de données, cycle de vie d'un match, notifications, sécurité |
 | [DESIGN.md](./DESIGN.md) | Système de design : tokens, composants, assets, principes |
 | [PUSH-SETUP.md](./PUSH-SETUP.md) | Guide de déploiement des notifications push |
+| [AUDIT.md](./AUDIT.md) | Audit du code face au brief V1 : keep / refactor / rebuild / new |
 
 ## Stack
 
