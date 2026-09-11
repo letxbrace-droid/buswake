@@ -3488,6 +3488,7 @@ async function renderHome() {
   }
 
   el.innerHTML = html;
+  jouerEntree(el);
   hydrateMatchCards(fills, motms);
   if (coldActiveUids && coldActiveUids.length && document.getElementById('ch-proof-avs')) {
     renderStackAvatars(coldActiveUids, 'ch-proof-avs', 5);
@@ -3571,6 +3572,7 @@ function getBestCreneau(match) {
 // Joue les animations d'entrée UNE fois, puis retire la classe : les
 // re-rendus suivants (déclenchés par n'importe quelle écriture) glissent
 // via la transition CSS au lieu de repartir de zéro.
+let _animMatchId = null;   // dernier match dont l'entrée a déjà été jouée
 function jouerEntree(el) {
   if (!el) return;
   el.classList.add('anim-in');
@@ -4033,7 +4035,7 @@ async function openMatchDetail(matchId) {
   // Nettoyage exécuté par toute fermeture OU par l'ouverture d'un
   // sous-panneau (openTerminerMatch, etc. appellent openModal → hook lancé).
   // Désabonner à ce moment-là évite d'écraser la saisie du sous-panneau.
-  _onModalClose = () => { _matchDetailRenderGen++; unsub(); };
+  _onModalClose = () => { _matchDetailRenderGen++; _animMatchId = null; unsub(); };
 }
 window.openMatchDetail = openMatchDetail;
 
@@ -4291,7 +4293,9 @@ async function renderMatchDetail(matchId, m) {
   }
 
   if (myGen !== _matchDetailRenderGen) return; // annulé entre temps
-  document.getElementById('modal-body').innerHTML = html;
+  const mb = document.getElementById('modal-body');
+  mb.innerHTML = html;
+  if (_animMatchId !== matchId) { _animMatchId = matchId; jouerEntree(mb); }
 }
 
 // ===== VOTE CRÉNEAU =====
