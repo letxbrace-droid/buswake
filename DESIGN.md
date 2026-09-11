@@ -12,10 +12,14 @@ garantissent.
 
 **Noir mat, un seul vert, des formes nettes.**
 
-L'app est vectorielle : formes, traits, typographie. Les photographies
-sont réservées à deux endroits (la carte de joueur et la bannière de
-partage) — partout ailleurs, une image dilue le propos et alourdit la
-PWA.
+L'app est vectorielle : formes, traits, typographie. La photographie a
+trois emplois, et **trois seulement** : la carte de joueur, les bannières
+de partage, et le terrain du sport derrière le héros d'un match. Partout
+ailleurs, une image dilue le propos et alourdit la PWA.
+
+La règle qui tient ces trois ensemble : **une photo n'est jamais de la
+décoration, elle dit où on joue.** Et elle passe toujours sous un voile
+calculé, jamais choisi à l'œil — voir plus bas.
 
 Un seul accent coloré : `#00D88A`. Les autres couleurs ne servent qu'à
 dire quelque chose de précis (rouge = urgence, or/argent/bronze = rang de
@@ -178,6 +182,65 @@ substitue à un autre.
 | `og-image.jpg` | Bannière de partage 1200×630 — photo d'un terrain nocturne, titre à gauche. C'est l'aperçu du lien dans WhatsApp. |
 | `art-player.png` | Silhouette de joueur — remplace la photo sur les cartes qui n'en ont pas. |
 
+### Terrains — le voile est mesuré, pas choisi
+
+| Fichier | Rôle |
+|---|---|
+| `sport-foot5.jpg` · `sport-foot7.jpg` · `sport-basket3.jpg` · `sport-padel.jpg` · `sport-tennis.jpg` | Le terrain du sport, derrière le héros d'un match. 880 × 500, 16 à 67 ko. |
+| `texture-turf.jpg` | Grain de gazon synthétique, servi à **5 %** derrière toute l'app. |
+
+**Composition : texte à gauche sur noir plein, photo à droite** — la même
+que les bannières de partage, pour que les deux se reconnaissent.
+
+Ce n'est pas un choix esthétique. Le texte du héros est aligné à gauche,
+et le plus fragile de ses éléments est l'eyebrow : vert `#00D88A`, 10,5 px,
+donc du **petit texte**, qui exige 4,5:1. Un dégradé *vertical* doit
+assombrir toute la carte pour le protéger — et à la force nécessaire, la
+photo disparaît. Mesuré au pire cas des cinq sports :
+
+| Voile | Eyebrow (≥ 4,5) | Titre (≥ 3,0) | Méta (≥ 4,5) |
+|---|---|---|---|
+| Vertical `.58 → .95` | **3,33** ❌ | 10,27 | **4,34** ❌ |
+| **Horizontal (retenu)** | **5,81** ✅ | 8,52 ✅ | 5,15 ✅ |
+
+Le voile vertical initial était donc *à la fois* trop sombre pour qu'on
+voie la photo **et** insuffisant pour le contraste. Le voile horizontal
+règle les deux : il protège la colonne de texte et laisse le terrain
+respirer là où il n'y a rien à lire.
+
+**Limite connue.** `sport-foot5.jpg` est le plus faible des cinq : la
+photo d'origine place son unique source de lumière au centre exact, là où
+passe le texte, et son tiers droit plafonne à 17/255 — aucun recadrage ne
+le sauve. Il est recadré dans la moitié gauche pour ramener le cône de
+lumière à droite, ce qui limite sa définition. À régénérer avec la
+lumière décentrée à droite.
+
+**Le fond de l'app**, lui, est à 5 % d'opacité : on ne le voit pas, on le
+sent. C'est un plafond, pas un réglage — au-delà, la photo commence à
+concurrencer le noir mat qui fait l'identité.
+
+### Partage — une bannière par sport
+
+| Fichier | Rôle |
+|---|---|
+| `og-image.jpg` | Bannière par défaut, 1200 × 630. |
+| `og-foot5.jpg` … `og-tennis.jpg` | Une bannière par sport, même gabarit. |
+
+Un lien de match partagé sur WhatsApp passe par `m/<sport>.html`, une page
+qui ne sert qu'à porter les bonnes balises Open Graph avant de rediriger.
+**Raison technique :** un fragment `#j=<id>` n'est jamais envoyé au
+serveur, donc un robot d'aperçu voit toujours la même page — sans ce
+détour, l'aperçu d'un match de padel montrerait un terrain de foot.
+
+Ces bannières ne sont **pas** préchargées par le service worker : elles ne
+sont lues que par les robots d'aperçu, jamais par l'app.
+
+### Hors app — acquisition
+
+`marketing/tiktok-salle-9x16.jpg` — fond vertical 1080 × 1920, deux tiers
+supérieurs volontairement vides pour le texte au montage. Jamais chargé
+par l'app.
+
 ### Visuels d'action
 
 | Fichier | Rôle |
@@ -248,9 +311,11 @@ const CACHE = 'cs5-v70';   // ← +1, sinon les téléphones gardent l'ancien
 
 Ces décisions ont une raison ; les rouvrir demande une meilleure raison.
 
-- **Une photo en fond d'écran dans l'app.** L'identité est vectorielle.
-  Une photo diluerait le propos et coûterait des centaines de kilo-octets
-  pour de la décoration.
+- **Une photo *lisible* en fond d'écran dans l'app.** Le grain de gazon
+  existe, mais à 5 % et pour 37 ko — c'est une texture, pas une image.
+  Le jour où quelqu'un voudra la monter à 15 %, la réponse est non : à ce
+  niveau elle cesse d'être un grain et devient un décor, et le noir mat
+  n'est plus l'identité mais un fond parmi d'autres.
 - **Une illustration en en-tête du classement.** Il y a déjà un podium 3D
   avec les avatars du top 3 — l'illustration ferait doublon. Elle habite
   l'état vide.

@@ -61,9 +61,18 @@ buswake/
 │   ├── index.js        ← Les 2 fonctions : onMatchEcrit, rappels
 │   └── package.json    ← Node 22
 │   └── backfill-visibilite.js  ← rattrapage ponctuel des anciens matchs
+├── m/                  ← 5 pages de redirection, une par sport (aperçus WhatsApp)
 ├── stickers/           ← 4 stickers WhatsApp (hors app)
+├── marketing/          ← visuels d'acquisition (hors app)
 └── *.png / *.jpg       ← Assets du design system (voir DESIGN.md)
 ```
+
+**`m/` n'est pas une section de l'app.** Ce sont cinq pages vides qui
+portent les balises Open Graph d'un sport, puis redirigent vers
+`index.html` en gardant le fragment `#j=<id>`. Elles existent parce qu'un
+fragment n'est jamais envoyé au serveur : sans elles, l'aperçu WhatsApp
+d'un match de padel montrerait un terrain de foot. Ajouter un sport
+demande donc **aussi** un fichier ici et une bannière `og-<sport>.jpg`.
 
 **Un seul fichier pour l'app.** `index.html` contient le HTML, le CSS et
 le JavaScript. C'est délibéré : aucune étape de build, aucune

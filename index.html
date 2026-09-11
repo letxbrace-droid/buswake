@@ -85,6 +85,13 @@
       display:flex;
       flex-direction:column;
     }
+    /* Grain de gazon synthétique, à 5 % : on ne le voit pas, on le sent.
+       Au-delà, la photo commence à concurrencer le noir mat de l'identité. */
+    body::before {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:url('texture-turf.jpg') center/420px auto repeat;
+      opacity:.05;
+    }
 
     /* Fond avec orbes de couleur */
     body::before {
@@ -780,6 +787,18 @@
     /* ===== DÉTAIL DE MATCH — héros + zone gestion (passe Jobs) ===== */
     .md-hero { position:relative; border-radius:var(--r-lg); overflow:hidden; background:#0B0D12; border:1px solid var(--border); padding:16px 16px 15px; margin-bottom:4px; }
     .md-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(100% 70% at 50% -10%,rgba(0,216,138,.14),transparent 60%); pointer-events:none; }
+    /* Le terrain du sport joué, derrière le héros — même composition que la
+       bannière de partage : texte à gauche sur noir plein, photo à droite.
+       Le voile est HORIZONTAL, pas vertical, et ce n'est pas un goût : le
+       texte du héros est aligné à gauche, donc un dégradé vertical devait
+       assombrir toute la carte pour protéger l'eyebrow (vert, 10,5 px) et
+       finissait par rendre la photo invisible. Contrastes mesurés au pire
+       cas des cinq sports — eyebrow 5,8:1 · titre 8,5:1 · méta 5,2:1. */
+    .md-hero.ph { background-image:var(--ph); background-size:cover; background-position:center 58%; }
+    .md-hero.ph::before { background:
+      linear-gradient(90deg,rgba(8,10,13,.99) 0%,rgba(8,10,13,.95) 44%,rgba(8,10,13,.38) 80%,rgba(8,10,13,.60) 100%),
+      linear-gradient(180deg,rgba(8,10,13,.20) 0%,rgba(8,10,13,0) 42%,rgba(8,10,13,.50) 100%),
+      radial-gradient(100% 70% at 50% -10%,rgba(0,216,138,.16),transparent 60%); }
     .md-hero > * { position:relative; }
     .md-eyebrow { display:flex; align-items:center; gap:7px; font-size:10.5px; letter-spacing:1.4px; font-weight:700; text-transform:uppercase; color:var(--orange); }
     .md-eyebrow .ic { width:14px; height:14px; }
@@ -2652,6 +2671,12 @@ const SPORTS = {
   tennis:  { nom: 'Tennis',     joueursMax: 2,  format: '1 vs 1', ic: SPORT_IC.tennis },
 };
 function sportIcone(m) { return _icS((sportDe(m) || {}).ic || SPORT_IC.ballon); }
+// Le bandeau photo du héros. Un fichier par sport : `sport-<id>.jpg`.
+// Les matchs sans champ `sport` retombent sur le foot à 5, comme le reste.
+function sportPhoto(m) {
+  const id = (m && m.sport && SPORTS[m.sport]) ? m.sport : SPORT_DEFAUT;
+  return `sport-${id}.jpg`;
+}
 const SPORT_DEFAUT = 'foot5';
 // Repli pour les matchs créés avant l'arrivée du champ : ils sont tous
 // du foot à 5, puisque c'est tout ce que l'app savait faire.
@@ -4297,7 +4322,7 @@ async function renderMatchDetail(matchId, m) {
     const nbC = (m.creneauxProposes || []).length;
     const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     // Héros : le contexte + L'action, avant tout le reste.
-    html += `<div class="md-hero">
+    html += `<div class="md-hero ph" style="--ph:url('${sportPhoto(m)}')">
       <div class="md-eyebrow">${ICON.poll} Sondage en cours · ${n}/${maxJoueurs(m)} inscrits</div>
       <div class="md-big">On cherche le créneau.</div>
       <div class="md-meta">${ICON.calendar} ${nbC} créneau${nbC > 1 ? 'x' : ''} proposé${nbC > 1 ? 's' : ''} — vote en dessous</div>
@@ -4347,7 +4372,7 @@ async function renderMatchDetail(matchId, m) {
     const n = inscrits.length;
     const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     const w = _matchWhen(m);
-    html += `<div class="md-hero">
+    html += `<div class="md-hero ph" style="--ph:url('${sportPhoto(m)}')">
       <div class="md-eyebrow">${ICON.ball} ${countdownLabel(w.ms)}</div>
       <div class="md-big">${dateDayLabel(w.ms)}${w.heure ? ' · ' + w.heure.replace(':', 'h') : ''}</div>
       <div class="md-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
@@ -4397,7 +4422,7 @@ async function renderMatchDetail(matchId, m) {
       const hdmData = await getUserData(m.hommeDuMatchUid);
       hdmHtml = `<div class="md-hdm">${ICON.trophy} HOMME DU MATCH <b>${escapeHtml((hdmData?.pseudo || 'Inconnu').toUpperCase())}</b></div>`;
     }
-    html += `<div class="md-hero">
+    html += `<div class="md-hero ph" style="--ph:url('${sportPhoto(m)}')">
       <img src="./art-goal.png" class="md-goal-art" alt="">
       <div class="md-eyebrow" style="color:var(--gold)">${ICON.flag} Terminé · ${dateDayLabel(_matchWhen(m).ms)}</div>
       <div class="md-score">
@@ -6039,22 +6064,35 @@ window.sendChatMsg = async function() {
 };
 
 // ===== PARTAGE WHATSAPP =====
+// Le lien de partage passe par `m/<sport>.html`, une page de redirection
+// qui ne sert qu'à une chose : porter les balises Open Graph du bon sport.
+// WhatsApp ne lit que ce que le serveur renvoie — et un fragment `#j=…`
+// n'est jamais envoyé au serveur. Sans ce détour, l'aperçu d'un match de
+// padel montrerait un terrain de foot.
+function lienPartage(matchId, m) {
+  const id = (m && m.sport && SPORTS[m.sport]) ? m.sport : SPORT_DEFAUT;
+  const dir = location.pathname.replace(/[^/]*$/, '');
+  return `${location.origin}${dir}m/${id}.html#j=${matchId}`;
+}
 window.shareMatchWA = async function(matchId) {
   const snap = await getDoc(doc(db, 'matchs', matchId));
   if (!snap.exists()) return;
   const m = snap.data();
-  const link = location.origin + location.pathname + '#j=' + matchId;
+  const link = lienPartage(matchId, m);
+  const sp = sportDe(m);
+  const total = maxJoueurs(m);
   const n = (m.joueursInscrits || []).length;
-  const places = Math.max(0, 10 - n);
+  const places = Math.max(0, total - n);
   const placesTxt = places > 0 ? `${places} place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'complet';
+  const entete = `*KOLEKTIF* · ${sp.nom}`;
   let txt;
   if (m.statut === 'sondage') {
     const cr = (m.creneauxProposes || []).map(c => `• ${formatDate(c.date, c.heure)} — ${c.lieu}`).join('\n');
-    txt = `⚽ *KOLEKTIF* — On cale un match\n\nOn cherche nos dispos pour le prochain match :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
+    txt = `${entete} — On cale un match\n\nOn cherche nos dispos :\n${cr}\n\n👥 ${n}/${total} inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
   } else if (m.statut === 'confirmé') {
-    txt = `⚽ *KOLEKTIF* — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
+    txt = `${entete} — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/${total} · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
   } else {
-    txt = `⚽ *KOLEKTIF* — Résultat\n${m.equipes?.[0]?.nom || 'A'} ${m.scoreA ?? '?'} — ${m.scoreB ?? '?'} ${m.equipes?.[1]?.nom || 'B'}\n👉 ${link}`;
+    txt = `${entete} — Résultat\n${m.equipes?.[0]?.nom || 'A'} ${m.scoreA ?? '?'} — ${m.scoreB ?? '?'} ${m.equipes?.[1]?.nom || 'B'}\n👉 ${link}`;
   }
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 };

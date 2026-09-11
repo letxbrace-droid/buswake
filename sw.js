@@ -1,5 +1,18 @@
-const CACHE = 'cs5-v71';
-const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png','./icon-192.png','./logo.png','./og-image.jpg','./art-bolt.png','./art-goal.png','./art-player.png','./art-empty-histo.png','./art-empty-amis.png','./art-empty-vestiaire.png','./art-podium.png'];
+const CACHE = 'cs5-v72';
+// `og-*.jpg` n'est volontairement PAS ici : ces bannières ne sont lues que
+// par les robots d'aperçu (WhatsApp, iMessage), jamais par l'app. Les
+// précharger coûtait 128 ko à chaque installation pour rien.
+// `m/*.html` y est, en revanche : hors-ligne, un lien de partage doit
+// pouvoir exécuter sa redirection, sinon le `#j=<id>` est perdu.
+const PRECACHE = [
+  './','./index.html','./manifest.json',
+  './icon-512.png','./icon-192.png','./logo.png',
+  './art-bolt.png','./art-goal.png','./art-player.png',
+  './art-empty-histo.png','./art-empty-amis.png','./art-empty-vestiaire.png','./art-podium.png',
+  './texture-turf.jpg',
+  './sport-foot5.jpg','./sport-foot7.jpg','./sport-basket3.jpg','./sport-padel.jpg','./sport-tennis.jpg',
+  './m/foot5.html','./m/foot7.html','./m/basket3.html','./m/padel.html','./m/tennis.html',
+];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(PRECACHE)).then(() => self.skipWaiting()));
