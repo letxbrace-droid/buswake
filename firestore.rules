@@ -114,7 +114,13 @@ service cloud.firestore {
             || (request.resource.data.message is string
                 && request.resource.data.message.size() <= 200))
         // Visibilité : uniquement les deux valeurs que le produit connaît.
-        && request.resource.data.get('visibilite', 'public') in ['public', 'prive'];
+        && request.resource.data.get('visibilite', 'public') in ['public', 'prive']
+        // Effectif : borné. Sans plafond, un match à 10 000 places ferait
+        // exploser les listes et les notifications côté serveur.
+        && (!('joueursMax' in request.resource.data)
+            || (request.resource.data.joueursMax is int
+                && request.resource.data.joueursMax >= 2
+                && request.resource.data.joueursMax <= 40));
       // Gestion complète par le créateur — sans transfert de propriété,
       // et avec un statut toujours valide.
       allow update: if isSignedIn() && managesMatch()

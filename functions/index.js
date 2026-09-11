@@ -26,7 +26,13 @@ initializeApp();
 setGlobalOptions({ region: 'europe-west1', maxInstances: 5 });
 const db = getFirestore();
 
-const MIN_CONFIRM = 10; // foot à 5 = 2×5 (aligné sur le client)
+// Repli pour les matchs d'avant le multi-sport (tous du foot à 5).
+// L'effectif appartient au match, pas au serveur.
+const MIN_CONFIRM = 10;
+function maxJoueurs(m) {
+  const n = m && m.joueursMax;
+  return (typeof n === 'number' && n >= 2 && n <= 40) ? n : MIN_CONFIRM;
+}
 
 // ---------- Temps (le runtime tourne en UTC, les matchs vivent à Paris) ----------
 function tzOffsetMin(ms) {
@@ -168,7 +174,7 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   if (before.statut === 'confirmé' && after.statut === 'confirmé') {
     const nAvant = (before.joueursInscrits || []).length;
     const inscrits = after.joueursInscrits || [];
-    const manque = MIN_CONFIRM - inscrits.length;
+    const manque = maxJoueurs(after) - inscrits.length;
     const w = matchWhen(after);
     const dans = w.ms - Date.now();
     const dernierEnvoi = notifs.manque || 0;
@@ -209,7 +215,7 @@ exports.rappels = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/P
     const dans = w.ms - now;
     if (dans <= 0) continue;
     const inscrits = m.joueursInscrits || [];
-    const manque = MIN_CONFIRM - inscrits.length;
+    const manque = maxJoueurs(m) - inscrits.length;
     const lieu = m.lieuFinal ? ' · ' + m.lieuFinal : '';
     const mark = (k) => d.ref.update({ ['_notifs.' + k]: now }).catch(() => {});
 
@@ -229,7 +235,7 @@ exports.rappels = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/P
       const map = await collectTokens(inscrits);
       await send(map, {
         title: 'Demain, on joue 📅',
-        body: 'Match ' + quandLabel(w.ms, w.heure) + lieu + ' — ' + inscrits.length + '/' + MIN_CONFIRM + ' inscrits.',
+        body: 'Match ' + quandLabel(w.ms, w.heure) + lieu + ' — ' + inscrits.length + '/' + maxJoueurs(m) + ' inscrits.',
         matchId: d.id,
       });
     }

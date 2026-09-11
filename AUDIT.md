@@ -32,7 +32,7 @@ mesure**, qui rend la règle du §34 inapplicable.
 | Notifications | FCM + 2 Cloud Functions, 7 déclencheurs | **KEEP** |
 | Player Card | Carte plein cadre, export PNG | **KEEP** |
 | Progression | XP, 6 rangs, badges, MOTM, malus lapin | **KEEP** |
-| **Système multi-sport de base** | **Inexistant** | **REBUILD** |
+| **Système multi-sport de base** | Champs `sport` + `joueursMax`, catalogue de 5 sports | **FAIT** |
 
 ### Les trois REFACTOR, et pourquoi
 
@@ -52,7 +52,15 @@ n'existent pas dans le modèle.
 
 ---
 
-## Le blocage réel : §18 MULTI-SPORT
+## ✅ §18 MULTI-SPORT — corrigé
+
+*Cette section décrivait le blocage. Il est levé : le catalogue `SPORTS`
+existe, chaque match porte `sport` et `joueursMax`, et les 24 lectures de
+`MIN_CONFIRM` passent désormais par `maxJoueurs(m)`. Les matchs créés
+avant retombent sur foot à 5 / 10 joueurs. Le texte d'origine est
+conservé ci-dessous pour mémoire du raisonnement.*
+
+## Le blocage réel : §18 MULTI-SPORT (historique)
 
 > *« Ne jamais coder le produit autour de constantes propres au
 > football. »*

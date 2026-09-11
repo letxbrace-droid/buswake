@@ -812,6 +812,14 @@
       font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700;
       transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease), background var(--t-base) var(--ease); }
     .rayon-chip.on { border-color:var(--green); color:var(--green); background:rgba(0,216,138,.08); }
+.cm-sports { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+    .cm-sport { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-sm);
+      padding:11px 12px; cursor:pointer; min-height:44px;
+      transition:border-color var(--t-base) var(--ease), background var(--t-base) var(--ease); }
+    .cm-sport b { display:block; font-size:13.5px; color:var(--text); }
+    .cm-sport small { display:block; font-size:11px; color:var(--text-muted); margin-top:2px; }
+    .cm-sport.on { border-color:var(--orange); background:rgba(0,216,138,.08); }
+    .cm-sport.on b { color:var(--orange); }
     .cm-visib { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
     .cm-vis { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-sm); padding:11px 12px; cursor:pointer; min-height:44px;
       transition:border-color var(--t-base) var(--ease), background var(--t-base) var(--ease); }
@@ -2617,7 +2625,26 @@ const ATT_SVG = {
   physique: _psvg('<path d="M6.5 7v10M3.5 9.5v5M17.5 7v10M20.5 9.5v5M6.5 12h11"/>'),
 };
 const XP = { participer: 100, voter: 10, creer: 50, hdm: 200 };
-const MIN_CONFIRM = 10; // joueurs inscrits minimum pour confirmer un match (foot à 5 = 2×5)
+// ===== SPORTS =====
+// L'identifiant est stable et stocké en base ; le libellé peut changer.
+// Le §18 du brief interdit de coder le produit autour de constantes de
+// football : le nombre de joueurs appartient donc au MATCH, pas à l'app.
+const SPORTS = {
+  foot5:   { nom: 'Foot à 5',   joueursMax: 10, format: '5 vs 5' },
+  foot7:   { nom: 'Foot à 7',   joueursMax: 14, format: '7 vs 7' },
+  basket3: { nom: 'Basket 3×3', joueursMax: 6,  format: '3 vs 3' },
+  padel:   { nom: 'Padel',      joueursMax: 4,  format: '2 vs 2' },
+  tennis:  { nom: 'Tennis',     joueursMax: 2,  format: '1 vs 1' },
+};
+const SPORT_DEFAUT = 'foot5';
+// Repli pour les matchs créés avant l'arrivée du champ : ils sont tous
+// du foot à 5, puisque c'est tout ce que l'app savait faire.
+const MIN_CONFIRM = 10;
+function maxJoueurs(m) {
+  const n = m && m.joueursMax;
+  return (typeof n === 'number' && n >= 2 && n <= 40) ? n : MIN_CONFIRM;
+}
+function sportDe(m) { return SPORTS[(m && m.sport) || SPORT_DEFAUT] || SPORTS[SPORT_DEFAUT]; }
 
 // ===== DONNÉES CLUBS — VRAIS ÉCUSSONS =====
 // Logos : crests.football-data.org (PNG publics, sans clé API)
@@ -3591,21 +3618,21 @@ function homeHeroHTML(id, m, statut, fills) {
   const isInscrit = inscrits.includes(currentUser?.uid);
 
   if (statut === 'confirmé') {
-    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
-    const places = Math.max(0, MIN_CONFIRM - n);
+    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
+    const places = Math.max(0, maxJoueurs(m) - n);
     if (fills) fills.push({ id, uids: inscrits });
     const cta = isInscrit
       ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.checkCircle} Tu joues · voir le match</button>`
-      : (n >= MIN_CONFIRM
+      : (n >= maxJoueurs(m)
           ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.clock} Match plein · rejoindre le banc</button>`
           : `<button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ICON.plus} Je joue !</button>`);
     const _whenMs = _matchWhen(m).ms; // date + heure réelles (dateFinale ne stocke que la date)
     return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
-      <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} Prochain match · ${countdownLabel(_whenMs)}</div>
+      <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} ${escapeHtml(sportDe(m).nom)} · ${countdownLabel(_whenMs)}</div>
       <div class="hh-date">${dateDayLabel(_whenMs)}</div>
       <div class="hh-meta">${ICON.pin} ${escapeHtml(m.lieuFinal || 'Lieu à définir')}</div>
       <div class="kring-row" style="margin-top:14px">
-        ${kolektifRing(n, MIN_CONFIRM, 76)}
+        ${kolektifRing(n, maxJoueurs(m), 76)}
         <div class="krr-meta">
           <div class="foot-txt">${places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Match complet'}</div>
           <div class="av-stack" id="mcav-${id}" style="margin-top:8px"></div>
@@ -3800,7 +3827,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
       <div class="mc sondage" onclick="openMatchDetail('${id}')">
         <div class="mc-top">
           <div>
-            <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ?</div>
+            <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> ${escapeHtml(sportDe(m).nom)} · On joue quand ?</div>
             <div class="mc-date">${best ? dateDayLabel(best.date, best.heure) : 'À planifier'}</div>
           </div>
           <span class="mc-chip chip-sondage">À caler</span>
@@ -3815,8 +3842,8 @@ function matchCardHTML(id, m, statut, fills, motms) {
   }
 
   if (statut === 'confirmé') {
-    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
-    const places = Math.max(0, MIN_CONFIRM - n);
+    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
+    const places = Math.max(0, maxJoueurs(m) - n);
     const placesTxt = places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet';
     if (fills) fills.push({ id, uids: inscrits });
     const _whenMs = _matchWhen(m).ms; // date + heure réelles (dateFinale ne stocke que la date)
@@ -3824,14 +3851,14 @@ function matchCardHTML(id, m, statut, fills, motms) {
       <div class="mc confirme" onclick="openMatchDetail('${id}')">
         <div class="mc-top">
           <div>
-            <div class="mc-eyebrow" style="color:var(--orange)">${countdownLabel(_whenMs)}</div>
+            <div class="mc-eyebrow" style="color:var(--orange)">${escapeHtml(sportDe(m).nom)} · ${countdownLabel(_whenMs)}</div>
             <div class="mc-date">${dateDayLabel(_whenMs)}</div>
           </div>
           <span class="mc-chip chip-confirme">Confirmé</span>
         </div>
         <div class="mc-body">
           ${mcLieuHtml(m)}
-          <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+          <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
         </div>
         <div class="mc-foot">
           <div class="av-stack" id="mcav-${id}"></div>
@@ -3922,7 +3949,7 @@ function buildConfirmedView(rawDocs, fills) {
     const inscrits = m.joueursInscrits || [];
     return {
       id: d.id, m, inscrits, n: inscrits.length,
-      places: Math.max(0, MIN_CONFIRM - inscrits.length),
+      places: Math.max(0, maxJoueurs(m) - inscrits.length),
       joined: inscrits.includes(currentUser?.uid),
       w: _matchWhen(m), dist: _matchDist(m),
       friendUids: inscrits.filter(u => friends.includes(u)),
@@ -4181,7 +4208,7 @@ function mdJoinCta(matchId, m, uid) {
   const inscrits = m.joueursInscrits || [];
   const waitlist = m.waitlist || [];
   const wpos = waitlist.indexOf(uid);
-  const full = inscrits.length >= MIN_CONFIRM;
+  const full = inscrits.length >= maxJoueurs(m);
   let label, cls;
   if (inscrits.includes(uid)) { label = `${ICON.check} Tu joues · Je ne joue plus`; cls = 'btn-sm btn-outline'; }
   else if (wpos !== -1) { label = `${ICON.clock} Sur le banc (#${wpos + 1}) · Quitter`; cls = 'btn-sm btn-outline'; }
@@ -4195,7 +4222,7 @@ function playersSectionHtml(matchId, m, joueursAvecDist, venueCoords, isCreateur
   const waitlist = m.waitlist || [];
   const waitPill = waitlist.length ? `<span class="pc-wait">${ICON.clock} ${waitlist.length} remplaçant${waitlist.length > 1 ? 's' : ''}</span>` : '';
   return `<div class="md-sec">Joueurs${venueCoords ? ' · triés par distance' : ''}</div>
-    <div class="players-chip"><span>${ICON.users} ${inscrits.length}/${MIN_CONFIRM} joueurs</span>${waitPill}</div>
+    <div class="players-chip"><span>${ICON.users} ${inscrits.length}/${maxJoueurs(m)} joueurs</span>${waitPill}</div>
     ${buildJoueursListHtml(joueursAvecDist, matchId, isCreateur)}
     <div class="btn-2col" style="margin-top:14px">
       <button class="btn-sm btn-wa" onclick="window.shareMatchWA('${matchId}')">${WA_SVG} Partager</button>
@@ -4252,13 +4279,13 @@ async function renderMatchDetail(matchId, m) {
   if (m.statut === 'sondage') {
     const n = inscrits.length;
     const nbC = (m.creneauxProposes || []).length;
-    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     // Héros : le contexte + L'action, avant tout le reste.
     html += `<div class="md-hero">
-      <div class="md-eyebrow">${ICON.poll} Sondage en cours · ${n}/${MIN_CONFIRM} inscrits</div>
+      <div class="md-eyebrow">${ICON.poll} Sondage en cours · ${n}/${maxJoueurs(m)} inscrits</div>
       <div class="md-big">On cherche le créneau.</div>
       <div class="md-meta">${ICON.calendar} ${nbC} créneau${nbC > 1 ? 'x' : ''} proposé${nbC > 1 ? 's' : ''} — vote en dessous</div>
-      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
     html += mdQuoteHtml(m, inscritsPseudos);
@@ -4286,8 +4313,8 @@ async function renderMatchDetail(matchId, m) {
 
     // Zone gestion : tout ce qui n'appartient qu'au créateur, au même endroit.
     if (isCreateur) {
-      const enough = inscrits.length >= MIN_CONFIRM;
-      const left = MIN_CONFIRM - inscrits.length;
+      const enough = inscrits.length >= maxJoueurs(m);
+      const left = maxJoueurs(m) - inscrits.length;
       html += `<div class="md-admin">
         <div class="md-admin-lbl">${ICON.shield} Gestion · créateur</div>
         ${best
@@ -4302,13 +4329,13 @@ async function renderMatchDetail(matchId, m) {
   // ---- Match confirmé ----
   else if (m.statut === 'confirmé') {
     const n = inscrits.length;
-    const pct = Math.min(100, Math.round((n / MIN_CONFIRM) * 100));
+    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     const w = _matchWhen(m);
     html += `<div class="md-hero">
       <div class="md-eyebrow">${ICON.ball} ${countdownLabel(w.ms)}</div>
       <div class="md-big">${dateDayLabel(w.ms)}${w.heure ? ' · ' + w.heure.replace(':', 'h') : ''}</div>
       <div class="md-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
-      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
+      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
     html += mdQuoteHtml(m, inscritsPseudos);
@@ -4421,7 +4448,7 @@ async function _doJoinMatch(matchId) {
   const m = snap.exists() ? snap.data() : {};
   const inscrits = m.joueursInscrits || [];
   if (inscrits.includes(uid)) return;
-  if (inscrits.length >= MIN_CONFIRM) {
+  if (inscrits.length >= maxJoueurs(m)) {
     await updateDoc(ref, { waitlist: arrayUnion(uid) });
     showToast('Match plein — tu es sur le banc, prêt à entrer.', 'success');
   } else {
@@ -4505,8 +4532,8 @@ async function confirmerMatch(matchId, creneauId) {
   const m = snap.data();
   const creneau = (m.creneauxProposes || []).find(c => c.id === creneauId);
   if (!creneau) return;
-  if ((m.joueursInscrits || []).length < MIN_CONFIRM) {
-    showToast(`Il faut ${MIN_CONFIRM} joueurs inscrits pour confirmer (${(m.joueursInscrits || []).length}/${MIN_CONFIRM}).`, 'error');
+  if ((m.joueursInscrits || []).length < maxJoueurs(m)) {
+    showToast(`Il faut ${maxJoueurs(m)} joueurs inscrits pour confirmer (${(m.joueursInscrits || []).length}/${maxJoueurs(m)}).`, 'error');
     return;
   }
   await updateDoc(ref, {
@@ -4535,6 +4562,7 @@ let _cmSuggest = [];      // créneaux suggérés
 let _cmExtra = null;      // terrain trouvé via recherche (épinglé en tête)
 let _cmMsg = '';         // mot du créateur (optionnel, visible de tous)
 let _cmVisib = 'public'; // 'public' (ouvert aux joueurs du coin) | 'prive' (sur invitation)
+let _cmSport = SPORT_DEFAUT;  // identifiant du sport, pas son libellé
 
 function _pad(n) { return String(n).padStart(2, '0'); }
 function _ymd(d) { return d.getFullYear() + '-' + _pad(d.getMonth() + 1) + '-' + _pad(d.getDate()); }
@@ -4586,8 +4614,14 @@ function renderCmModal() {
     return `<div class="cm-slot on" onclick="cmToggleSlot('${s.id}')">${top.replace('.', '')}<small>${s.heure}</small></div>`;
   }).join('');
   const today = new Date().toISOString().split('T')[0];
+  const sportsHtml = Object.entries(SPORTS).map(([id, sp]) =>
+    `<div class="cm-sport${_cmSport === id ? ' on' : ''}" onclick="cmSetSport('${id}')">
+       <b>${escapeHtml(sp.nom)}</b><small>${escapeHtml(sp.format)} · ${sp.joueursMax} joueurs</small>
+     </div>`).join('');
   const body = `<div class="create-form">
-    <div class="section-sub">${ICON.pin} On joue où ?</div>
+    <div class="section-sub">${ICON.ball} On joue à quoi ?</div>
+    <div class="cm-sports">${sportsHtml}</div>
+    <div class="section-sub" style="margin-top:18px">${ICON.pin} On joue où ?</div>
     <div id="cm-venues">${venuesHtml}</div>
     <div class="cm-search-toggle" onclick="cmToggleSearch()">${ICON.pin} Un autre terrain…</div>
     <div class="cm-search-box" id="cm-search-box">
@@ -4630,6 +4664,7 @@ function openCreateMatch() {
   _cmExtra = null;
   _cmMsg = '';
   _cmVisib = 'public';
+  _cmSport = SPORT_DEFAUT;
   const cards = _cmVenueCards();
   _cmVenue = cards[0] || null; // pré-sélectionne le terrain le plus probable
   renderCmModal();
@@ -4655,6 +4690,7 @@ window.quickPropose = function(kind) {
   _cmExtra = null;
   _cmMsg = '';
   _cmVisib = 'public';
+  _cmSport = SPORT_DEFAUT;
   const cards = _cmVenueCards();
   _cmVenue = cards[0] || null;       // terrain le plus probable pré-sélectionné
   _cmSlots = [_quickSlot(kind)];     // créneau express déjà coché
@@ -4663,6 +4699,7 @@ window.quickPropose = function(kind) {
 // Le re-render du modal (choix lieu/créneau) recharge value=_cmMsg : rien ne se perd.
 window.cmMsgKeep = function(v) { _cmMsg = v; };
 window.cmSetVisib = function(v) { _cmVisib = v; renderCmModal(); };
+window.cmSetSport = function(id) { if (SPORTS[id]) { _cmSport = id; renderCmModal(); } };
 window.cmPickVenue = function(x) { _cmVenue = x; renderCmModal(); };
 window.cmToggleSlot = function(id) {
   const i = _cmSlots.findIndex(z => z.id === id);
@@ -4759,6 +4796,8 @@ window.submitCreateMatch = async function() {
     createurUid: uid,
     statut: 'sondage',
     visibilite: _cmVisib === 'prive' ? 'prive' : 'public',
+    sport: SPORTS[_cmSport] ? _cmSport : SPORT_DEFAUT,
+    joueursMax: (SPORTS[_cmSport] || SPORTS[SPORT_DEFAUT]).joueursMax,
     // Borne de fraîcheur : jusqu'à quand le match remonte dans les fils.
     // Elle rend les requêtes bornées (sans elle, on relit toute la base).
     finVisible: new Date(
@@ -6067,7 +6106,7 @@ window._addPlayerToMatch = async function(playerUid) {
   }
   const pseudo = (await getUserData(playerUid))?.pseudo || 'Le joueur';
   try {
-    if (inscrits.length >= MIN_CONFIRM) {
+    if (inscrits.length >= maxJoueurs(m)) {
       await updateDoc(ref, { waitlist: arrayUnion(playerUid) });
       showToast(`${pseudo} ajouté en remplaçant ⏳`, 'success');
     } else {
