@@ -2130,9 +2130,9 @@
       <div class="ob-brand">KOLEKTIF</div>
       <div class="ob-tag">Ton match,<br>au complet.</div>
       <div class="ob-flow">
-        <div class="ob-flow-step"><div class="ob-flow-ic" data-n="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M12 12.5v5M9.5 15h5"/></svg></div><span>Organise</span></div>
+        <div class="ob-flow-step"><div class="ob-flow-ic" data-n="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0z"/><circle cx="12" cy="10" r="3"/></svg></div><span>Trouve</span></div>
         <div class="ob-flow-link"></div>
-        <div class="ob-flow-step"><div class="ob-flow-ic" data-n="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5l2.5 2.5L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><span>Vote</span></div>
+        <div class="ob-flow-step"><div class="ob-flow-ic" data-n="2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11.5l2.5 2.5L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div><span>Rejoins</span></div>
         <div class="ob-flow-link"></div>
         <div class="ob-flow-step"><div class="ob-flow-ic" data-n="3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8l3.2 2.4-1.2 3.8H10L8.8 10.4z"/></svg></div><span>Joue</span></div>
       </div>
@@ -3007,7 +3007,7 @@ async function checkCanCreateMatch(uid) {
     for (const d of snap.docs) {
       const titulaires = (d.data().joueursInscrits || []).slice(0, 10);
       if (titulaires.includes(uid)) {
-        return { can: false, reason: 'Tu es déjà titulaire dans un match actif.' };
+        return { can: false, reason: 'Tu joues déjà dans un match à venir.' };
       }
     }
     return { can: true };
@@ -3395,11 +3395,11 @@ async function renderHome() {
           <button class="ch-slot" onclick="quickPropose('tomorrow')"><b>Demain</b><span>19:00</span></button>
           <button class="ch-slot" onclick="quickPropose('saturday')"><b style="text-transform:capitalize">${satLbl}</b><span>11:00</span></button>
         </div>`
-          : `<div class="ch-locked">${ICON.warn} Tu es déjà titulaire dans un match actif.</div>`}
+          : `<div class="ch-locked">${ICON.warn} Tu joues déjà dans un match à venir.</div>`}
       </div>
       ${coldActiveUids.length ? `<div class="ch-proof">
         <div class="av-stack" id="ch-proof-avs"></div>
-        <div class="ch-proof-txt"><b>${coldActiveUids.length} collègue${coldActiveUids.length > 1 ? 's' : ''}</b> jouent déjà ici</div>
+        <div class="ch-proof-txt"><b>${coldActiveUids.length} joueur${coldActiveUids.length > 1 ? 's' : ''}</b> jouent déjà ici</div>
       </div>` : ''}
     </div>`;
   }
@@ -3416,7 +3416,7 @@ async function renderHome() {
   // ===== Dernières activités (fil compact) =====
   const acts = [];
   (snapS ? snapS.docs : []).forEach(d => { const m = d.data();
-    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.poll, color:'var(--blue)', label:'Nouveau sondage',
+    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.poll, color:'var(--blue)', label:'Nouveau match proposé',
       sub: (m.creneauxProposes?.length || 0) + ' créneau' + ((m.creneauxProposes?.length||0)>1?'x':'') + ' · ' + ((m.joueursInscrits||[]).length) + ' inscrits', id:d.id }); });
   (snapC ? snapC.docs : []).forEach(d => { const m = d.data();
     acts.push({ t: m.dateFinale?.toMillis?.() ?? m.createdAt?.toMillis?.() ?? 0, icon:ICON.checkCircle, color:'var(--green)', label:'Match confirmé',
@@ -3529,13 +3529,13 @@ async function renderMatchs() {
   const elig = window._canCreateMatch ?? { can: true };
   const cta = elig.can
     ? `<button class="cta-propose" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>`
-    : `<button class="cta-propose locked" title="Déjà titulaire dans un match actif">${ICON.plus} Proposer un match</button>`;
+    : `<button class="cta-propose locked" title="Tu joues déjà dans un match à venir">${ICON.plus} Proposer un match</button>`;
   el.innerHTML = `
     <div class="screen-navbar"><h1 class="screen-title">Matchs</h1></div>
     ${cta}
     <div class="seg-wrap">
       <div class="seg-thumb" id="seg-thumb"></div>
-      <button class="seg-btn ${matchsFilter==='sondage'?'active':''}" id="seg-sondage" onclick="setMatchFilter('sondage')">${ICON.poll}Sondages<span class="seg-count" id="cnt-sondage"></span></button>
+      <button class="seg-btn ${matchsFilter==='sondage'?'active':''}" id="seg-sondage" onclick="setMatchFilter('sondage')">${ICON.poll}À caler<span class="seg-count" id="cnt-sondage"></span></button>
       <button class="seg-btn ${matchsFilter==='confirme'?'active':''}" id="seg-confirme" onclick="setMatchFilter('confirme')">${ICON.checkCircle}Confirmés<span class="seg-count" id="cnt-confirme"></span></button>
       <button class="seg-btn ${matchsFilter==='termine'?'active':''}" id="seg-termine" onclick="setMatchFilter('termine')">${ICON.scroll}Histo<span class="seg-count" id="cnt-termine"></span></button>
     </div>
@@ -3639,7 +3639,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
             <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ?</div>
             <div class="mc-date">${best ? dateDayLabel(best.date, best.heure) : 'À planifier'}</div>
           </div>
-          <span class="mc-chip chip-sondage">Sondage</span>
+          <span class="mc-chip chip-sondage">À caler</span>
         </div>
         <div class="mc-body">${voteBars}</div>
         <div class="mc-foot">
@@ -3908,7 +3908,7 @@ function loadMatchsList(filter) {
       horsRayon = avant - docs.length;
     }
     const snap = { docs, empty: docs.length === 0 };
-    const emptyHTML = `<div class="empty-state">${filter === 'termine' ? '<img src="./art-empty-histo.png" class="es-art" alt="">' : `<div class="icon">${ICON.calendar}</div>`}<p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match à rejoindre. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
+    const emptyHTML = `<div class="empty-state">${filter === 'termine' ? '<img src="./art-empty-histo.png" class="es-art" alt="">' : `<div class="icon">${ICON.calendar}</div>`}<p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match confirmé pour le moment.' : 'Aucun match proposé pour le moment.<br>Lance le premier.'}</p></div>`;
     if (snap.empty) {
       // Ne jamais dire « aucun match » quand il y en a, mais plus loin :
       // l'utilisateur croirait le produit mort.
@@ -4457,7 +4457,7 @@ function renderCmModal() {
 }
 function openCreateMatch() {
   const check = window._canCreateMatch ?? { can: true };
-  if (!check.can) { showToast('Tu es déjà titulaire dans un match actif. Désiste-toi d\'abord.', 'error'); return; }
+  if (!check.can) { showToast('Tu joues déjà dans un match à venir. Quitte-le d\'abord.', 'error'); return; }
   _cmSuggest = _cmBuildSuggest();
   _cmSlots = _cmSuggest.length ? [_cmSuggest[0]] : []; // pré-coche le 1er créneau
   _cmExtra = null;
@@ -4482,7 +4482,7 @@ function _quickSlot(kind) {
 }
 window.quickPropose = function(kind) {
   if (!(window._canCreateMatch?.can ?? true)) {
-    showToast('Tu es déjà titulaire dans un match actif. Désiste-toi d\'abord.', 'error'); return;
+    showToast('Tu joues déjà dans un match à venir. Quitte-le d\'abord.', 'error'); return;
   }
   _cmSuggest = _cmBuildSuggest();
   _cmExtra = null;
@@ -4565,7 +4565,7 @@ window.submitCreateMatch = async function() {
   // Double-check serveur (contournement UI impossible)
   const safetyCheck = await checkCanCreateMatch(currentUser.uid);
   if (!safetyCheck.can) {
-    showToast('Impossible : tu es déjà titulaire dans un match actif.', 'error');
+    showToast('Impossible : tu joues déjà dans un match à venir.', 'error');
     window._canCreateMatch = safetyCheck; // refresh état UI
     closeModal();
     renderScreen('home');
@@ -5827,7 +5827,7 @@ window.shareMatchWA = async function(matchId) {
   let txt;
   if (m.statut === 'sondage') {
     const cr = (m.creneauxProposes || []).map(c => `• ${formatDate(c.date, c.heure)} — ${c.lieu}`).join('\n');
-    txt = `⚽ *KOLEKTIF* — Sondage\n\nOn cherche nos dispos pour le prochain match :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
+    txt = `⚽ *KOLEKTIF* — On cale un match\n\nOn cherche nos dispos pour le prochain match :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
   } else if (m.statut === 'confirmé') {
     txt = `⚽ *KOLEKTIF* — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
   } else {

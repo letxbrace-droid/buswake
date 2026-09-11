@@ -132,7 +132,7 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
 
   // 1. Nouveau sondage → tout le monde sauf le créateur.
   if (!before && after.statut === 'sondage') {
-    let pseudo = 'Un collègue';
+    let pseudo = 'Un joueur';
     if (after.createurUid) {
       const u = await db.doc('users/' + after.createurUid).get().catch(() => null);
       if (u && u.exists && u.get('pseudo')) pseudo = u.get('pseudo');
