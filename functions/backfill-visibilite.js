@@ -7,8 +7,10 @@
 // rattrapage, les matchs créés avant cette version resteraient
 // lisibles par leur lien, mais ne remonteraient plus dans aucun fil.
 //
-// À lancer UNE FOIS, depuis Cloud Shell, à la racine du projet :
-//   node scripts/backfill-visibilite.js
+// À lancer UNE FOIS, depuis Cloud Shell, DANS le dossier functions/ :
+// (c'est là que firebase-admin est installé — Node résout les modules
+//  depuis le dossier du script, pas depuis le répertoire courant)
+//   cd functions && npm install && node backfill-visibilite.js
 //
 // Sans risque : le script n'écrit que les champs manquants et
 // n'écrase jamais une valeur déjà posée. Le relancer ne fait rien.

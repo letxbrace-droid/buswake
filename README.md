@@ -60,6 +60,7 @@ buswake/
 ├── functions/          ← Cloud Functions (notifications push)
 │   ├── index.js        ← Les 2 fonctions : onMatchEcrit, rappels
 │   └── package.json    ← Node 22
+│   └── backfill-visibilite.js  ← rattrapage ponctuel des anciens matchs
 ├── stickers/           ← 4 stickers WhatsApp (hors app)
 └── *.png / *.jpg       ← Assets du design system (voir DESIGN.md)
 ```
@@ -89,17 +90,54 @@ configuré. **Attention : les données créées en local sont les vraies.**
 L'app elle-même est servie par **GitHub Pages** : tout push sur la branche
 publiée est en ligne en une minute. Rien d'autre à faire.
 
-Les deux composants Firebase se déploient à part, depuis Cloud Shell ou
-une machine avec la CLI Firebase :
+Les composants Firebase (règles, index, notifications) se déploient à
+part. **Le plus simple : Google Cloud Shell** — un terminal dans le
+navigateur, où `git`, `node`, `npm` et la CLI Firebase sont déjà
+installés. Rien à installer sur ta machine.
+
+**Où taper les commandes :** va sur
+[shell.cloud.google.com](https://shell.cloud.google.com) et connecte-toi
+avec le compte Google **propriétaire du projet Firebase**. Un terminal
+noir s'ouvre : c'est là.
+
+#### La toute première fois
 
 ```bash
-firebase deploy --only firestore:rules   # règles de sécurité
-firebase deploy --only functions         # notifications push (plan Blaze)
+git clone https://github.com/letxbrace-droid/buswake.git
+cd buswake
+firebase login --no-localhost    # suis le lien, colle le code renvoyé
 ```
 
-> ⚠️ **Après toute modification de `firestore.rules` ou `functions/`,
-> le déploiement est obligatoire** — sinon le changement n'existe que
-> dans le dépôt, pas en production.
+#### À chaque déploiement
+
+```bash
+cd ~/buswake
+git checkout claude/inrun-five-pwa-qmbdym
+git pull origin claude/inrun-five-pwa-qmbdym
+
+cd functions && npm install && cd ..      # requis : la CLI analyse le code en local
+firebase deploy --only firestore:rules,firestore:indexes,functions
+```
+
+Le premier déploiement des fonctions peut demander d'activer Cloud
+Scheduler (pour les rappels) — réponds oui. Compte 3 à 5 minutes.
+
+#### Rattrapage des anciens matchs (une seule fois)
+
+Les matchs créés avant la mise en place des fils bornés n'ont pas les
+champs `visibilite` / `finVisible`, donc ils ne remontent plus dans
+aucune liste. Ce script les complète, sans jamais écraser une valeur
+existante — le relancer ne fait rien.
+
+```bash
+cd ~/buswake/functions
+node backfill-visibilite.js
+```
+
+> ⚠️ **Après toute modification de `firestore.rules`, `firestore.indexes.json`
+> ou `functions/`, le déploiement est obligatoire** — sinon le changement
+> n'existe que dans le dépôt, pas en production. Et sans les index, les
+> requêtes de l'app échouent.
 
 ### Le cache : la règle à ne pas oublier
 
