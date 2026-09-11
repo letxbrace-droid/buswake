@@ -1,0 +1,32 @@
+{
+  "indexes": [
+    {
+      "_comment": "Fil de découverte : les matchs publics encore d'actualité.",
+      "collectionGroup": "matchs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "visibilite", "order": "ASCENDING" },
+        { "fieldPath": "finVisible", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "_comment": "Mes matchs en cours — y compris ceux sur invitation.",
+      "collectionGroup": "matchs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "joueursInscrits", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "finVisible", "order": "ASCENDING" }
+      ]
+    },
+    {
+      "_comment": "Mon historique : mes matchs terminés.",
+      "collectionGroup": "matchs",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "joueursInscrits", "arrayConfig": "CONTAINS" },
+        { "fieldPath": "statut", "order": "ASCENDING" }
+      ]
+    }
+  ],
+  "fieldOverrides": []
+}

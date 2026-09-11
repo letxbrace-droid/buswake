@@ -90,7 +90,20 @@ service cloud.firestore {
     }
 
     match /matchs/{matchId} {
-      allow read: if isSignedIn();
+      // Lecture d'UN match par son identifiant : tout connecté.
+      // C'est ce qui fait marcher le lien d'invitation — un match « sur
+      // invitation » est NON RÉFÉRENCÉ (il ne remonte dans aucun fil), pas
+      // secret : qui détient le lien peut l'ouvrir. Même modèle qu'une
+      // vidéo non répertoriée. Ne jamais y mettre de donnée sensible.
+      allow get: if isSignedIn();
+      // Lecture d'une LISTE : chaque document renvoyé doit être autorisé,
+      // sinon Firestore refuse la requête entière. Résultat : un fil ne
+      // peut ramener que du public, ou mes propres matchs. Les matchs
+      // hérités (sans le champ) sont traités comme publics.
+      allow list: if isSignedIn() && (
+           resource.data.get('visibilite', 'public') == 'public'
+        || request.auth.uid in resource.data.get('joueursInscrits', [])
+        || resource.data.get('createurUid', '') == request.auth.uid);
       // Création : on ne crée qu'en son propre nom, toujours en sondage.
       // Le mot du créateur (message) est optionnel et borné à 200 caractères.
       allow create: if isSignedIn()
@@ -99,7 +112,9 @@ service cloud.firestore {
         && (!('message' in request.resource.data)
             || request.resource.data.message == null
             || (request.resource.data.message is string
-                && request.resource.data.message.size() <= 200));
+                && request.resource.data.message.size() <= 200))
+        // Visibilité : uniquement les deux valeurs que le produit connaît.
+        && request.resource.data.get('visibilite', 'public') in ['public', 'prive'];
       // Gestion complète par le créateur — sans transfert de propriété,
       // et avec un statut toujours valide.
       allow update: if isSignedIn() && managesMatch()

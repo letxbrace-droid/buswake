@@ -795,6 +795,23 @@
     .md-hdm b { font-family:Anton,sans-serif; font-size:17px; letter-spacing:.5px; color:#fff; }
     .eq-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:8px; box-shadow:0 0 8px currentColor; vertical-align:middle; }
     .md-goal-art { position:absolute; right:-34px; top:-26px; width:230px; opacity:.16; pointer-events:none; }
+    .rayon-bar { display:flex; align-items:center; gap:10px; margin:12px 0 4px; flex-wrap:wrap; }
+    .rayon-lbl { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:700;
+      letter-spacing:1.2px; text-transform:uppercase; color:var(--text-muted); }
+    .rayon-lbl .ic { width:13px; height:13px; }
+    .rayon-chips { display:flex; gap:6px; flex-wrap:wrap; }
+    .rayon-chip { min-height:32px; padding:6px 12px; border-radius:var(--r-pill); cursor:pointer;
+      background:var(--card); border:1.5px solid var(--border); color:var(--text-sec);
+      font-family:'Space Grotesk',sans-serif; font-size:12px; font-weight:700;
+      transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease), background var(--t-base) var(--ease); }
+    .rayon-chip.on { border-color:var(--green); color:var(--green); background:rgba(0,216,138,.08); }
+    .cm-visib { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:8px; }
+    .cm-vis { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-sm); padding:11px 12px; cursor:pointer; min-height:44px;
+      transition:border-color var(--t-base) var(--ease), background var(--t-base) var(--ease); }
+    .cm-vis b { display:block; font-size:13.5px; color:var(--text); }
+    .cm-vis small { display:block; font-size:11px; color:var(--text-muted); line-height:1.35; margin-top:2px; }
+    .cm-vis.on { border-color:var(--green); background:rgba(0,216,138,.08); }
+    .cm-vis.on b { color:var(--green); }
     .md-quote { display:flex; gap:10px; align-items:flex-start; background:var(--card); border:1px solid var(--border); border-left:3px solid var(--orange); border-radius:var(--r-sm); padding:11px 13px; margin-top:10px; }
     .md-quote .ic { width:15px; height:15px; color:var(--orange); flex-shrink:0; margin-top:2px; }
     .md-quote-txt { font-size:13.5px; color:var(--text); line-height:1.45; }
@@ -2311,7 +2328,7 @@ import {
 import {
   getFirestore, doc, getDoc, setDoc, updateDoc, addDoc,
   collection, query, where, orderBy, onSnapshot, getDocs,
-  serverTimestamp, increment, arrayUnion, arrayRemove, deleteField, deleteDoc, getDocsFromServer
+  serverTimestamp, increment, arrayUnion, arrayRemove, deleteField, deleteDoc, getDocsFromServer, limit
 } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 import {
   getMessaging, getToken, onMessage, isSupported
@@ -3253,19 +3270,74 @@ document.getElementById('main-modal').addEventListener('click', function(e) {
   if (e.target === this) closeModal();
 });
 
+// ===== FIL DE MATCHS — REQUÊTES BORNÉES =====
+// Deux principes, sans lesquels le produit ne dépasse pas le stade du dépôt :
+//   1. on ne lit QUE les matchs encore d'actualité (finVisible > maintenant) ;
+//   2. la découverte ne voit que les matchs 'public' — les matchs privés
+//      n'arrivent que par la requête de participation.
+// Ces deux requêtes sont exactement celles que les règles autorisent : une
+// requête plus large serait refusée en bloc par Firestore.
+async function _fetchMatchFeed(uid) {
+  const now = new Date();
+  const run = async q => { try { return (await getDocs(q)).docs; } catch { return []; } };
+
+  const [publics, miens, histo] = await Promise.all([
+    run(query(collection(db, 'matchs'),
+      where('visibilite', '==', 'public'), where('finVisible', '>', now))),
+    uid ? run(query(collection(db, 'matchs'),
+      where('joueursInscrits', 'array-contains', uid), where('finVisible', '>', now))) : [],
+    uid ? run(query(collection(db, 'matchs'),
+      where('joueursInscrits', 'array-contains', uid),
+      where('statut', '==', 'terminé'), limit(20))) : []
+  ]);
+
+  const parId = new Map();
+  [...publics, ...miens].forEach(d => parId.set(d.id, d));
+  const actifs = [...parId.values()];
+  const parStatut = st => ({ docs: actifs.filter(d => d.data().statut === st) });
+  return { C: parStatut('confirmé'), S: parStatut('sondage'), T: { docs: histo } };
+}
+
+// Rayon de découverte, en km. Au-delà, un match public ne remonte plus.
+// Choix local au téléphone (pas une donnée de compte) : c'est un confort
+// de lecture, pas un réglage de profil.
+const RAYONS = [5, 10, 25, 50, 0];   // 0 = partout
+function rayonKm() {
+  const v = parseInt(localStorage.getItem('cs5_rayon') ?? '25', 10);
+  return RAYONS.includes(v) ? v : 25;
+}
+window.setRayon = function(km) {
+  localStorage.setItem('cs5_rayon', String(km));
+  renderMatchs();
+};
+function rayonLabel(km) { return km === 0 ? 'Partout' : km + ' km'; }
+
+// Garde un match dans le fil : les miens toujours, les autres selon le rayon.
+// Un match sans coordonnées n'est jamais masqué (on ne cache pas par ignorance).
+function dansLeRayon(m, uid) {
+  if (uid && (m.joueursInscrits || []).includes(uid)) return true;
+  if (m.createurUid === uid) return true;
+  const km = rayonKm();
+  if (!km) return true;
+  const d = matchDistanceKm(m);
+  return d == null || d <= km;
+}
+
+// Distance d'un match au domicile du joueur (null si l'un des deux manque).
+function matchDistanceKm(m) {
+  const home = _venueHome();
+  const c = m.lieuCoords || (m.creneauxProposes || []).find(x => x && x.lat && x.lon);
+  if (!home || !c || c.lat == null || c.lon == null) return null;
+  return haversine(home.lat, home.lon, c.lat, c.lon);
+}
+
 // ===== ÉCRAN ACCUEIL =====
 async function renderHome() {
   const el = document.getElementById('home-content');
   el.innerHTML = matchSkeleton(2);
 
-  const qConfirme = query(collection(db, 'matchs'), where('statut', '==', 'confirmé'));
-  const snapC = await getDocsFromServer(qConfirme).catch(() => getDocs(qConfirme).catch(() => null));
-
-  const qSondage = query(collection(db, 'matchs'), where('statut', '==', 'sondage'));
-  const snapS = await getDocsFromServer(qSondage).catch(() => getDocs(qSondage).catch(() => null));
-
-  const qTermine = query(collection(db, 'matchs'), where('statut', '==', 'terminé'));
-  const snapT = await getDocsFromServer(qTermine).catch(() => getDocs(qTermine).catch(() => null));
+  const _feed = await _fetchMatchFeed(currentUser?.uid);
+  const snapC = _feed.C, snapS = _feed.S, snapT = _feed.T;
 
   let html = '';
   const fills = [], motms = [];
@@ -3461,6 +3533,12 @@ async function renderMatchs() {
       <button class="seg-btn ${matchsFilter==='confirme'?'active':''}" id="seg-confirme" onclick="setMatchFilter('confirme')">${ICON.checkCircle}Confirmés<span class="seg-count" id="cnt-confirme"></span></button>
       <button class="seg-btn ${matchsFilter==='termine'?'active':''}" id="seg-termine" onclick="setMatchFilter('termine')">${ICON.scroll}Histo<span class="seg-count" id="cnt-termine"></span></button>
     </div>
+    ${matchsFilter === 'termine' ? '' : `<div class="rayon-bar">
+      <span class="rayon-lbl">${ICON.pin} Autour de moi</span>
+      <div class="rayon-chips">${RAYONS.map(k =>
+        `<button class="rayon-chip${rayonKm() === k ? ' on' : ''}" onclick="setRayon(${k})">${rayonLabel(k)}</button>`
+      ).join('')}</div>
+    </div>`}
     <div id="matchs-list">${matchSkeleton(3)}</div>`;
   requestAnimationFrame(() => positionSegThumb(matchsFilter));
   loadMatchsList(matchsFilter);
@@ -3794,12 +3872,45 @@ function loadMatchsList(filter) {
   }
   const statutMap = { sondage: 'sondage', confirme: 'confirmé', termine: 'terminé' };
   const statut = statutMap[filter];
-  // Pas de orderBy ici — évite l'index composite requis par Firestore.
-  // On trie côté client après réception.
-  const q = query(collection(db, 'matchs'), where('statut', '==', statut));
-  const unsub = onSnapshot(q, async snap => {
+  // Pas de orderBy ici — évite un index composite de plus ; tri côté client.
+  // Requête BORNÉE : l'historique se limite à mes matchs, et les onglets
+  // actifs aux matchs publics encore d'actualité (+ mes matchs privés,
+  // réinjectés ci-dessous). Une écoute sur toute la collection ne passe
+  // pas l'échelle : c'est toute la base relue à chaque écriture.
+  const _uid = currentUser?.uid;
+  const q = (filter === 'termine')
+    ? query(collection(db, 'matchs'), where('joueursInscrits', 'array-contains', _uid),
+            where('statut', '==', 'terminé'), limit(30))
+    : query(collection(db, 'matchs'), where('visibilite', '==', 'public'),
+            where('finVisible', '>', new Date()));
+  const unsub = onSnapshot(q, async snapBrut => {
+    // Mes matchs privés ne sont pas dans le fil public : on les ajoute.
+    let docs = snapBrut.docs;
+    if (filter !== 'termine' && _uid) {
+      try {
+        const mine = await getDocs(query(collection(db, 'matchs'),
+          where('joueursInscrits', 'array-contains', _uid), where('finVisible', '>', new Date())));
+        const vus = new Set(docs.map(d => d.id));
+        docs = docs.concat(mine.docs.filter(d => !vus.has(d.id)));
+      } catch {}
+    }
+    docs = docs.filter(d => d.data().statut === statut);
+    let horsRayon = 0;
+    if (filter !== 'termine') {
+      const avant = docs.length;
+      docs = docs.filter(d => dansLeRayon(d.data(), _uid));
+      horsRayon = avant - docs.length;
+    }
+    const snap = { docs, empty: docs.length === 0 };
     const emptyHTML = `<div class="empty-state">${filter === 'termine' ? '<img src="./art-empty-histo.png" class="es-art" alt="">' : `<div class="icon">${ICON.calendar}</div>`}<p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match à rejoindre. Confirme un sondage !' : 'Aucun sondage en cours. Lance le premier !'}</p></div>`;
-    if (snap.empty) { el.innerHTML = emptyHTML; return; }
+    if (snap.empty) {
+      // Ne jamais dire « aucun match » quand il y en a, mais plus loin :
+      // l'utilisateur croirait le produit mort.
+      el.innerHTML = horsRayon > 0
+        ? `<div class="empty-state"><div class="icon">${ICON.pin}</div><p>${horsRayon} match${horsRayon > 1 ? 's' : ''} au-delà de ${rayonLabel(rayonKm())}.<br>Élargis le rayon pour ${horsRayon > 1 ? 'les' : 'le'} voir.</p></div>`
+        : emptyHTML;
+      return;
+    }
     const fills = [];   // avatars empilés à charger : {id, uids}
     const motms = [];   // noms MOTM à charger : {id, uid}
     let html;
@@ -4228,6 +4339,9 @@ async function confirmerMatch(matchId, creneauId) {
   await updateDoc(ref, {
     statut: 'confirmé',
     dateFinale: creneau.date,
+    // La borne suit le créneau retenu (les autres dates tombent).
+    finVisible: new Date((creneau.date.toMillis ? creneau.date.toMillis()
+                        : new Date(creneau.date).getTime()) + 24 * 3600 * 1000),
     lieuFinal: creneau.lieu,
     ...(creneau.lat && creneau.lon ? { lieuCoords: { lat: creneau.lat, lon: creneau.lon } } : {}),
   });
@@ -4247,6 +4361,7 @@ let _cmSlots = [];        // créneaux cochés [{id, date:'YYYY-MM-DD', heure, d
 let _cmSuggest = [];      // créneaux suggérés
 let _cmExtra = null;      // terrain trouvé via recherche (épinglé en tête)
 let _cmMsg = '';         // mot du créateur (optionnel, visible de tous)
+let _cmVisib = 'public'; // 'public' (ouvert aux joueurs du coin) | 'prive' (sur invitation)
 
 function _pad(n) { return String(n).padStart(2, '0'); }
 function _ymd(d) { return d.getFullYear() + '-' + _pad(d.getMonth() + 1) + '-' + _pad(d.getDate()); }
@@ -4317,6 +4432,15 @@ function renderCmModal() {
     <input class="input-field" id="cm-msg" maxlength="140" autocomplete="off"
       placeholder="Ex : Prévoyez les chasubles, douches dispo…"
       value="${escapeHtml(_cmMsg)}" oninput="cmMsgKeep(this.value)">
+    <div class="section-sub" style="margin-top:18px">${ICON.users} Qui peut rejoindre ?</div>
+    <div class="cm-visib">
+      <div class="cm-vis${_cmVisib === 'public' ? ' on' : ''}" onclick="cmSetVisib('public')">
+        <b>Ouvert</b><small>Les joueurs du coin peuvent rejoindre</small>
+      </div>
+      <div class="cm-vis${_cmVisib === 'prive' ? ' on' : ''}" onclick="cmSetVisib('prive')">
+        <b>Sur invitation</b><small>Seulement ceux à qui tu envoies le lien</small>
+      </div>
+    </div>
     <div class="divider"></div>
     <button class="btn-primary" onclick="cmSubmit()">ENVOYER AUX COLLÈGUES</button>
     <div class="cm-summary">${_cmVenue ? '1 lieu' : 'choisis un lieu'} · ${_cmSlots.length} créneau${_cmSlots.length > 1 ? 'x' : ''} · 0 saisie</div>
@@ -4332,6 +4456,7 @@ function openCreateMatch() {
   _cmSlots = _cmSuggest.length ? [_cmSuggest[0]] : []; // pré-coche le 1er créneau
   _cmExtra = null;
   _cmMsg = '';
+  _cmVisib = 'public';
   const cards = _cmVenueCards();
   _cmVenue = cards[0] || null; // pré-sélectionne le terrain le plus probable
   renderCmModal();
@@ -4356,6 +4481,7 @@ window.quickPropose = function(kind) {
   _cmSuggest = _cmBuildSuggest();
   _cmExtra = null;
   _cmMsg = '';
+  _cmVisib = 'public';
   const cards = _cmVenueCards();
   _cmVenue = cards[0] || null;       // terrain le plus probable pré-sélectionné
   _cmSlots = [_quickSlot(kind)];     // créneau express déjà coché
@@ -4363,6 +4489,7 @@ window.quickPropose = function(kind) {
 };
 // Le re-render du modal (choix lieu/créneau) recharge value=_cmMsg : rien ne se perd.
 window.cmMsgKeep = function(v) { _cmMsg = v; };
+window.cmSetVisib = function(v) { _cmVisib = v; renderCmModal(); };
 window.cmPickVenue = function(x) { _cmVenue = x; renderCmModal(); };
 window.cmToggleSlot = function(id) {
   const i = _cmSlots.findIndex(z => z.id === id);
@@ -4458,6 +4585,11 @@ window.submitCreateMatch = async function() {
   await addDoc(collection(db, 'matchs'), {
     createurUid: uid,
     statut: 'sondage',
+    visibilite: _cmVisib === 'prive' ? 'prive' : 'public',
+    // Borne de fraîcheur : jusqu'à quand le match remonte dans les fils.
+    // Elle rend les requêtes bornées (sans elle, on relit toute la base).
+    finVisible: new Date(
+      Math.max(...creneaux.map(c => c.date.getTime())) + 24 * 3600 * 1000),
     message: (_cmMsg || '').trim().slice(0, 140) || null,
     creneauxProposes: creneaux,
     votes,
