@@ -82,6 +82,25 @@ incrément.
 
 Le tout est neutralisé sous `prefers-reduced-motion`.
 
+### Le Kolektif Ring
+
+Le logo devient l'indicateur de progression : **même arc, même ouverture à
+116°, même inclinaison à −40°**, et le point qui vient refermer le cercle
+quand c'est complet. `kolektifRing(n, total, taille, opts)`.
+
+La forme est unique, le sens change selon l'endroit — un match qui se
+remplit, un rang qui approche. C'est ce qui fait une grammaire visuelle
+plutôt qu'un logo isolé.
+
+**Où l'utiliser, et où ne pas l'utiliser.** Le ring va aux endroits qu'on
+*regarde* : héros de l'accueil, détail d'un match, progression. Les
+listes gardent la `fillbar` — quand on balaye, « 8/10 » à côté d'une
+barre se lit sans réfléchir, là où le ring demande une fraction de
+seconde de plus. Identité aux moments d'arrêt, efficacité au balayage.
+
+Détail de fabrication : à deux chiffres le nombre rétrécit
+automatiquement, sinon le « 10 » vient toucher le point.
+
 ### Couleurs
 
 | Token | Usage |

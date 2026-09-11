@@ -1187,6 +1187,25 @@
     .fillbar .cnt { font-size:12px; font-weight:700; color:var(--text-sec); font-variant-numeric:tabular-nums; }
     .fillbar .cnt b { color:var(--text); }
 
+    .home-hi { font-size:19px; color:var(--text-sec); margin:2px 2px 14px; letter-spacing:.2px; }
+    .home-hi b { color:var(--text); font-weight:700; }
+    .prog-card { background:var(--card); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; }
+    .prog-rang { display:flex; align-items:center; gap:7px; font-size:15px; font-weight:700; color:var(--text); }
+    .prog-xp { font-family:'Anton',sans-serif; font-size:22px; color:var(--orange); line-height:1.15; margin-top:3px; }
+    .prog-next { font-size:12px; color:var(--text-muted); margin-top:3px; }
+    .prog-next b { color:var(--text-sec); }
+
+    /* ===== KOLEKTIF RING ===== */
+    .kring { display:block; flex-shrink:0; }
+    .kring-track { fill:none; stroke:rgba(255,255,255,.09); }
+    .kring-fill  { fill:none; stroke:var(--orange); transition:stroke-dasharray .6s var(--ease); }
+    .kring-dot   { fill:var(--orange); }
+    .kring-n { font-family:'Anton',sans-serif; fill:var(--text); }
+    .kring-s { font-family:'Space Grotesk',sans-serif; font-weight:700; fill:var(--text-muted); }
+    .kring.on .kring-n { fill:var(--orange); }
+    .kring-row { display:flex; align-items:center; gap:15px; }
+    .kring-row .krr-meta { flex:1; min-width:0; }
+
     /* ===== LE MOUVEMENT COMME SIGNATURE =====
        Le produit raconte une seule chose : un groupe qui se complète.
        On met ce geste en scène plutôt que de le laisser apparaître fini.
@@ -1196,6 +1215,13 @@
        signature : on le ressent à chaque ouverture, sur chaque match. */
     .anim-in .fillbar .fill { animation: kFill var(--t-slow) var(--ease-spring) both; }
     @keyframes kFill { from { width: 0; } }
+
+    /* L'arc se remplit comme la barre : depuis zéro, au ressort. */
+    .anim-in .kring-fill { animation: kArc var(--t-slow) var(--ease-spring) both; }
+    @keyframes kArc { from { stroke-dasharray: 0 9999; } }
+    /* Le point ne se pose qu'à la fin — c'est le renfort qui arrive. */
+    .anim-in .kring-dot { animation: kDot 360ms var(--ease-spring) 380ms both; }
+    @keyframes kDot { from { opacity:0; transform:scale(.2); transform-origin:center; transform-box:fill-box; } }
 
     /* Le compteur arrive juste après, d'un petit à-coup. */
     .anim-in .fillbar .cnt { animation: kPop 420ms var(--ease-spring) 180ms both; }
@@ -1210,7 +1236,8 @@
 
     /* Rien de tout cela ne doit s'imposer à qui a demandé moins d'animation. */
     @media (prefers-reduced-motion: reduce) {
-      .anim-in .fillbar .fill, .anim-in .fillbar .cnt, .anim-in .mc { animation:none !important; }
+      .anim-in .fillbar .fill, .anim-in .fillbar .cnt, .anim-in .mc,
+      .anim-in .kring-fill, .anim-in .kring-dot { animation:none !important; }
     }
     .vb { margin-top:8px; display:flex; flex-direction:column; gap:5px; }
     .vb-row { display:flex; align-items:center; gap:8px; font-size:11.5px; }
@@ -3384,6 +3411,35 @@ function matchDistanceKm(m) {
   return haversine(home.lat, home.lon, c.lat, c.lon);
 }
 
+// ===== KOLEKTIF RING =====
+// Le logo devient l'indicateur de progression : arc ouvert à 116°, incliné
+// à -40°, et le point qui vient refermer le cercle quand c'est complet.
+// Réservé aux moments qu'on regarde (héros, détail, progression) ; les
+// listes gardent la barre, plus lisible quand on balaye.
+function kolektifRing(n, total, S, opts) {
+  const o = opts || {};
+  const r = S * 0.38, cx = S / 2, cy = S / 2, sw = S * 0.115;
+  const C = 2 * Math.PI * r, span = C * (244 / 360);
+  const pct = total > 0 ? Math.min(1, n / total) : 0;
+  const rot = -40 * Math.PI / 180;
+  const dx = cx + r * Math.cos(rot), dy = cy + r * Math.sin(rot);
+  const plein = total > 0 && n >= total;
+  const etiquette = o.label !== undefined ? o.label : '/' + total;
+  // À deux chiffres, le nombre doit rétrécir : sinon il vient toucher le point.
+  const fs = S * (String(n).length > 1 ? 0.26 : 0.33);
+  return `<svg class="kring${plein ? ' on' : ''}" viewBox="0 0 ${S} ${S}" width="${S}" height="${S}" aria-hidden="true">
+    <circle cx="${cx}" cy="${cy}" r="${r}" class="kring-track" stroke-width="${sw}"
+      stroke-dasharray="${span.toFixed(1)} ${(C - span).toFixed(1)}" transform="rotate(18 ${cx} ${cy})"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" class="kring-fill" stroke-width="${sw}"
+      stroke-dasharray="${(span * pct).toFixed(1)} ${C.toFixed(1)}" transform="rotate(18 ${cx} ${cy})"/>
+    ${plein ? `<circle cx="${dx.toFixed(1)}" cy="${dy.toFixed(1)}" r="${(sw * 0.72).toFixed(1)}" class="kring-dot"/>` : ''}
+    <text x="${cx}" y="${cy - S * 0.03}" class="kring-n" text-anchor="middle" dominant-baseline="central"
+      style="font-size:${fs.toFixed(1)}px">${escapeHtml(String(o.big ?? n))}</text>
+    ${etiquette ? `<text x="${cx}" y="${cy + S * 0.20}" class="kring-s" text-anchor="middle" dominant-baseline="central"
+      style="font-size:${(S * 0.115).toFixed(1)}px">${escapeHtml(etiquette)}</text>` : ''}
+  </svg>`;
+}
+
 // ===== ÉCRAN ACCUEIL =====
 async function renderHome() {
   const el = document.getElementById('home-content');
@@ -3394,6 +3450,10 @@ async function renderHome() {
 
   let html = '';
   const fills = [], motms = [];
+
+  // « Salut X » : une app qui te reconnaît, avant de te demander quoi que ce soit.
+  const _pseudo = (currentUserData && currentUserData.pseudo) || '';
+  if (_pseudo) html += `<div class="home-hi">Salut <b>${escapeHtml(_pseudo)}</b></div>`;
 
   // Éligibilité à créer un match (utilisée aussi par l'écran Matchs)
   const eligibility = await checkCanCreateMatch(currentUser?.uid);
@@ -3484,6 +3544,34 @@ async function renderHome() {
   }
 
   // Action secondaire discrète (si un héros occupe déjà le devant)
+  // ===== TA PROGRESSION =====
+  // Le ring change de rôle sans changer de forme : ici il mesure le chemin
+  // vers le rang suivant. Volontairement compact — l'accueil sert à jouer,
+  // pas à consulter un tableau de bord.
+  {
+    const xp = (currentUserData && currentUserData.xp) || 0;
+    const rang = getRang(xp);
+    const suivant = RANGS.find(r => r.min > xp) || null;
+    const base = rang.min;
+    const cible = suivant ? suivant.min : Math.max(xp, 1);
+    const fait = Math.max(0, xp - base);
+    const total = Math.max(1, cible - base);
+    const pourcent = suivant ? Math.min(100, Math.round(fait / total * 100)) : 100;
+    html += `<div class="mlist-lbl" style="margin-top:18px">Ta progression</div>
+      <div class="prog-card">
+        <div class="kring-row">
+          ${kolektifRing(pourcent, 100, 72, { big: pourcent + '%', label: '' })}
+          <div class="krr-meta">
+            <div class="prog-rang">${rangDot(rang)} ${escapeHtml(rang.label)}</div>
+            <div class="prog-xp">${xp.toLocaleString('fr-FR')} XP</div>
+            <div class="prog-next">${suivant
+              ? `Plus que <b>${(cible - xp).toLocaleString('fr-FR')} XP</b> avant ${escapeHtml(suivant.label)}`
+              : 'Rang maximum atteint'}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
   if (heroId && eligibility.can) {
     html += `<button class="btn-sm btn-outline" style="width:100%;margin-top:14px" onclick="openCreateMatch()">${ICON.plus} Proposer un autre match</button>`;
   }
@@ -3515,9 +3603,14 @@ function homeHeroHTML(id, m, statut, fills) {
     return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
       <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} Prochain match · ${countdownLabel(_whenMs)}</div>
       <div class="hh-date">${dateDayLabel(_whenMs)}</div>
-      <div class="hh-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
-      <div class="fillbar hh-gauge"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
-      <div class="hh-foot"><div class="av-stack" id="mcav-${id}"></div><span class="foot-txt">${places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet'}</span></div>
+      <div class="hh-meta">${ICON.pin} ${escapeHtml(m.lieuFinal || 'Lieu à définir')}</div>
+      <div class="kring-row" style="margin-top:14px">
+        ${kolektifRing(n, MIN_CONFIRM, 76)}
+        <div class="krr-meta">
+          <div class="foot-txt">${places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Match complet'}</div>
+          <div class="av-stack" id="mcav-${id}" style="margin-top:8px"></div>
+        </div>
+      </div>
       ${cta}
     </div></div>`;
   }
