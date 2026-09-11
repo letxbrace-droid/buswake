@@ -1,6 +1,6 @@
 {
-  "name": "cap-saclay-five-functions",
-  "description": "Notifications push (FCM) pour Cap Saclay Five",
+  "name": "kolektif-functions",
+  "description": "Notifications push (FCM) pour Kolektif",
   "main": "index.js",
   "engines": {
     "node": "22"

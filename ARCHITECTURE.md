@@ -1,6 +1,6 @@
 # Architecture
 
-Comment Cap Saclay Five est construit : les données, le cycle de vie d'un
+Comment Kolektif est construit : les données, le cycle de vie d'un
 match, les notifications, la sécurité.
 
 > Pour démarrer, déployer ou comprendre le projet en surface, voir

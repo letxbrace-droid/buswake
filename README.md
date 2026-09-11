@@ -1,11 +1,11 @@
 <div align="center">
 
-<img src="./logo.png" width="110" alt="Cap Saclay Five">
+<img src="./logo.png" width="110" alt="Kolektif">
 
-# Cap Saclay Five
+# Kolektif
 
-**Le foot à 5 du dépôt.**
-Crée ta carte. Propose un match. Réunis les 10.
+**Ton match, au complet.**
+Trouve des joueurs. Propose un match. Joue.
 
 [**→ Ouvrir l'app**](https://letxbrace-droid.github.io/buswake)
 
@@ -15,9 +15,13 @@ Crée ta carte. Propose un match. Réunis les 10.
 
 ## Qu'est-ce que c'est
 
-Une application web (PWA) pour organiser les matchs de foot à 5 entre
-collègues du dépôt RATP de Saclay. Elle remplace le fil WhatsApp
-interminable où personne ne sait jamais qui joue.
+Une application web (PWA) pour trouver des joueurs et compléter ses
+matchs. Elle remplace le fil WhatsApp interminable où personne ne sait
+jamais qui joue.
+
+Née au dépôt RATP de Saclay — qui reste sa première communauté et son
+terrain de test — elle n'est plus liée à ce lieu : le produit vise les
+groupes de collègues, d'amis ou de voisins, partout.
 
 Le principe tient en trois temps :
 
@@ -104,7 +108,7 @@ firebase deploy --only functions         # notifications push (plan Blaze)
 tête de `sw.js`, sinon les téléphones garderont l'ancienne :
 
 ```js
-const CACHE = 'cs5-v66';   // ← +1 à chaque changement d'asset
+const CACHE = 'cs5-v69';   // ← +1 à chaque changement d'asset
 ```
 
 `index.html` est en réseau-d'abord : une simple actualisation suffit pour
@@ -142,5 +146,5 @@ volontairement repoussées (le temps que l'usage réel tranche) :
 ---
 
 <div align="center">
-<sub>Saclay · Essonne · RATP</sub>
+<sub>Trouve · Propose · Joue</sub>
 </div>

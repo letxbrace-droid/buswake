@@ -6,23 +6,23 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="theme-color" content="#000000">
-  <meta name="description" content="Organisation de matchs de foot à 5 — Cap Saclay · Dépôt RATP">
-  <title>Cap Saclay Five</title>
+  <meta name="description" content="Trouve des joueurs près de chez toi, propose un match, réunis ton équipe.">
+  <title>Kolektif</title>
   <!-- Aperçu de partage : le logo + le titre s'affichent quand on envoie le lien
        (WhatsApp, iMessage, Messenger, Telegram, X…). URLs absolues = GitHub Pages. -->
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Cap Saclay Five">
-  <meta property="og:title" content="Cap Saclay Five — Le foot à 5 du dépôt">
-  <meta property="og:description" content="Crée ta carte, propose un match, réunis les 10. L'appli des collègues RATP de Saclay.">
+  <meta property="og:site_name" content="Kolektif">
+  <meta property="og:title" content="Kolektif — Ton match, au complet">
+  <meta property="og:description" content="Crée ta carte, propose un match, réunis ton équipe. L'app qui complète tes matchs.">
   <meta property="og:url" content="https://letxbrace-droid.github.io/buswake/">
   <meta property="og:image" content="https://letxbrace-droid.github.io/buswake/og-image.jpg">
   <meta property="og:image:type" content="image/jpeg">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Cap Saclay Five — Le foot à 5 du dépôt">
+  <meta property="og:image:alt" content="Kolektif — Ton match, au complet">
   <meta property="og:locale" content="fr_FR">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Cap Saclay Five — Le foot à 5 du dépôt">
+  <meta name="twitter:title" content="Kolektif — Ton match, au complet">
   <meta name="twitter:description" content="Crée ta carte, propose un match, réunis les 10.">
   <meta name="twitter:image" content="https://letxbrace-droid.github.io/buswake/og-image.jpg">
   <link rel="manifest" href="./manifest.json">
@@ -2108,7 +2108,7 @@
 
 <!-- Chargement -->
 <div id="loading-screen">
-  <img src="./logo.png" alt="Cap Saclay Five" class="splash-logo" width="132" height="132">
+  <img src="./logo.png" alt="Kolektif" class="splash-logo" width="132" height="132">
   <div class="splash-bar"><i></i></div>
 </div>
 
@@ -2127,8 +2127,8 @@
     <!-- Slide unique : marque + promesse + Organise · Vote · Joue -->
     <div class="ob-slide">
       <img src="./art-bolt.png" alt="" class="ob-logo-img" width="144" height="144">
-      <div class="ob-brand">CAP SACLAY <span>FIVE</span></div>
-      <div class="ob-tag">Le foot à 5 entre collègues,<br>version pro.</div>
+      <div class="ob-brand">KOLEKTIF</div>
+      <div class="ob-tag">Ton match,<br>au complet.</div>
       <div class="ob-flow">
         <div class="ob-flow-step"><div class="ob-flow-ic" data-n="1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/><path d="M12 12.5v5M9.5 15h5"/></svg></div><span>Organise</span></div>
         <div class="ob-flow-link"></div>
@@ -2144,7 +2144,7 @@
 
 <!-- AUTH -->
 <div id="auth-wrap" class="hidden">
-  <img src="./logo.png" alt="Cap Saclay Five" class="auth-logo-img" width="124" height="124">
+  <img src="./logo.png" alt="Kolektif" class="auth-logo-img" width="124" height="124">
   <div class="auth-sub">Foot à 5 · Dépôt RATP</div>
   <div class="auth-body">
     <button class="btn-google" onclick="doGoogleSignIn()">
@@ -2188,7 +2188,7 @@
 <div id="app" class="hidden">
   <!-- Topbar -->
   <header id="topbar">
-    <div class="top-brand"><img src="./logo.png" alt="" class="top-logo-img" width="30" height="30"><span class="top-wordmark">CAP SACLAY <b>FIVE</b></span></div>
+    <div class="top-brand"><img src="./logo.png" alt="" class="top-logo-img" width="30" height="30"><span class="top-wordmark">KOLEKTIF</span></div>
     <div class="top-actions">
       <span class="top-xp" id="top-xp-badge">0 XP</span>
       <button class="btn-icon" onclick="doLogout()" title="Déconnexion"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
@@ -2427,7 +2427,7 @@ function showInstallHelp() {
   } else {
     title = 'Installer sur ordinateur';
     steps = `<li><span class="ios-ic">${plus}</span><div>Clique l'<b>icône d'installation</b> dans la barre d'adresse</div></li>
-             <li><span class="ios-ic">${menu}</span><div>Ou <b>menu ⋮</b> → <b>Installer Cap Saclay Five</b></div></li>`;
+             <li><span class="ios-ic">${menu}</span><div>Ou <b>menu ⋮</b> → <b>Installer Kolektif</b></div></li>`;
   }
   openModal(title, `
     <p class="ios-help-intro">Quelques secondes, et l'app vit sur ton écran d'accueil comme une vraie appli — plein écran, hors-ligne, plus rapide.</p>
@@ -3386,7 +3386,7 @@ async function renderHome() {
       <div class="ch-body">
         <div class="ch-eyebrow"><span class="ch-dot"></span>${dateEyebrow}</div>
         <div class="ch-title">Personne n'a encore<br>lancé le match.</div>
-        <div class="ch-sub">Sois celui qui donne le coup d'envoi. Les collègues du dépôt suivent.</div>
+        <div class="ch-sub">Sois celui qui donne le coup d'envoi. Les autres suivent.</div>
         ${eligibility.can
           ? `<button class="btn-primary ch-cta" onclick="openCreateMatch()">${ICON.zap} Proposer un match</button>
         <div class="ch-quick-lbl">Le plus rapide — déjà pré-rempli</div>
@@ -4434,7 +4434,7 @@ function renderCmModal() {
       <div><span class="input-label">Heure</span><input class="input-field" type="time" id="cm-ch" value="19:00"></div>
       <button class="btn-sm btn-orange" style="height:44px" onclick="cmAddCustom()">${ICON.plus}</button>
     </div>
-    <div class="section-sub" style="margin-top:18px">${ICON.chat} Un mot pour les collègues ? <span style="text-transform:none;letter-spacing:0;color:var(--text-muted);font-weight:600">· optionnel</span></div>
+    <div class="section-sub" style="margin-top:18px">${ICON.chat} Un mot pour le groupe ? <span style="text-transform:none;letter-spacing:0;color:var(--text-muted);font-weight:600">· optionnel</span></div>
     <input class="input-field" id="cm-msg" maxlength="140" autocomplete="off"
       placeholder="Ex : Prévoyez les chasubles, douches dispo…"
       value="${escapeHtml(_cmMsg)}" oninput="cmMsgKeep(this.value)">
@@ -4636,7 +4636,7 @@ async function openComposerEquipes(matchId) {
     { nom: 'Chasubles', couleur: '#FF6A00', logo: '🟧', joueurs: [] },
     { nom: 'Verts',     couleur: '#00D88A', logo: '🟩', joueurs: [] },
   ];
-  window._composerLieu = m.lieuFinal || (m.creneauxProposes && m.creneauxProposes[0]?.lieu) || 'Cap Saclay';
+  window._composerLieu = m.lieuFinal || (m.creneauxProposes && m.creneauxProposes[0]?.lieu) || 'Lieu à confirmer';
   const inscrits = m.joueursInscrits || [];
   const pseudos = {};
   const playersData = {};
@@ -4658,7 +4658,7 @@ function renderTerrainView() {
   const inscrits = window._composerInscrits || [];
   const pseudos = window._composerPseudos || {};
   const playersData = window._composerPlayersData || {};
-  const lieu = window._composerLieu || 'Cap Saclay';
+  const lieu = window._composerLieu || 'Lieu à confirmer';
 
   const teamA = eqData[0]?.joueurs || [];
   const teamB = eqData[1]?.joueurs || [];
@@ -4763,10 +4763,10 @@ window.swapChasubles = function() {
 
 window.shareCompo = function() {
   const pseudos = window._composerPseudos || {};
-  const text = `⚽ Cap Saclay Five — Composition\n\n` +
+  const text = `⚽ Kolektif — Composition\n\n` +
     eqData.map(eq => `${eq.logo} ${eq.nom} :\n${(eq.joueurs||[]).map(u=>'• '+(pseudos[u]||'?')).join('\n')}`).join('\n\n');
   if (navigator.share) {
-    navigator.share({ title:'Compo CS Five', text }).catch(() => {});
+    navigator.share({ title:'Compo Kolektif', text }).catch(() => {});
   } else {
     navigator.clipboard?.writeText(text).then(() => showToast('Compo copiée dans le presse-papier 📋', 'success'));
   }
@@ -5443,7 +5443,7 @@ async function renderClassement() {
 
   el.innerHTML = `
     <div class="cls-hero">
-      <div class="cls-eyebrow">CAP SACLAY <b>FIVE</b></div>
+      <div class="cls-eyebrow">KOLEKTIF</div>
       <h1 class="cls-title">Classement</h1>
       <div class="cls-title-sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>${users.length} joueur${users.length > 1 ? 's' : ''} · Saison en cours</div>
     </div>
@@ -5701,7 +5701,7 @@ window.exportFutCard = async function() {
     }
     const canvas = await window.html2canvas(card, { backgroundColor: null, scale: 3, useCORS: true });
     const link = document.createElement('a');
-    link.download = 'ma-carte-cap-saclay-five.png';
+    link.download = 'ma-carte-kolektif.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
     showToast('Carte exportée !', 'success');
@@ -5827,11 +5827,11 @@ window.shareMatchWA = async function(matchId) {
   let txt;
   if (m.statut === 'sondage') {
     const cr = (m.creneauxProposes || []).map(c => `• ${formatDate(c.date, c.heure)} — ${c.lieu}`).join('\n');
-    txt = `⚽ *CAP SACLAY FIVE* — Sondage\n\nOn cherche nos dispos pour le prochain foot à 5 :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
+    txt = `⚽ *KOLEKTIF* — Sondage\n\nOn cherche nos dispos pour le prochain match :\n${cr}\n\n👥 ${n}/10 inscrits · ${placesTxt}\n👉 Vote / inscris-toi en 1 tap : ${link}`;
   } else if (m.statut === 'confirmé') {
-    txt = `⚽ *CAP SACLAY FIVE* — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
+    txt = `⚽ *KOLEKTIF* — ${formatDate(m.dateFinale)}\n📍 ${m.lieuFinal || 'Lieu à venir'}\n👥 ${n}/10 · ${placesTxt}\n\n👉 Rejoins en 1 tap : ${link}`;
   } else {
-    txt = `⚽ *CAP SACLAY FIVE* — Résultat\n${m.equipes?.[0]?.nom || 'A'} ${m.scoreA ?? '?'} — ${m.scoreB ?? '?'} ${m.equipes?.[1]?.nom || 'B'}\n👉 ${link}`;
+    txt = `⚽ *KOLEKTIF* — Résultat\n${m.equipes?.[0]?.nom || 'A'} ${m.scoreA ?? '?'} — ${m.scoreB ?? '?'} ${m.equipes?.[1]?.nom || 'B'}\n👉 ${link}`;
   }
   window.open('https://wa.me/?text=' + encodeURIComponent(txt), '_blank');
 };

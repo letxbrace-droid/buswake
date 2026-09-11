@@ -1,6 +1,6 @@
 # Système de design
 
-Ce que Cap Saclay Five doit avoir l'air d'être, et les règles qui le
+Ce que Kolektif doit avoir l'air d'être, et les règles qui le
 garantissent.
 
 > Architecture technique : [ARCHITECTURE.md](./ARCHITECTURE.md).
@@ -112,7 +112,7 @@ substitue à un autre.
 
 | Fichier | Rôle |
 |---|---|
-| `logo.png` · `icon-512.png` | **Le** logo : un 5 dont le contre-forme est le pentagone du ballon. Icône d'app, splash, barre du haut, écran de connexion, notifications, bannière d'installation. |
+| `logo.png` · `icon-512.png` | **Le** logo : un arc ouvert, fuselé, et le point qui vient le refermer — le groupe incomplet, et le renfort qui arrive. Aucun sport n'y est nommé. Icône d'app, splash, barre du haut, écran de connexion, notifications, bannière d'installation.<br>`logo.png` a un fond **transparent** (il est posé inline sur le noir de l'app, avec un halo CSS) ; `icon-512.png` a un fond noir plein et la marque à 62 % — la safe zone des icônes adaptatives Android. |
 | `og-image.jpg` | Bannière de partage 1200×630 — photo d'un terrain nocturne, titre à gauche. C'est l'aperçu du lien dans WhatsApp. |
 | `art-player.png` | Silhouette de joueur — remplace la photo sur les cartes qui n'en ont pas. |
 
@@ -160,7 +160,14 @@ const alpha = green < 25 ? 0              // seuil plancher : tue le damier
 r = 0; g = 216; b = 138;                  // #00D88A
 ```
 
-Prompt type pour rester dans la famille :
+**Le symbole de marque, lui, n'est pas généré** : il est calculé
+(arc + point, épaisseur variable). Sa contrainte de survie est mesurable —
+l'écart entre le bord du point et le bec de l'arc doit rester ≥ 1 px à
+20 px de rendu, sinon les deux formes fusionnent et l'idée du mark meurt.
+Paramètres retenus : ouverture 116°, trait fuselé de 0,150 à 0,0675,
+point à 1,45×.
+
+Prompt type pour les illustrations, pour rester dans la famille :
 
 > *Flat vector line-art illustration: [sujet], single green (#00D88A)
 > thick uniform strokes on transparent background, minimal geometric
@@ -170,7 +177,7 @@ Prompt type pour rester dans la famille :
 le fichier au `PRECACHE` :
 
 ```js
-const CACHE = 'cs5-v67';   // ← +1, sinon les téléphones gardent l'ancien
+const CACHE = 'cs5-v69';   // ← +1, sinon les téléphones gardent l'ancien
 ```
 
 ---

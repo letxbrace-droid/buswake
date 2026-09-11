@@ -1,7 +1,7 @@
 {
-  "name": "Cap Saclay Five",
-  "short_name": "CS Five",
-  "description": "Foot à 5 · Dépôt RATP · Cap Saclay",
+  "name": "Kolektif",
+  "short_name": "Kolektif",
+  "description": "Trouve des joueurs, crée ton match, réunis ton équipe.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

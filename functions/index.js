@@ -1,5 +1,5 @@
 // ============================================================
-// Cap Saclay Five — Cloud Functions (notifications push FCM)
+// Kolektif — Cloud Functions (notifications push FCM)
 // Déploiement : firebase deploy --only functions  (plan Blaze requis)
 //
 // Principe : le téléphone vibre quand ça compte —

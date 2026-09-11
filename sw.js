@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v68';
+const CACHE = 'cs5-v69';
 const PRECACHE = ['./','./index.html','./manifest.json','./icon-512.png','./logo.png','./og-image.jpg','./art-bolt.png','./art-goal.png','./art-player.png','./art-empty-histo.png','./art-empty-amis.png','./art-empty-vestiaire.png','./art-podium.png'];
 
 self.addEventListener('install', e => {
@@ -65,7 +65,7 @@ try {
     // data) : c'est nous qui affichons — jamais de notification en double.
     const d = payload.data || {};
     const n = payload.notification || {};
-    self.registration.showNotification(d.title || n.title || 'Cap Saclay Five', {
+    self.registration.showNotification(d.title || n.title || 'Kolektif', {
       body: d.body || n.body || '',
       icon: './icon-512.png',
       badge: './icon-512.png',
