@@ -120,7 +120,7 @@ substitue à un autre.
 
 | Fichier | Rôle |
 |---|---|
-| `art-bolt.png` | Éclair-ballon — onboarding. **Ce n'est pas un second logo** : l'écran de connexion garde la marque officielle. |
+| `art-bolt.png` | Onboarding : la marque **multipliée** — trois arcs à trois échelles et trois opacités, soit plusieurs groupes qui se complètent. Ce n'est pas un second logo, c'est le même signe décliné. Calculé, pas généré. |
 | `art-goal.png` | Burst « but dans le filet » — filigrane derrière le score des matchs terminés. |
 
 ### États vides
@@ -177,7 +177,7 @@ Prompt type pour les illustrations, pour rester dans la famille :
 le fichier au `PRECACHE` :
 
 ```js
-const CACHE = 'cs5-v69';   // ← +1, sinon les téléphones gardent l'ancien
+const CACHE = 'cs5-v70';   // ← +1, sinon les téléphones gardent l'ancien
 ```
 
 ---

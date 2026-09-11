@@ -108,7 +108,7 @@ firebase deploy --only functions         # notifications push (plan Blaze)
 tête de `sw.js`, sinon les téléphones garderont l'ancienne :
 
 ```js
-const CACHE = 'cs5-v69';   // ← +1 à chaque changement d'asset
+const CACHE = 'cs5-v70';   // ← +1 à chaque changement d'asset
 ```
 
 `index.html` est en réseau-d'abord : une simple actualisation suffit pour
