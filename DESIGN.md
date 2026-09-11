@@ -57,6 +57,31 @@ ce qui donne l'impression d'un objet moulé d'une pièce.
 La règle émotionnelle : **le doigt en `fast`, l'interface en `base`, la
 récompense en `slow` + `spring`.**
 
+### Le mouvement comme signature
+
+C'est la seule part de l'identité qu'un concurrent ne peut pas copier
+depuis une capture d'écran — et le produit a un geste évident à mettre
+en scène : **un groupe qui se complète**.
+
+- **La jauge monte toujours depuis zéro**, au ressort (`kFill`). On le
+  ressent à chaque ouverture, sur chaque match. C'est LE geste de la
+  marque, en mouvement.
+- **Le compteur arrive juste après** (`kPop`, 180 ms de retard) : le
+  chiffre confirme ce que la barre vient de raconter.
+- **Les cartes entrent en cascade** (`kRise`, 55 ms d'écart) : la liste
+  aussi se remplit.
+
+**La règle qui rend tout ça supportable : ces animations ne jouent qu'à
+la PREMIÈRE apparition.** La liste se re-rend à chaque écriture
+Firestore ; sans garde, une jauge repartirait de zéro parce qu'un *autre*
+match a bougé — du bruit, pas du mouvement. Le conteneur reçoit la classe
+`.anim-in` le temps d'une peinture (`jouerEntree()`), puis la perd. Les
+changements suivants glissent via la transition `width .5s` : de
+l'ancienne valeur à la nouvelle, ce qui est le bon geste pour un
+incrément.
+
+Le tout est neutralisé sous `prefers-reduced-motion`.
+
 ### Couleurs
 
 | Token | Usage |

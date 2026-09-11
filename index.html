@@ -1185,6 +1185,32 @@
     .fillbar .fill { display:block; height:100%; border-radius:var(--r-pill); background:linear-gradient(90deg,var(--orange-dark),var(--orange2)); box-shadow:0 0 8px var(--orange-glow); transition:width .5s var(--ease); }
     .fillbar .cnt { font-size:12px; font-weight:700; color:var(--text-sec); font-variant-numeric:tabular-nums; }
     .fillbar .cnt b { color:var(--text); }
+
+    /* ===== LE MOUVEMENT COMME SIGNATURE =====
+       Le produit raconte une seule chose : un groupe qui se complète.
+       On met ce geste en scène plutôt que de le laisser apparaître fini.
+       Tout est en CSS pur — aucun état à suivre, rien à synchroniser. */
+
+    /* La jauge MONTE toujours depuis zéro, au ressort. C'est le geste
+       signature : on le ressent à chaque ouverture, sur chaque match. */
+    .anim-in .fillbar .fill { animation: kFill var(--t-slow) var(--ease-spring) both; }
+    @keyframes kFill { from { width: 0; } }
+
+    /* Le compteur arrive juste après, d'un petit à-coup. */
+    .anim-in .fillbar .cnt { animation: kPop 420ms var(--ease-spring) 180ms both; }
+    @keyframes kPop { from { opacity:0; transform:scale(.72); } }
+
+    /* Les cartes entrent en cascade — la liste se remplit, elle aussi. */
+    .anim-in .mc { animation: kRise 420ms var(--ease) both; }
+    .anim-in .mc:nth-child(1){animation-delay:0ms}   .anim-in .mc:nth-child(2){animation-delay:55ms}
+    .anim-in .mc:nth-child(3){animation-delay:110ms} .anim-in .mc:nth-child(4){animation-delay:165ms}
+    .anim-in .mc:nth-child(n+5){animation-delay:210ms}
+    @keyframes kRise { from { opacity:0; transform:translateY(10px); } }
+
+    /* Rien de tout cela ne doit s'imposer à qui a demandé moins d'animation. */
+    @media (prefers-reduced-motion: reduce) {
+      .anim-in .fillbar .fill, .anim-in .fillbar .cnt, .anim-in .mc { animation:none !important; }
+    }
     .vb { margin-top:8px; display:flex; flex-direction:column; gap:5px; }
     .vb-row { display:flex; align-items:center; gap:8px; font-size:11.5px; }
     .vb-date { width:62px; color:var(--text-sec); font-weight:600; white-space:nowrap; }
@@ -3542,6 +3568,15 @@ function getBestCreneau(match) {
   return best;
 }
 
+// Joue les animations d'entrée UNE fois, puis retire la classe : les
+// re-rendus suivants (déclenchés par n'importe quelle écriture) glissent
+// via la transition CSS au lieu de repartir de zéro.
+function jouerEntree(el) {
+  if (!el) return;
+  el.classList.add('anim-in');
+  setTimeout(() => el.classList.remove('anim-in'), 900);
+}
+
 // Une requête qui manque d'index échoue en 'failed-precondition', et
 // Firestore place le lien de création DANS le message. Depuis un téléphone,
 // ce lien est autrement inaccessible (il faudrait la console du navigateur).
@@ -3967,6 +4002,7 @@ function loadMatchsList(filter) {
       html = docs.map(d => matchCardHTML(d.id, d.data(), statut, fills, motms)).join('');
     }
     el.innerHTML = html;
+    jouerEntree(el);
     hydrateMatchCards(fills, motms);
   }, err => {
     console.error('Firestore matchs query error:', err);
