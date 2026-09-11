@@ -3522,6 +3522,19 @@ function getBestCreneau(match) {
   return best;
 }
 
+// Une requête qui manque d'index échoue en 'failed-precondition', et
+// Firestore place le lien de création DANS le message. Depuis un téléphone,
+// ce lien est autrement inaccessible (il faudrait la console du navigateur).
+function firestoreErrorHtml(err) {
+  const lien = String(err?.message || '').match(/https:\/\/console\.firebase\.google\.com\/\S+/);
+  const aide = err?.code === 'failed-precondition' && lien
+    ? `<br><a href="${lien[0].replace(/["'<>]/g, '')}" target="_blank" rel="noopener"
+         style="display:inline-block;margin-top:10px;color:var(--orange);font-weight:700">Créer l'index manquant</a>`
+    : '';
+  return `<div class="empty-state"><div class="icon" style="color:var(--red)">${ICON.warn}</div>
+    <p>Erreur de chargement.<br><small style="color:var(--red)">${escapeHtml(err?.code || 'inconnue')}</small>${aide}</p></div>`;
+}
+
 // ===== ÉCRAN MATCHS =====
 let matchsFilter = 'sondage';
 async function renderMatchs() {
@@ -3937,7 +3950,7 @@ function loadMatchsList(filter) {
     hydrateMatchCards(fills, motms);
   }, err => {
     console.error('Firestore matchs query error:', err);
-    el.innerHTML = `<div class="empty-state"><div class="icon" style="color:var(--red)">${ICON.warn}</div><p>Erreur de chargement.<br><small style="color:var(--red)">${err.code}</small></p></div>`;
+    el.innerHTML = firestoreErrorHtml(err);
   });
   window._matchsListenerUnsubscribe = unsub;
   activeListeners.push(unsub);
