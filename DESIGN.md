@@ -137,9 +137,27 @@ transition: transform var(--t-fast) var(--ease),
 **Chaque appui rend quelque chose.** `:active { transform: scale(.97); }`
 — l'interface répond au doigt, toujours.
 
-**Zéro emoji dans l'interface.** Les icônes sont des SVG (objet `ICON`).
-Les emojis sont tolérés dans les contenus utilisateur et les
-notifications, jamais dans le châssis.
+**Zéro emoji dans l'interface.** Les icônes sont des SVG (objet `ICON`,
+et `SPORT_IC` pour les sports). Les emojis sont tolérés dans les contenus
+utilisateur et les notifications, jamais dans le châssis.
+
+**Les sports sont des tracés, pas des images.** Le sélecteur de sport
+aurait pu prendre des vignettes générées ; il prend des SVG, pour quatre
+raisons mesurables : l'icône hérite de la couleur du contexte (gris au
+repos, vert à la sélection, sans second fichier), elle reste nette à
+toute densité d'écran, elle pèse quelques centaines d'octets au lieu de
+quelques centaines de kilo-octets, et ajouter un sport reste **une
+ligne** — pas un aller-retour par le générateur, le détourage et un bump
+de cache.
+
+Chaque tracé a été validé à trois tailles (72 / 26 / 20 px) contre une
+seule question : *est-ce que je le reconnais sans le libellé ?* Ce test a
+éliminé quatre dessins qui « marchaient » en grand — un ballon de basket
+à couture équatoriale (lu comme un **globe**), une raquette de padel à
+trois trous alignés (lue comme une **bulle de saisie**), un panier de
+basket (lu comme une **corbeille**), une raquette en goutte (lue comme un
+**repère de carte**). Les retenus : ballon à pentagone, ballon à coutures
+verticales, raquette carrée perforée, raquette ovale cordée.
 
 **Tout contenu utilisateur passe par `escapeHtml()`.** Règle de sécurité
 autant que de design : un pseudo mal échappé casse la mise en page autant
