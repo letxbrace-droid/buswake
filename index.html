@@ -3329,6 +3329,26 @@ function dansLeRayon(m, uid) {
   return d == null || d <= km;
 }
 
+// Ligne « lieu · distance » d'une carte de match.
+// Jusqu'ici la distance ne servait QU'À filtrer, sans jamais s'afficher :
+// on pouvait régler un rayon sans voir la distance d'aucun match. Pire, une
+// carte « à caler » ne disait même pas OÙ on joue.
+// Et quand un match dépasse le rayon mais reste affiché parce qu'on y joue,
+// on le dit — sinon le filtre a l'air cassé.
+function mcLieuHtml(m) {
+  const lieu = m.lieuFinal
+    || ((m.creneauxProposes || []).find(c => c && c.lieu) || {}).lieu
+    || 'Lieu à définir';
+  const d = matchDistanceKm(m);
+  const km = d == null ? ''
+    : ' · ' + (d < 10 ? d.toFixed(1).replace('.', ',') : Math.round(d)) + ' km';
+  const uid = currentUser?.uid;
+  const mien = uid && ((m.joueursInscrits || []).includes(uid) || m.createurUid === uid);
+  const horsRayon = d != null && rayonKm() && d > rayonKm();
+  const note = (horsRayon && mien) ? ' <span style="color:var(--text-muted)">· tu y joues</span>' : '';
+  return `<div class="mc-eyebrow" style="margin-top:2px;color:var(--text-sec)">${ICON.pin} ${escapeHtml(lieu)}${km}${note}</div>`;
+}
+
 // Distance d'un match au domicile du joueur (null si l'un des deux manque).
 function matchDistanceKm(m) {
   const home = _venueHome();
@@ -3654,7 +3674,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
           </div>
           <span class="mc-chip chip-sondage">À caler</span>
         </div>
-        <div class="mc-body">${voteBars}</div>
+        <div class="mc-body">${mcLieuHtml(m)}${voteBars}</div>
         <div class="mc-foot">
           <div class="av-stack" id="mcav-${id}"></div>
           <span class="foot-txt"><b>${voterUids.length}</b> ont voté</span>
@@ -3679,7 +3699,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
           <span class="mc-chip chip-confirme">Confirmé</span>
         </div>
         <div class="mc-body">
-          <div class="mc-eyebrow" style="margin-top:2px;color:var(--text-sec)">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
+          ${mcLieuHtml(m)}
           <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${MIN_CONFIRM}</span></div>
         </div>
         <div class="mc-foot">
