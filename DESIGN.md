@@ -411,6 +411,25 @@ Après régénération, le tiers droit du foot à 5 passe de 17/255 à
 sent. C'est un plafond, pas un réglage — au-delà, la photo commence à
 concurrencer le noir mat qui fait l'identité.
 
+### Terrains — une photo par TYPE, jamais par terrain
+
+| Fichier | Type | Libellé affiché |
+|---|---|---|
+| `terrain-indoor.jpg` | `indoor` (11 terrains) | Salle couverte |
+| `terrain-urban.jpg` | `urban` (6) | Five en cage |
+| `terrain-plein-air.jpg` | non typé (21) | Plein air |
+
+**Le libellé accompagne toujours la vignette**, et ce n'est pas décoratif :
+sans lui, une photo posée à côté d'un nom se lit comme une photo *de ce
+terrain-là*. On illustre une catégorie, on ne montre pas le lieu.
+
+**Les trois vignettes doivent peser pareil à l'œil.** La première version
+de la salle couverte était à 18,9 de luminance moyenne contre 47 et 49
+pour les deux autres — un carré noir à côté de deux photos. Recadrée sur
+le sol éclairé et relevée par une **courbe** (γ 0,70) et non par une
+multiplication — qui aurait écrasé le cône de lumière en aplat blanc —
+elle est à 47. Les trois sont désormais à 47 · 47 · 49,5.
+
 ### Partage — une bannière par sport
 
 | Fichier | Rôle |
