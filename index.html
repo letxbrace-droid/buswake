@@ -1238,6 +1238,32 @@
     .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
+    /* ===== KOLEKTIF MOMENTS ===== */
+    .kmoment { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center;
+      padding:32px; cursor:pointer; opacity:0; transition:opacity 240ms var(--ease);
+      background:radial-gradient(120% 75% at 50% 42%, rgba(0,216,138,.16), transparent 62%), rgba(4,6,8,.94);
+      -webkit-backdrop-filter:blur(9px); backdrop-filter:blur(9px); }
+    .kmoment.on { opacity:1; }
+    .km-in { text-align:center; max-width:340px; transform:scale(.88) translateY(14px);
+      transition:transform 380ms var(--ease-spring); }
+    .kmoment.on .km-in { transform:none; }
+    .km-art { display:flex; justify-content:center; margin-bottom:20px; color:var(--orange); }
+    .km-art .ic, .km-art svg { width:auto; }
+    .km-art .b-svg { width:76px; height:76px; }
+    .km-eyebrow { font-size:11px; letter-spacing:3.2px; font-weight:700; text-transform:uppercase;
+      color:var(--orange); }
+    .km-big { font-family:Anton,sans-serif; font-size:46px; line-height:1.02; color:#fff;
+      margin-top:12px; letter-spacing:.5px; }
+    .km-sous { font-size:14px; color:var(--text-sec); margin-top:10px; }
+    .km-arr { color:var(--orange); font-weight:700; }
+    .km-xp { font-family:Anton,sans-serif; font-size:30px; color:var(--orange); margin-top:18px;
+      font-variant-numeric:tabular-nums; }
+    .km-tap { font-size:11px; color:var(--text-muted); margin-top:26px; }
+    @media (prefers-reduced-motion: reduce) {
+      .kmoment, .km-in { transition:none; }
+      .km-in { transform:none; }
+    }
+
     /* ===== KOLEKTIF PULSE ===== */
     .kpulse { display:block; max-width:100%; overflow:visible; }
     .kp-seg { stroke:rgba(255,255,255,.12); stroke-width:1.2; stroke-linecap:round;
@@ -2884,9 +2910,27 @@ async function addXP(uid, amount) {
   const oldRang = getRang(oldXP);
   const newRang = getRang(newXP);
   await updateDoc(ref, { xp: increment(amount) });
-  if (newRang.min > oldRang.min) {
-    showToast(`🎉 Level up ! Tu es maintenant ${newRang.label}`, 'levelup');
-  }
+  // Ce garde-fou n'est pas cosmétique : `addXP` est appelé EN BOUCLE sur
+  // tous les présents quand le créateur termine un match. Sans lui, le
+  // créateur voyait « Level up ! Tu es maintenant Cadre » une fois par
+  // joueur monté de rang — pour des rangs qui n'étaient pas les siens.
+  if (uid !== currentUser?.uid) return;
+  if (newRang.min > oldRang.min) momentLevelUp(oldRang, newRang, amount);
+  else if (amount > 0) toastXP(amount);
+}
+
+// Gain ordinaire : un toast dont le chiffre monte. Pas d'écran plein —
+// on vote plusieurs fois par semaine, on ne change pas de rang tous les jours.
+function toastXP(gain) {
+  const wrap = document.getElementById('toast-wrap');
+  if (!wrap) return;
+  const t = document.createElement('div');
+  t.className = 'toast levelup';
+  t.innerHTML = `<span class="toast-icon">${ICON.zap}</span><span>+<b class="tx-n">0</b> XP</span>`;
+  wrap.appendChild(t);
+  compteurMonte(t.querySelector('.tx-n'), 0, gain, 700);
+  haptic(12);
+  setTimeout(() => t.remove(), 3000);
 }
 
 // ===== LIEUX PAR DÉFAUT (démo) =====
@@ -3243,6 +3287,91 @@ function relChipHTML(d) {
 // ===== HAPTIQUE (vibration légère, Android) =====
 function haptic(ms) { try { if (navigator.vibrate) navigator.vibrate(ms || 10); } catch (_) {} }
 window.haptic = haptic;
+
+// ===== KOLEKTIF MOMENTS =====
+// Trois instants, et trois seulement, méritent que l'app s'arrête :
+// passer un rang, être élu homme du match, entrer dans un groupe.
+// Le reste (voter, créer) reste un toast. Une célébration qui arrive
+// souvent n'est plus une célébration, c'est une interruption.
+
+// Le chiffre MONTE, il ne s'affiche pas. Même sortie que --ease.
+function compteurMonte(el, de, a, ms) {
+  if (!el) return;
+  const reduit = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if (reduit || !ms) { el.textContent = a.toLocaleString('fr-FR'); return; }
+  const t0 = performance.now();
+  const pas = t => {
+    const p = Math.min(1, (t - t0) / ms);
+    const e = 1 - Math.pow(1 - p, 3);
+    el.textContent = Math.round(de + (a - de) * e).toLocaleString('fr-FR');
+    if (p < 1) requestAnimationFrame(pas);
+  };
+  requestAnimationFrame(pas);
+}
+
+let _momentActif = null;
+const _momentFile = [];
+function momentKolektif(o) {
+  if (_momentActif) { if (_momentFile.length < 3) _momentFile.push(o); return; }
+  const el = document.createElement('div');
+  _momentActif = el;
+  el.className = 'kmoment' + (o.variante ? ' km-' + o.variante : '');
+  el.innerHTML = `<div class="km-in">
+      ${o.art ? `<div class="km-art">${o.art}</div>` : ''}
+      <div class="km-eyebrow">${o.eyebrow}</div>
+      <div class="km-big">${o.titre}</div>
+      ${o.sous ? `<div class="km-sous">${o.sous}</div>` : ''}
+      ${o.xp ? `<div class="km-xp">+<span class="km-xp-n">0</span> XP</div>` : ''}
+      <div class="km-tap">Toucher pour continuer</div>
+    </div>`;
+  document.body.appendChild(el);
+  requestAnimationFrame(() => el.classList.add('on'));
+  if (o.xp) compteurMonte(el.querySelector('.km-xp-n'), 0, o.xp, 900);
+  haptic(o.vibre || 18);
+  let ferme = false;
+  const fermer = () => {
+    if (ferme) return; ferme = true;
+    el.classList.remove('on');
+    setTimeout(() => {
+      el.remove();
+      _momentActif = null;
+      const suivant = _momentFile.shift();
+      if (suivant) momentKolektif(suivant);
+    }, 260);
+  };
+  el.addEventListener('click', fermer);
+  setTimeout(fermer, o.duree || 2600);
+}
+
+function momentLevelUp(ancien, nouveau, gain) {
+  momentKolektif({
+    variante: 'levelup', eyebrow: 'Level up',
+    titre: escapeHtml(nouveau.label),
+    sous: `${escapeHtml(ancien.label)} <span class="km-arr">→</span> ${escapeHtml(nouveau.label)}`,
+    xp: gain, duree: 3200, vibre: [24, 70, 24],
+    art: kolektifRing(100, 100, 112, { big: '', label: '' })
+  });
+}
+function momentMVP(pseudo, gain) {
+  momentKolektif({
+    variante: 'mvp', eyebrow: 'Homme du match',
+    titre: escapeHtml(pseudo || 'Toi'),
+    xp: gain, duree: 3200, vibre: [24, 70, 24, 70, 24],
+    art: BADGE_SVG && BADGE_SVG.hdm ? BADGE_SVG.hdm : ''
+  });
+}
+function momentRejoint(n, total) {
+  const places = Math.max(0, total - n);
+  momentKolektif({
+    variante: 'rejoint', eyebrow: 'Tu es dans le kolektif',
+    titre: `${n} / ${total}`,
+    sous: places > 0
+      ? `Il manque encore ${places} joueur${places > 1 ? 's' : ''}`
+      : 'Le groupe est au complet',
+    duree: 2000, vibre: [18, 40, 30],
+    art: kolektifPulse(n, total, { h: 26 })
+  });
+}
 
 // Moment de succès : check qui se trace + petite gerbe verte + vibration.
 // Sobre (pas de confettis kitsch) — réservé aux instants forts.
@@ -4646,7 +4775,7 @@ async function _doJoinMatch(matchId) {
     showToast('Match plein — tu es sur le banc, prêt à entrer.', 'success');
   } else {
     await updateDoc(ref, { joueursInscrits: arrayUnion(uid), waitlist: arrayRemove(uid) });
-    celebrate('Inscrit !');
+    momentRejoint(inscrits.length + 1, maxJoueurs(m));
   }
   checkCanCreateMatch(uid).then(r => { window._canCreateMatch = r; });
 }
@@ -5483,7 +5612,17 @@ window.terminerMatch = async function(matchId) {
     await updateDoc(doc(db, 'users', hdmUid), {
       'stats.hommeDuMatch': increment(1)
     });
-    showToast('Homme du match élu !', 'success');
+    // Le moment est pour l'élu. Le créateur, lui, a juste besoin de savoir
+    // que son vote est enregistré. Limite connue : si l'élu n'est pas la
+    // personne devant l'écran, il l'apprend par notification — il faudrait
+    // un marqueur sur son document pour lui jouer le moment à sa prochaine
+    // ouverture.
+    if (hdmUid === currentUser?.uid) {
+      const _me = await getUserData(hdmUid);
+      momentMVP(_me?.pseudo, XP.hdm);
+    } else {
+      showToast('Homme du match élu !', 'success');
+    }
   }
   // Vérif badges pour les présents
   for (const uid of present) {

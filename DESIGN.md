@@ -126,6 +126,25 @@ pour l'état, pulse pour la constitution — les deux cohabitent sur un même
 Détail de fabrication : à deux chiffres le nombre rétrécit
 automatiquement, sinon le « 10 » vient toucher le point.
 
+### Les moments
+
+Trois instants, et trois seulement, arrêtent l'application : **passer un
+rang**, **être élu homme du match**, **entrer dans un groupe**
+(`momentKolektif`). Le reste — voter, créer — reste un toast.
+
+C'est la règle qui fait tenir l'idée : *une célébration fréquente n'est
+plus une célébration, c'est une interruption.* Voter arrive plusieurs fois
+par semaine ; changer de rang, quelques fois par saison.
+
+Chaque moment est **toujours interrompable** (un toucher), s'auto-ferme
+(2 à 3,2 s), vibre une fois, et met en scène un composant de la marque
+plutôt qu'une illustration : le RING pour un rang franchi, le PULSE pour
+un groupe rejoint.
+
+**Le chiffre monte, il ne s'affiche pas** (`compteurMonte`). Mesuré :
++100 XP passe par 12 → 47 → 92 → 100 en 650 ms. Neutralisé sous
+`prefers-reduced-motion`, où la valeur finale est posée directement.
+
 ### Couleurs
 
 | Token | Usage |
