@@ -196,6 +196,14 @@ est aujourd'hui enterrée dans un écran.
 **Proposition :** garder quatre onglets, ajouter le « + » central.
 Passer à cinq quand « Découvrir » aura ses trois modes.
 
+**✅ Fait — le « + » central existe.** La barre a désormais la forme à cinq
+places des maquettes : Accueil · Matchs · **+** · Classement · Profil. Le
+« + » n'est pas un cinquième onglet mais un bouton : il n'ouvre pas un
+écran, il déclenche l'action structurante. Les quatre destinations
+restent celles qui existent réellement — « Découvrir » n'est pas encore
+là, et un onglet qui tient un tiers de sa promesse dévalue la barre
+entière.
+
 ---
 
 ## §27 Ce qu'il ne faut pas faire — déjà respecté

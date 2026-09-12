@@ -347,7 +347,7 @@
 
     /* ===== BOTTOM NAV ===== */
     #bottom-nav {
-      min-height:var(--nav-h);
+      min-height:var(--nav-h); overflow:visible;
       background:rgba(8,8,12,.96);
       backdrop-filter:blur(20px);
       -webkit-backdrop-filter:blur(20px);
@@ -357,6 +357,17 @@
       flex-shrink:0;
       padding-bottom:calc(env(safe-area-inset-bottom,0px) + 4px);
     }
+    /* Le « + » central : surélevé, seul élément vert de la barre. */
+    .nav-plus {
+      flex:0 0 auto; width:54px; height:54px; margin:-18px 4px 0;
+      border-radius:50%; border:none; cursor:pointer;
+      background:linear-gradient(160deg,var(--orange2,#00F0A0),var(--orange));
+      color:#06231A; display:flex; align-items:center; justify-content:center;
+      box-shadow:0 8px 22px var(--orange-glow), 0 2px 6px rgba(0,0,0,.5);
+      transition:transform var(--t-fast) var(--ease), box-shadow var(--t-base) var(--ease); }
+    .nav-plus svg { width:26px; height:26px; fill:none; stroke:currentColor;
+      stroke-width:2.8; stroke-linecap:round; }
+    .nav-plus:active { transform:scale(.92); box-shadow:0 4px 12px var(--orange-glow); }
     .nav-btn {
       flex:1; display:flex; flex-direction:column;
       align-items:center; gap:3px;
@@ -1265,6 +1276,31 @@
     .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
+    /* ===== RACCOURCIS PAR SPORT (accueil) ===== */
+    .sp-rangee { display:flex; gap:12px; overflow-x:auto; margin:18px 0 14px; padding-bottom:2px;
+      scrollbar-width:none; -webkit-overflow-scrolling:touch; }
+    .sp-rangee::-webkit-scrollbar { display:none; }
+    .sp-item { flex:0 0 auto; display:flex; flex-direction:column; align-items:center; gap:7px;
+      background:none; border:none; padding:0; cursor:pointer; font-family:inherit;
+      transition:transform var(--t-fast) var(--ease); }
+    .sp-item:active { transform:scale(.94); }
+    .sp-rond { position:relative; width:52px; height:52px; border-radius:50%;
+      background:var(--card); border:1.5px solid var(--border);
+      display:flex; align-items:center; justify-content:center; color:var(--text-muted);
+      transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease),
+                 background var(--t-base) var(--ease); }
+    .sp-rond .ic { width:24px; height:24px; }
+    .sp-item.on .sp-rond { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
+    .sp-cpt { position:absolute; top:-3px; right:-3px; min-width:19px; height:19px; padding:0 5px;
+      border-radius:var(--r-pill); background:var(--orange); color:#06231A;
+      font-size:11px; font-weight:700; line-height:19px; text-align:center;
+      border:2px solid var(--bg); }
+    .sp-nom { font-size:10.5px; color:var(--text-muted); white-space:nowrap; }
+    .sp-item.on .sp-nom { color:var(--orange); font-weight:600; }
+    .sp-vide { text-align:center; color:var(--text-muted); font-size:13px; padding:18px 8px; }
+    .sp-reset { display:block; margin:10px auto 0; background:none; border:none; font-family:inherit;
+      color:var(--orange); font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; }
+
     /* ===== CLASSEMENT : filtres et signaux de fiabilité ===== */
     .cls-filtres { display:flex; gap:7px; margin:2px 0 14px; overflow-x:auto; -webkit-overflow-scrolling:touch;
       scrollbar-width:none; }
@@ -2432,17 +2468,24 @@
       </div>
       <span>Matchs</span>
     </button>
-    <button class="nav-btn" data-screen="profil" onclick="navigateTo('profil')">
-      <div class="nav-icon-wrap">
-        <svg viewBox="0 0 24 24"><circle cx="12" cy="9.2" r="3.6"/><path d="M5.2 19.2c.9-3.1 3.4-4.7 6.8-4.7s5.9 1.6 6.8 4.7"/></svg>
-      </div>
-      <span>Profil</span>
+    <!-- Créer un match est L'action structurante du produit. Elle était
+         enterrée dans un écran ; elle prend la place centrale, la seule que
+         le pouce atteint sans regarder. Ce n'est pas un 5e onglet : c'est un
+         bouton, il ne navigue pas, il agit. -->
+    <button class="nav-plus" onclick="openCreateMatch()" aria-label="Proposer un match">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
     </button>
     <button class="nav-btn" data-screen="classement" onclick="navigateTo('classement')">
       <div class="nav-icon-wrap">
         <svg viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>
       </div>
       <span>Classement</span>
+    </button>
+    <button class="nav-btn" data-screen="profil" onclick="navigateTo('profil')">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="9.2" r="3.6"/><path d="M5.2 19.2c.9-3.1 3.4-4.7 6.8-4.7s5.9 1.6 6.8 4.7"/></svg>
+      </div>
+      <span>Profil</span>
     </button>
   </nav>
 </div>
@@ -3835,14 +3878,45 @@ async function renderHome() {
 
   // ===== Le reste, démoté =====
   const rest = [];
-  confirmes.forEach(d => { if (d.id !== heroId) rest.push(['confirmé', d]); });
-  sondages.forEach(d => { if (d.id !== heroId) rest.push(['sondage', d]); });
+  const gardeSport = d => !_sportFiltre || ((d.data().sport || SPORT_DEFAUT) === _sportFiltre);
+  confirmes.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['confirmé', d]); });
+  sondages.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['sondage', d]); });
+  html += sportsRangeeHTML([snapC, snapS], currentUser?.uid);
   if (rest.length) {
-    html += `<div class="mlist-lbl">À suivre aussi</div>`;
+    html += `<div class="mlist-lbl">${_sportFiltre ? escapeHtml(SPORTS[_sportFiltre].nom) : 'À suivre aussi'}</div>`;
     html += rest.slice(0, 4).map(([st, d]) => matchCardHTML(d.id, d.data(), st, fills, motms)).join('');
+  } else if (_sportFiltre) {
+    html += `<div class="sp-vide">Aucun ${escapeHtml(SPORTS[_sportFiltre].nom)} ouvert dans ton rayon.
+      <button class="sp-reset" onclick="setSportFiltre('${_sportFiltre}')">Voir tous les sports</button></div>`;
   }
 
-  // ===== AUTOUR DE TOI =====
+  // ===== RACCOURCIS PAR SPORT =====
+// La rangée porte un COMPTE réel, pas une simple icône décorative : « Padel 0 »
+// est une information utile, « Padel » tout seul est une promesse vide. Filtrer
+// est donc un choix informé, jamais une surprise sur un écran qui se vide.
+let _sportFiltre = '';
+window.setSportFiltre = function(id) { _sportFiltre = (_sportFiltre === id) ? '' : id; renderHome(); };
+function sportsRangeeHTML(snaps, uid) {
+  const now = Date.now(), vus = new Set(), cpt = {};
+  (snaps || []).forEach(sn => sn && sn.docs.forEach(d => {
+    if (vus.has(d.id)) return; vus.add(d.id);
+    const m = d.data();
+    if (m.statut === 'terminé' || !dansLeRayon(m, uid)) return;
+    const w = _matchWhen(m).ms; if (w && w < now) return;
+    if ((m.joueursInscrits || []).length >= maxJoueurs(m)) return;
+    const id = (m.sport && SPORTS[m.sport]) ? m.sport : SPORT_DEFAUT;
+    cpt[id] = (cpt[id] || 0) + 1;
+  }));
+  return `<div class="sp-rangee">` + Object.entries(SPORTS).map(([id, sp]) => {
+    const n = cpt[id] || 0;
+    return `<button class="sp-item${_sportFiltre === id ? ' on' : ''}" onclick="setSportFiltre('${id}')">
+      <span class="sp-rond">${_icS(sp.ic)}${n ? `<span class="sp-cpt">${n}</span>` : ''}</span>
+      <span class="sp-nom">${escapeHtml(sp.nom)}</span>
+    </button>`;
+  }).join('') + `</div>`;
+}
+
+// ===== AUTOUR DE TOI =====
   html += autourDeToiHTML([snapC, snapS, snapT], currentUser?.uid);
 
   // ===== Dernières activités (fil compact) =====
