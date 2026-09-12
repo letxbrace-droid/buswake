@@ -1258,6 +1258,27 @@
     .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
+    /* ===== CLASSEMENT : filtres et signaux de fiabilité ===== */
+    .cls-filtres { display:flex; gap:7px; margin:2px 0 14px; overflow-x:auto; -webkit-overflow-scrolling:touch;
+      scrollbar-width:none; }
+    .cls-filtres::-webkit-scrollbar { display:none; }
+    .cls-chip { flex-shrink:0; min-height:36px; padding:8px 15px; border-radius:var(--r-pill);
+      background:var(--card); border:1.5px solid var(--border); color:var(--text-sec);
+      font-size:12.5px; font-weight:600; font-family:inherit; cursor:pointer; white-space:nowrap;
+      transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease),
+                 background var(--t-base) var(--ease), transform var(--t-fast) var(--ease); }
+    .cls-chip:active { transform:scale(.96); }
+    .cls-chip.on { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
+    .cls-chip[disabled] { opacity:.38; cursor:default; }
+    .cls-chip[disabled]:active { transform:none; }
+    .yh-chips { display:flex; flex-wrap:wrap; gap:6px; margin-top:11px; }
+    .yh-chip { display:inline-flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-sec);
+      background:rgba(255,255,255,.05); border:1px solid var(--border);
+      border-radius:var(--r-pill); padding:5px 10px; }
+    .yh-chip b { color:var(--text); }
+    .ic-flam { width:12px; height:12px; vertical-align:-2px; color:#FF8A3D; }
+    .li-serie { color:#FF8A3D; font-weight:700; }
+
     /* ===== KOLEKTIF MOMENTS ===== */
     .kmoment { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center;
       padding:32px; cursor:pointer; opacity:0; transition:opacity 240ms var(--ease);
@@ -2713,6 +2734,8 @@ const BADGES_DEF = [
   { id: 'assidu',        icon: '🔥', name: 'Assidu' },
 ];
 const _bsvg = (p) => `<svg class="b-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+// Flamme de série. Zéro emoji dans le châssis : c'est un tracé.
+const FLAMME = '<svg class="ic-flam" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2c1.3 3.1 4.4 4.8 4.4 8.5A4.4 4.4 0 0 1 12 15a4.4 4.4 0 0 1-4.4-4.5c0-1 .3-2 .9-2.7C8.2 9.6 9.4 11 9.4 11c.2-3.1 1.5-6 2.6-9z"/><path d="M12 15c2.6 0 4.6 1.5 4.6 3.6S14.4 22 12 22s-4.6-1.3-4.6-3.4S9.4 15 12 15z" opacity=".45"/></svg>';
 const BADGE_SVG = {
   premier_match: _bsvg('<circle cx="12" cy="12" r="9"/><path d="M12 8.2l3.7 2.7-1.4 4.3H9.7L8.3 10.9z"/><path d="M12 8.2V4M15.7 10.9l3.4-1.1M14.3 15.2l2.1 2.9M9.7 15.2l-2.1 2.9M8.3 10.9L4.9 9.8"/>'),
   cinq_matchs:   _bsvg('<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/>'),
@@ -5911,16 +5934,43 @@ window.saveProfile = async function() {
 };
 
 // ===== CLASSEMENT =====
+// Portée du classement. « Cette semaine » et « par sport » ne sont PAS ici :
+// l'XP est un total sans dimension temporelle (aucun historique d'événements),
+// et un joueur n'a pas de sport — seulement des matchs joués. Les proposer
+// aurait voulu dire inventer un classement.
+let _clsFiltre = 'tous';
+window.setClsFiltre = function(f) { _clsFiltre = f; renderClassement(); };
+
 async function renderClassement() {
   const el = document.getElementById('classement-content');
   el.innerHTML = `<div class="sk" style="height:118px;border-radius:var(--r-lg);margin:6px 0 16px"></div>${listSkeleton(7)}`;
 
-  const q = query(collection(db, 'users'), orderBy('xp', 'desc'));
+  // Borné : la requête lisait la collection users ENTIÈRE, sans limite.
+  // À mille inscrits, l'écran téléchargeait mille documents pour en montrer dix.
+  const q = query(collection(db, 'users'), orderBy('xp', 'desc'), limit(200));
   const snap = await getDocs(q);
-  const users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  let users = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  const moi = users.find(u => u.id === currentUser?.uid) || currentUserData || {};
+  const monCp = moi.codePostal || '';
+  const mesAmis = new Set(moi.friends || []);   // le champ Firestore s'appelle `friends`
+  const totalGlobal = users.length;
+  if (_clsFiltre === 'ville' && monCp) users = users.filter(u => u.codePostal === monCp);
+  if (_clsFiltre === 'amis') users = users.filter(u => mesAmis.has(u.id) || u.id === currentUser?.uid);
+
+  const chip = (id, lbl, actif) =>
+    `<button class="cls-chip${_clsFiltre === id ? ' on' : ''}"${actif ? '' : ' disabled'} onclick="setClsFiltre('${id}')">${lbl}</button>`;
+  const filtres = `<div class="cls-filtres">
+      ${chip('tous', 'Tous', true)}
+      ${chip('ville', monCp ? `Ma ville · ${escapeHtml(monCp)}` : 'Ma ville', !!monCp)}
+      ${chip('amis', `Mes amis${mesAmis.size ? ' · ' + mesAmis.size : ''}`, mesAmis.size > 0)}
+    </div>`;
 
   if (users.length === 0) {
-    el.innerHTML = `<div class="empty-state"><img src="./art-podium.png" class="es-art" alt=""><p>Le classement attend ses premiers buteurs.</p></div>`;
+    const vide = _clsFiltre === 'ville' ? `Personne d'autre à ${escapeHtml(monCp)} pour l'instant.`
+               : _clsFiltre === 'amis'  ? `Tes amis n'ont pas encore d'XP.`
+               : `Le classement attend ses premiers buteurs.`;
+    el.innerHTML = filtres + `<div class="empty-state"><img src="./art-podium.png" class="es-art" alt=""><p>${vide}</p></div>`;
     return;
   }
 
@@ -5966,7 +6016,7 @@ async function renderClassement() {
         ${avatar}
         <div class="p-li-meta">
           <div class="p-li-name">${escapeHtml(u.pseudo)}${isMe ? ' 👋' : ''}</div>
-          <div class="p-li-sub">${rang.label} · ${u.stats?.matchsJoues ?? 0} matchs · ${mdm} ${trophySvg}</div>
+          <div class="p-li-sub">${rang.label} · ${u.stats?.matchsJoues ?? 0} matchs · ${mdm} ${trophySvg}${(u.streak || 0) >= 3 ? ` <span class="li-serie">${FLAMME}${u.streak}</span>` : ''}</div>
         </div>
         <div class="p-li-xp"><span class="xp-count" data-xp="${u.xp || 0}">0</span> XP</div>
       </div>`;
@@ -5983,6 +6033,17 @@ async function renderClassement() {
     const hint = above
       ? `<b>+${(above.xp || 0) - (me.xp || 0) + 1} XP</b> pour dépasser ${escapeHtml(above.pseudo)} (#${meIdx})`
       : `Tu domines le classement. Garde la couronne.`;
+    // Signaux déjà collectés depuis le début, jamais montrés nulle part.
+    const serie = me.streak || 0;
+    // Un « Top X % » sur trois joueurs ne veut rien dire. Seuil : 8.
+    const assez = users.length >= 8;
+    const pctTop = Math.max(1, Math.round(((meIdx + 1) / users.length) * 100));
+    const portee = _clsFiltre === 'ville' ? ' de ta ville' : _clsFiltre === 'amis' ? ' de tes amis' : '';
+    const puces = [
+      serie >= 2 ? `<span class="yh-chip">${FLAMME} Série · <b>${serie}</b> match${serie > 1 ? 's' : ''}</span>` : '',
+      assez ? `<span class="yh-chip">Top <b>${pctTop} %</b>${portee}</span>` : '',
+      (me.stats?.hommeDuMatch) ? `<span class="yh-chip"><b>${me.stats.hommeDuMatch}</b> fois homme du match</span>` : '',
+    ].filter(Boolean).join('');
     const lo = below ? (below.xp || 0) : 0;
     const hi = above ? (above.xp || 0) : (me.xp || 0);
     const pct = hi > lo ? Math.max(6, Math.min(100, Math.round(((me.xp || 0) - lo) / (hi - lo) * 100))) : 100;
@@ -5997,6 +6058,7 @@ async function renderClassement() {
       </div>
       <div class="yh-prog"><i style="width:${pct}%"></i></div>
       <div class="yh-hint">${hint}</div>
+      ${puces ? `<div class="yh-chips">${puces}</div>` : ''}
     </div>`;
   }
 
@@ -6006,6 +6068,7 @@ async function renderClassement() {
       <h1 class="cls-title">Classement</h1>
       <div class="cls-title-sub"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9a6 6 0 0 0 12 0V4H6z"/><path d="M6 5H3v2a3 3 0 0 0 3 3"/><path d="M18 5h3v2a3 3 0 0 1-3 3"/><path d="M9 21h6"/><path d="M12 14v7"/></svg>${users.length} joueur${users.length > 1 ? 's' : ''} · Saison en cours</div>
     </div>
+    ${filtres}
     ${youHero}
     <section class="podium-stage" aria-label="Podium XP">
       <div class="podium-stage-inner" id="podiumTilt">

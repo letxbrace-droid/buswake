@@ -52,7 +52,7 @@ Créé à l'inscription, complété par l'onboarding.
 | `stats` | objet | `{ matchsJoues, victoires, hommeDuMatch }` |
 | `streak`, `lapins` | number | Série de présences ; nombre d'absences après inscription |
 | `fcmTokens` | array | Jetons de notification (un par appareil) |
-| `amis` | array | UID des amis |
+| `friends` | array | UID des amis (+ `friendRequestsSent` / `friendRequestsReceived`) |
 | `profilComplet` | bool | Onboarding terminé ou non |
 
 **La note générale (« overall ») n'est pas stockée** — elle est calculée
