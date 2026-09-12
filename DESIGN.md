@@ -81,6 +81,25 @@ du ruban qui varie.** Un padel à 4 donne une chaîne courte (64 px), un
 foot à 7 une longue (224 px). L'inverse — ruban fixe, points variables —
 donnait des pastilles énormes à 4 joueurs et des miettes à 14.
 
+### Les blasons d'équipe
+
+**Quatorze emblèmes × six couleurs, plus les initiales : 90 identités.**
+
+Ce sont des **tracés**, pas des images, et cette fois l'argument n'est pas
+le même que pour les icônes de sport : **l'emblème doit prendre la couleur
+de l'équipe.** Une image devrait être livrée en six versions —
+84 fichiers — et resterait figée. Un tracé se recolore.
+
+Cinq dessins ont été écartés après rendu, pour la même raison que les
+icônes de sport : ils marchaient en grand et mentaient en petit. Une aile
+lue comme une feuille, deux épées croisées lues comme une tache, un
+trèfle lu comme une croix.
+
+**Les écussons de vrais clubs ne sont pas une option.** L'app en affiche
+déjà (carte de joueur, `clubShield`) en les chargeant depuis un serveur
+tiers : c'est à la fois une dépendance qui peut tomber, une image absente
+hors-ligne, et l'usage d'une marque déposée dans un produit public.
+
 ### Le mouvement comme signature
 
 C'est la seule part de l'identité qu'un concurrent ne peut pas copier

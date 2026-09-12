@@ -164,7 +164,15 @@ service cloud.firestore {
         && (!('description' in d) || d.description == null ||
             (d.description is string && d.description.size() <= 160))
         && (!('appel' in d) || d.appel == null ||
-            (d.appel is string && d.appel.size() <= 120));
+            (d.appel is string && d.appel.size() <= 120))
+        // L'emblème est un identifiant de tracé, pas une URL : on le borne
+        // à la liste connue, sinon n'importe quelle chaîne finirait dans un
+        // attribut SVG côté client.
+        && (!('embleme' in d) || d.embleme == null || d.embleme in [
+             'eclair','couronne','etoile','flamme','griffe','ancre','fleche',
+             'tour','cible','vague','montagne','diamant','ballon','croix'])
+        && (!('couleur' in d) || d.couleur == null || d.couleur in [
+             '#00D88A','#00B0FF','#FF8A3D','#B36BFF','#FFD24A','#FF5A6E']);
     }
     // Un joueur ne peut modifier QUE le tableau `membres`, et uniquement en y
     // ajoutant ou retirant son propre uid. Il ne peut ni renommer l'équipe,

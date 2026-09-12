@@ -80,6 +80,7 @@ permet au modèle de rester multi-sport.
 | `sport` | string | Clé du catalogue `SPORTS` |
 | `niveau` | string | `debutant` \| `intermediaire` \| `confirme` |
 | `couleur` | string | Une des six couleurs du blason |
+| `embleme` | string \| null | Un des quatorze tracés, ou `null` pour les initiales |
 | `ville`, `lat`, `lon` | — | Pour le rayon, repris du profil du capitaine |
 | `capitaineUid` | string | Seul habilité à renommer, gérer, dissoudre |
 | `membres` | array | UID de l'effectif — **le capitaine est toujours dedans** |
