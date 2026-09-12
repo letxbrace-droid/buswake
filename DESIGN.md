@@ -163,6 +163,15 @@ basket (lu comme une **corbeille**), une raquette en goutte (lue comme un
 **repère de carte**). Les retenus : ballon à pentagone, ballon à coutures
 verticales, raquette carrée perforée, raquette ovale cordée.
 
+**Aucun chiffre qui n'existe pas.** Un compteur affiché est une promesse :
+l'utilisateur croit qu'on sait. Quand une métrique demandée n'est pas
+dérivable des données réelles, on ne l'invente pas et on ne met pas de
+zéro — on la remplace par une mesure vraie qui répond à la même question.
+L'accueil devait afficher « joueurs qui cherchent une activité » et
+« communautés actives » : le premier n'est déclaré nulle part, le second
+n'existe pas dans le modèle. Remplacés par *places à prendre* et
+*joueurs actifs*, tous deux calculés sur les matchs déjà chargés.
+
 **Tout contenu utilisateur passe par `escapeHtml()`.** Règle de sécurité
 autant que de design : un pseudo mal échappé casse la mise en page autant
 qu'il ouvre une faille.

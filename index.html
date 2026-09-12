@@ -785,6 +785,30 @@
     .ch-proof-txt b { color:#fff; }
 
     /* ===== DÉTAIL DE MATCH — héros + zone gestion (passe Jobs) ===== */
+    /* ===== ACCUEIL : faits du héros + bande « autour de toi » ===== */
+    .hh-facts { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
+    .hh-fact { display:inline-flex; align-items:center; gap:5px;
+      background:rgba(255,255,255,.05); border:1px solid var(--border);
+      border-radius:var(--r-pill); padding:5px 11px;
+      font-size:12px; font-weight:600; color:var(--text-sec); white-space:nowrap; }
+    .hh-fact .ic { width:13px; height:13px; flex-shrink:0; }
+    .hh-link { margin-left:auto; display:inline-flex; align-items:center; gap:6px;
+      font-size:12.5px; font-weight:700; color:var(--orange); white-space:nowrap; }
+    .hh-arr { transition:transform var(--t-base) var(--ease); }
+    .home-hero.sondage { cursor:pointer; }
+    .home-hero.sondage:active { transform:scale(.985); }
+    .home-hero.sondage:active .hh-arr { transform:translateX(3px); }
+
+    .autour { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; cursor:pointer;
+      transition:transform var(--t-fast) var(--ease); }
+    .autour:active { transform:scale(.97); }
+    .au-stat { background:var(--card); border:1px solid var(--border); border-radius:var(--r-md);
+      padding:13px 10px; text-align:center; min-height:44px; }
+    .au-stat b { display:block; font-family:Anton,sans-serif; font-size:26px; line-height:1;
+      color:var(--orange); letter-spacing:.5px; }
+    .au-stat span { display:block; font-size:10.5px; line-height:1.25; color:var(--text-muted);
+      margin-top:6px; }
+
     .md-hero { position:relative; border-radius:var(--r-lg); overflow:hidden; background:#0B0D12; border:1px solid var(--border); padding:16px 16px 15px; margin-bottom:4px; }
     .md-hero::before { content:''; position:absolute; inset:0; background:radial-gradient(100% 70% at 50% -10%,rgba(0,216,138,.14),transparent 60%); pointer-events:none; }
     /* Le terrain du sport joué, derrière le héros — même composition que la
@@ -1276,7 +1300,10 @@
     .vb-row { display:flex; align-items:center; gap:8px; font-size:11.5px; }
     .vb-date { width:62px; color:var(--text-sec); font-weight:600; white-space:nowrap; }
     .vb-track { flex:1; height:6px; border-radius:var(--r-pill); background:rgba(255,255,255,.06); overflow:hidden; }
-    .vb-fill { height:100%; border-radius:var(--r-pill); background:rgba(0,176,255,.45); transition:width .5s var(--ease); }
+    /* display:block indispensable : c'est un <span>, donc inline par défaut,
+       et un élément inline ignore width/height en %. Sans ça la barre faisait
+       0 × 0 — les jauges de vote du héros n'ont jamais rien affiché. */
+    .vb-fill { display:block; height:100%; border-radius:var(--r-pill); background:rgba(0,176,255,.45); transition:width .5s var(--ease); }
     .vb-fill.best { background:linear-gradient(90deg,var(--blue),#7cc4ff); }
     .vb-cnt { width:16px; text-align:right; color:var(--text); font-weight:700; }
     .mc-foot { display:flex; align-items:center; gap:10px; padding:10px 16px; background:rgba(255,255,255,.02); border-top:1px solid var(--border); }
@@ -3588,6 +3615,9 @@ async function renderHome() {
     html += rest.slice(0, 4).map(([st, d]) => matchCardHTML(d.id, d.data(), st, fills, motms)).join('');
   }
 
+  // ===== AUTOUR DE TOI =====
+  html += autourDeToiHTML([snapC, snapS, snapT], currentUser?.uid);
+
   // ===== Dernières activités (fil compact) =====
   const acts = [];
   (snapS ? snapS.docs : []).forEach(d => { const m = d.data();
@@ -3652,6 +3682,43 @@ async function renderHome() {
   }
 }
 
+// ===== AUTOUR DE TOI =====
+// Le cabinet demandait trois chiffres : matchs disponibles, joueurs qui
+// cherchent une activité, communautés actives. Seul le premier existe.
+// « Joueurs qui cherchent » n'est pas dans le modèle — aucun utilisateur ne
+// déclare jamais chercher — et les communautés n'existent pas du tout.
+// Afficher ces deux-là, ce serait inventer des chiffres à l'écran.
+// Remplacés par deux mesures réelles qui répondent à la même question :
+// combien de places je peux prendre, et combien de gens jouent déjà ici.
+// Tout est calculé sur les snapshots DÉJÀ chargés — zéro requête en plus.
+function autourDeToiHTML(snaps, uid) {
+  const vus = new Set();
+  let matchs = 0, places = 0;
+  const joueurs = new Set();
+  const now = Date.now();
+  (snaps || []).forEach(sn => sn && sn.docs.forEach(d => {
+    if (vus.has(d.id)) return; vus.add(d.id);
+    const m = d.data();
+    (m.joueursInscrits || []).forEach(u => joueurs.add(u));
+    if (m.statut === 'terminé') return;
+    if (!dansLeRayon(m, uid)) return;
+    const w = _matchWhen(m).ms;
+    if (w && w < now) return;
+    const libre = Math.max(0, maxJoueurs(m) - (m.joueursInscrits || []).length);
+    if (libre <= 0) return;
+    matchs++; places += libre;
+  }));
+  if (!matchs && !joueurs.size) return '';
+  const km = rayonKm();
+  const stat = (n, l) => `<div class="au-stat"><b>${n}</b><span>${l}</span></div>`;
+  return `<div class="mlist-lbl" style="margin-top:18px">Autour de toi · ${rayonLabel(km)}</div>
+    <div class="autour" onclick="navigateTo('matchs')">
+      ${stat(matchs, 'match' + (matchs > 1 ? 's' : '') + ' ouvert' + (matchs > 1 ? 's' : ''))}
+      ${stat(places, 'place' + (places > 1 ? 's' : '') + ' à prendre')}
+      ${stat(joueurs.size, 'joueur' + (joueurs.size > 1 ? 's' : '') + ' actif' + (joueurs.size > 1 ? 's' : ''))}
+    </div>`;
+}
+
 // Héros de l'accueil : un seul focus, une action claire.
 function homeHeroHTML(id, m, statut, fills) {
   const inscrits = m.joueursInscrits || [];
@@ -3667,11 +3734,19 @@ function homeHeroHTML(id, m, statut, fills) {
       : (n >= maxJoueurs(m)
           ? `<button class="btn-sm btn-outline hh-cta" onclick="openMatchDetail('${id}')">${ICON.clock} Match plein · rejoindre le banc</button>`
           : `<button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ICON.plus} Je joue !</button>`);
-    const _whenMs = _matchWhen(m).ms; // date + heure réelles (dateFinale ne stocke que la date)
+    const _w = _matchWhen(m); const _whenMs = _w.ms; // dateFinale ne stocke que la date
+    const _d = matchDistanceKm(m);
+    const _kmTxt = _d == null ? '' : (_d < 10 ? _d.toFixed(1).replace('.', ',') : Math.round(_d)) + ' km';
+    const _hTxt = _whenMs ? new Date(_whenMs).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
     return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
-      <div class="hh-eyebrow" style="color:var(--orange)">${ICON.ball} ${escapeHtml(sportDe(m).nom)} · ${countdownLabel(_whenMs)}</div>
-      <div class="hh-date">${dateDayLabel(_whenMs)}</div>
+      <div class="hh-eyebrow" style="color:var(--orange)">${sportIcone(m)} ${quandLabel(_whenMs)}</div>
+      <div class="hh-date">${escapeHtml(sportDe(m).nom)}</div>
       <div class="hh-meta">${ICON.pin} ${escapeHtml(m.lieuFinal || 'Lieu à définir')}</div>
+      <div class="hh-facts">
+        ${_kmTxt ? `<span class="hh-fact">${ICON.pin}${_kmTxt}</span>` : ''}
+        ${_hTxt ? `<span class="hh-fact">${ICON.clock}${_hTxt}</span>` : ''}
+        <span class="hh-fact">${n} / ${maxJoueurs(m)} joueurs</span>
+      </div>
       <div class="kring-row" style="margin-top:14px">
         ${kolektifRing(n, maxJoueurs(m), 76)}
         <div class="krr-meta">
@@ -3696,13 +3771,29 @@ function homeHeroHTML(id, m, statut, fills) {
     return `<div class="vb-row"><span class="vb-date">${formatDateShort(c.date, c.heure)}</span><span class="vb-track"><span class="vb-fill${i === 0 && cnt > 0 ? ' best' : ''}" style="width:${pct}%"></span></span><span class="vb-cnt">${cnt}</span></div>`;
   }).join('') + '</div>' : '';
   if (fills) fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
-  return `<div class="home-hero sondage"><div class="hh-glow"></div><div class="hh-body">
-    <div class="hh-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> On joue quand ? · vote ouvert</div>
-    <div class="hh-date">${best ? dateDayLabel(best.date, best.heure) : 'À planifier'}</div>
-    ${best ? `<div class="hh-meta">${ICON.pin} ${best.lieu}</div>` : ''}
+  // Hiérarchie : l'information principale est LE MATCH, pas l'action.
+  // Le bouton vert pleine largeur pesait autant que le match lui-même ; il
+  // devient une action compacte, et c'est la carte entière qui est cliquable.
+  const _d = matchDistanceKm(m);
+  const _kmTxt = _d == null ? '' : (_d < 10 ? _d.toFixed(1).replace('.', ',') : Math.round(_d)) + ' km';
+  const _hTxt = best && best.heure ? best.heure : '';
+  const _dateTxt = best ? dateDayLabel(best.date, best.heure) : '';
+  return `<div class="home-hero sondage" onclick="openMatchDetail('${id}')"><div class="hh-glow"></div><div class="hh-body">
+    <div class="hh-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> Vote ouvert · on cherche le créneau</div>
+    <div class="hh-date">${escapeHtml(sportDe(m).nom)}</div>
+    <div class="hh-meta">${ICON.pin} ${escapeHtml(best ? best.lieu : ((creneaux.find(c => c && c.lieu) || {}).lieu || 'Lieu à définir'))}</div>
+    <div class="hh-facts">
+      ${_dateTxt ? `<span class="hh-fact">${ICON.calendar}${escapeHtml(_dateTxt)}</span>` : ''}
+      ${_kmTxt ? `<span class="hh-fact">${ICON.pin}${_kmTxt}</span>` : ''}
+      ${_hTxt ? `<span class="hh-fact">${ICON.clock}${escapeHtml(_hTxt)}</span>` : ''}
+      <span class="hh-fact">${n} / ${maxJoueurs(m)} joueurs</span>
+    </div>
     ${bars}
-    <div class="hh-foot"><div class="av-stack" id="mcav-${id}"></div><span class="foot-txt"><b>${voterUids.length}</b> ont voté</span></div>
-    <button class="btn-primary hh-cta" onclick="openMatchDetail('${id}')">${ivoted ? `${ICON.check} Modifier mon vote` : `${ICON.poll} Voter pour un créneau`}</button>
+    <div class="hh-foot">
+      <div class="av-stack" id="mcav-${id}"></div>
+      <span class="foot-txt"><b>${voterUids.length}</b> ont voté</span>
+      <span class="hh-link">${ivoted ? 'Modifier mon vote' : 'Choisir mon créneau'} <span class="hh-arr">→</span></span>
+    </div>
   </div></div>`;
 }
 
@@ -3824,6 +3915,21 @@ function dateDayLabel(ts, heure) {
   const d = _toDate(ts, heure);
   if (!d) return '—';
   return d.toLocaleDateString('fr-FR', { weekday: 'short', day: 'numeric', month: 'short' });
+}
+// « Qu'est-ce que je peux faire MAINTENANT ? » — la réponse commence par
+// QUAND, pas par un décompte. « Dans 6 h » demande un calcul mental ;
+// « CE SOIR » se lit sans réfléchir.
+function quandLabel(ts, heure) {
+  const d = _toDate(ts, heure);
+  if (!d) return '';
+  const now = new Date();
+  const sod = x => { const y = new Date(x); y.setHours(0, 0, 0, 0); return y.getTime(); };
+  const days = Math.round((sod(d) - sod(now)) / 86400000);
+  if (days < 0) return 'PASSÉ';
+  if (days === 0) return d.getHours() >= 17 ? 'CE SOIR' : "AUJOURD'HUI";
+  if (days === 1) return 'DEMAIN';
+  if (days <= 6) return d.toLocaleDateString('fr-FR', { weekday: 'long' }).toUpperCase();
+  return `DANS ${days} JOURS`;
 }
 function countdownLabel(ts, heure) {
   const d = _toDate(ts, heure);
