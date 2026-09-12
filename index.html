@@ -1276,6 +1276,31 @@
     .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
+    /* ===== « TU VEUX JOUER ? » ===== */
+    .cta-jouer { position:relative; border-radius:var(--r-xl); overflow:hidden;
+      background:url('art-hero-jouer.jpg') center 62%/cover, #0B0D12;
+      border:1px solid var(--border); min-height:172px; margin-bottom:2px; }
+    .cj-voile { position:absolute; inset:0; pointer-events:none; background:
+      linear-gradient(90deg,rgba(8,10,13,.98) 0%,rgba(8,10,13,.92) 46%,rgba(8,10,13,.30) 82%,rgba(8,10,13,.55) 100%),
+      linear-gradient(180deg,rgba(8,10,13,.18) 0%,rgba(8,10,13,0) 46%,rgba(8,10,13,.62) 100%),
+      radial-gradient(90% 80% at 88% 30%,rgba(0,216,138,.22),transparent 60%); }
+    .cj-in { position:relative; z-index:2; padding:22px 20px; max-width:82%; }
+    @media (min-width:380px) { .cj-in { max-width:74%; } }
+    .cj-titre { font-family:Anton,sans-serif; font-size:30px; line-height:1.02; color:#fff;
+      letter-spacing:.4px; text-transform:uppercase; }
+    .cj-sub { font-size:12.5px; color:var(--text-sec); margin-top:9px; line-height:1.45; text-wrap:balance; }
+    .cj-sub b { color:#fff; font-weight:700; }
+    .cj-btn { margin-top:16px; display:inline-flex; align-items:center; gap:8px; min-height:44px;
+      padding:11px 20px; border:none; border-radius:var(--r-pill); cursor:pointer; font-family:inherit;
+      background:linear-gradient(160deg,var(--orange2,#00F0A0),var(--orange)); color:#06231A;
+      font-size:14px; font-weight:700;
+      box-shadow:0 6px 18px var(--orange-glow);
+      transition:transform var(--t-fast) var(--ease); }
+    .cj-btn:active { transform:scale(.96); }
+    .cj-arr { transition:transform var(--t-base) var(--ease); }
+    .cj-btn:active .cj-arr { transform:translateX(3px); }
+    .home-hi-sub { display:block; font-size:13px; color:var(--text-muted); margin-top:3px; letter-spacing:0; }
+
     /* ===== RACCOURCIS PAR SPORT (accueil) ===== */
     .sp-rangee { display:flex; gap:12px; overflow-x:auto; margin:18px 0 14px; padding-bottom:2px;
       scrollbar-width:none; -webkit-overflow-scrolling:touch; }
@@ -3818,7 +3843,9 @@ async function renderHome() {
 
   // « Salut X » : une app qui te reconnaît, avant de te demander quoi que ce soit.
   const _pseudo = (currentUserData && currentUserData.pseudo) || '';
-  if (_pseudo) html += `<div class="home-hi">Salut <b>${escapeHtml(_pseudo)}</b></div>`;
+  if (_pseudo) html += `<div class="home-hi">Bonjour <b>${escapeHtml(_pseudo)}</b> <span class="hi-main">👋</span>
+    <span class="home-hi-sub">Le sport se joue ensemble.</span></div>`;
+  html += ctaJouerHTML([snapC, snapS], currentUser?.uid);
 
   // Éligibilité à créer un match (utilisée aussi par l'écran Matchs)
   const eligibility = await checkCanCreateMatch(currentUser?.uid);
@@ -3890,7 +3917,31 @@ async function renderHome() {
       <button class="sp-reset" onclick="setSportFiltre('${_sportFiltre}')">Voir tous les sports</button></div>`;
   }
 
-  // ===== RACCOURCIS PAR SPORT =====
+  // ===== « TU VEUX JOUER ? » =====
+// Le bloc d'appel des maquettes. Même composition que la bannière de
+// partage et que le héros de match : photo à droite, texte à gauche sur
+// noir plein — c'est ce qui fait qu'on reconnaît le produit d'un écran à
+// l'autre. Le nombre annoncé est le vrai décompte du rayon, jamais un
+// nombre d'illustration.
+function ctaJouerHTML(snaps, uid) {
+  const { matchs } = compterAutour(snaps, uid);
+  const phrase = matchs > 0
+    ? `Il y a <b>${matchs} match${matchs > 1 ? 's' : ''}</b> disponible${matchs > 1 ? 's' : ''} autour de toi`
+    : `Personne n'a encore lancé de match autour de toi`;
+  const action = matchs > 0
+    ? `<button class="cj-btn" onclick="navigateTo('matchs')">Voir les matchs <span class="cj-arr">→</span></button>`
+    : `<button class="cj-btn" onclick="openCreateMatch()">Proposer un match <span class="cj-arr">→</span></button>`;
+  return `<div class="cta-jouer">
+    <div class="cj-voile"></div>
+    <div class="cj-in">
+      <div class="cj-titre">Tu veux jouer ?</div>
+      <div class="cj-sub">${phrase}</div>
+      ${action}
+    </div>
+  </div>`;
+}
+
+// ===== RACCOURCIS PAR SPORT =====
 // La rangée porte un COMPTE réel, pas une simple icône décorative : « Padel 0 »
 // est une information utile, « Padel » tout seul est une promesse vide. Filtrer
 // est donc un choix informé, jamais une surprise sur un écran qui se vide.
@@ -3992,7 +4043,7 @@ function sportsRangeeHTML(snaps, uid) {
 // Remplacés par deux mesures réelles qui répondent à la même question :
 // combien de places je peux prendre, et combien de gens jouent déjà ici.
 // Tout est calculé sur les snapshots DÉJÀ chargés — zéro requête en plus.
-function autourDeToiHTML(snaps, uid) {
+function compterAutour(snaps, uid) {
   const vus = new Set();
   let matchs = 0, places = 0;
   const joueurs = new Set();
@@ -4009,6 +4060,12 @@ function autourDeToiHTML(snaps, uid) {
     if (libre <= 0) return;
     matchs++; places += libre;
   }));
+  return { matchs, places, joueurs: joueurs.size };
+}
+
+function autourDeToiHTML(snaps, uid) {
+  const { matchs, places, joueurs: nbJoueurs } = compterAutour(snaps, uid);
+  const joueurs = { size: nbJoueurs };
   if (!matchs && !joueurs.size) return '';
   const km = rayonKm();
   const stat = (n, l) => `<div class="au-stat"><b>${n}</b><span>${l}</span></div>`;
