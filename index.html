@@ -544,7 +544,7 @@
     .creneau-vote .date-str { font-weight:600; font-size:15px; }
     .creneau-vote .lieu-str { font-size:12px; color:var(--text-sec); margin-top:2px; }
     .creneau-vote .vote-count { display:flex; flex-direction:column; align-items:center; gap:2px; }
-    .vote-num { font-family:'Anton',sans-serif; font-size:24px; font-weight:700; color:var(--orange); text-shadow:0 0 10px var(--orange-glow); }
+    .vote-num { font-family:'Anton',sans-serif; font-size:24px; font-weight:700; color:var(--text); }
     .vote-label { font-size:10px; color:var(--text-sec); text-transform:uppercase; letter-spacing:.5px; }
     .vote-check { width:22px; height:22px; border-radius:50%; background:var(--green); color:#04130c; display:flex; align-items:center; justify-content:center; font-size:12px; margin-left:8px; flex-shrink:0; box-shadow:0 0 10px rgba(0,216,138,.4); }
     .creneau-vote.voted { border-color:var(--green) !important; background:rgba(0,216,138,.06) !important; }
@@ -611,7 +611,7 @@
     /* Score */
     .score-display { display:flex; align-items:center; justify-content:center; gap:16px; margin:18px 0; }
     .score-team { text-align:center; }
-    .score-num { font-family:'Anton',sans-serif; font-size:56px; font-weight:700; color:var(--orange); line-height:1; text-shadow:0 0 20px var(--orange-glow); }
+    .score-num { font-family:'Anton',sans-serif; font-size:56px; font-weight:700; color:var(--text); line-height:1; }
     .score-name { font-size:12px; color:var(--text-sec); margin-top:4px; }
     .score-sep { font-family:'Anton',sans-serif; font-size:36px; color:var(--text-muted); }
 
@@ -979,7 +979,7 @@
       background:var(--card); border:1px solid var(--border);
       border-radius:var(--r-sm); padding:14px 8px; text-align:center;
     }
-    .stat-box .sv { font-family:'Anton',sans-serif; font-size:28px; font-weight:700; color:var(--orange); text-shadow:0 0 12px var(--orange-glow); }
+    .stat-box .sv { font-family:'Anton',sans-serif; font-size:28px; font-weight:700; color:var(--text); }
     .stat-box .sl { font-size:10px; color:var(--text-sec); font-weight:600; letter-spacing:.3px; margin-top:2px; }
     .edit-profile-btn {
       width:100%; padding:13px;
@@ -995,7 +995,7 @@
     /* Bandeau "Toi" du classement */
     .you-hero { position:relative; background:linear-gradient(135deg,rgba(0,216,138,.14),rgba(0,216,138,.03)); border:1px solid rgba(0,216,138,.35); border-radius:var(--r-lg); padding:14px 16px; margin:4px 0 6px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
     .yh-top { display:flex; align-items:center; gap:12px; }
-    .yh-rank { font-family:'Anton',sans-serif; font-size:28px; color:var(--orange); min-width:42px; text-shadow:0 0 14px var(--orange-glow); }
+    .yh-rank { font-family:'Anton',sans-serif; font-size:28px; color:var(--text); min-width:42px; }
     .yh-meta { flex:1; min-width:0; }
     .yh-name { font-size:15.5px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .yh-sub { font-size:12px; color:var(--text-sec); display:flex; align-items:center; gap:5px; margin-top:1px; }
@@ -1085,7 +1085,7 @@
     .p-li-meta { flex:1; min-width:0; }
     .p-li-name { font-size:15px; font-weight:600; color:var(--text); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
     .p-li-sub { font-size:11.5px; color:var(--text-sec); margin-top:1px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .p-li-xp { font-family:'Anton',sans-serif; font-size:16px; font-weight:700; color:var(--orange); font-variant-numeric:tabular-nums; flex-shrink:0; padding-left:8px; text-shadow:0 0 10px var(--orange-glow); }
+    .p-li-xp { font-family:'Anton',sans-serif; font-size:16px; font-weight:700; color:var(--orange); font-variant-numeric:tabular-nums; flex-shrink:0; padding-left:8px; }
     .player-row.me { background:linear-gradient(90deg, rgba(0,216,138,.08), rgba(0,216,138,0) 72%); box-shadow:inset 2.5px 0 0 var(--orange); }
     .player-row.me .p-li-name { font-weight:700; }
     .me-avatar-wrap { position:relative; display:flex; }
@@ -1904,8 +1904,6 @@
     .chip-orange { background:linear-gradient(165deg,#ffa14d 0%,#ff7a1a 45%,#e85d00 100%); }
     .chip-green  { background:linear-gradient(165deg,#3cf2af 0%,#00E89A 45%,#00b876 100%); }
     /* Pastille rang + tags : un poil plus vivants */
-    .rank-badge { box-shadow: 0 0 18px var(--orange-glow-soft), 0 4px 12px rgba(0,0,0,.4); }
-    .stat-box .sv { text-shadow: 0 0 16px var(--orange-glow); }
     /* Nav : élévation */
     #bottom-nav { box-shadow: 0 -8px 30px rgba(0,0,0,.5); }
     /* Inputs : profondeur */
@@ -2103,7 +2101,7 @@
     }
 
     /* ===== ICÔNES DE SECTION ===== */
-    .sec-ic { width:20px; height:20px; color:var(--orange); flex-shrink:0; filter:drop-shadow(0 0 6px var(--orange-glow)); }
+    .sec-ic { width:20px; height:20px; color:var(--text-muted); flex-shrink:0; }
     /* Icône inline vectorielle (remplace les emojis dans les libellés/boutons) */
     .ic { width:1.05em; height:1.05em; vertical-align:-0.14em; flex-shrink:0; }
     .btn-sm .ic, .btn-primary .ic, .btn-green .ic, .btn-orange .ic, .btn-red .ic, .btn-outline .ic { margin-right:1px; }

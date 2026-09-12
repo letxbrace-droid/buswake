@@ -147,6 +147,25 @@ un groupe rejoint.
 
 ### Couleurs
 
+**Le vert est une arme, pas une ambiance.** La règle qui décide :
+
+| Nature | Couleur |
+|---|---|
+| Action, réussite, progression, état choisi | **vert** |
+| Information normale — un score, un décompte, un rang, une statistique | blanc |
+| Récompense (rang de carte) | or / argent / bronze |
+| Problème, absence, urgence | rouge |
+
+Le piège n'est pas le *nombre* d'éléments verts : la plupart des usages
+sont légitimes (l'app est pleine d'actions et de progression). Le piège
+est **l'intensité uniforme**. Un score de match en Anton vert avec un halo
+pesait autant que le bouton « Je joue » — donc plus rien ne pesait.
+
+D'où deux règles opposables :
+1. **Un nombre qui décrit est blanc.** Un nombre qui progresse est vert.
+2. **Le halo est réservé à ce qu'on touche.** Il a été retiré des nombres
+   et des icônes de section : une information ne rayonne pas.
+
 | Token | Usage |
 |---|---|
 | `--green` `#00D88A` | L'accent unique — actions, succès, marque |
