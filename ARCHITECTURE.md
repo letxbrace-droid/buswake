@@ -100,6 +100,18 @@ l'app.
 = *prête* ; il manque un = *incomplète* ; il en manque plus = *en
 recherche*. C'est ce que dessine le Kolektif Pulse sur chaque carte.
 
+**Le palmarès n'est jamais écrit par un client.** `stats` est refusé à
+tout le monde par les règles — capitaine compris — et n'est mis à jour
+que par la Cloud Function qui clôt un match (Admin SDK). Sans cette
+interdiction, gonfler le bilan de son équipe tiendrait en trois lignes
+dans la console du navigateur, et le classement par équipe ne vaudrait
+rien. Le marqueur `_notifs.termine` garantit en plus qu'un match n'est
+compté **qu'une fois**, même si le document est réécrit ensuite.
+
+Barème du classement : **3 points par victoire, 1 par nul**, la différence
+de buts départage. Une équipe sans match joué n'est pas classée — elle n'a
+rien prouvé — mais elle est comptée à part pour ne pas disparaître.
+
 **Sécurité.** L'équipe est publique en lecture (on doit pouvoir la
 découvrir pour la rejoindre). Deux écritures seulement : le capitaine
 gère tout ; un joueur ne peut qu'ajouter ou retirer **son propre** uid de

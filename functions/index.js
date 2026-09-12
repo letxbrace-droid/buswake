@@ -194,6 +194,13 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   // 4. Match terminé → les joueurs (notes + homme du match).
   if (before.statut !== 'terminé' && after.statut === 'terminé' && !notifs.termine) {
     await mark('termine');
+    // Le bilan des équipes se met à jour ICI, côté serveur, et nulle part
+    // ailleurs. Un client ne peut pas écrire dans `stats` (les règles le lui
+    // interdisent) : sans ça, gonfler le palmarès de son équipe se ferait en
+    // trois lignes dans la console du navigateur. Le marqueur `termine`
+    // garantit aussi qu'on ne compte le match qu'UNE fois, même si le
+    // document est réécrit ensuite.
+    await majBilanEquipes(after);
     const map = await collectTokens(after.joueursInscrits || []);
     await send(map, {
       title: 'Match terminé 🏁',
@@ -202,6 +209,38 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
     });
   }
 });
+
+// ---------- Bilan des équipes après un match ----------
+// N'agit que sur les matchs nés d'un DÉFI : eux seuls portent les deux
+// identifiants d'équipe. Un match ordinaire ne touche à aucun palmarès.
+async function majBilanEquipes(m) {
+  const idA = m.equipeAId, idB = m.equipeBId;
+  if (!idA || !idB || idA === idB) return;
+  const a = Number(m.scoreA), b = Number(m.scoreB);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return;
+  // Un score aberrant est ignoré plutôt que reporté : mieux vaut un bilan
+  // incomplet qu'un bilan faux.
+  if (a < 0 || b < 0 || a > 99 || b > 99) return;
+
+  const bilan = (pour, contre) => ({
+    'stats.matchs': FieldValue.increment(1),
+    'stats.butsPour': FieldValue.increment(pour),
+    'stats.butsContre': FieldValue.increment(contre),
+    'stats.victoires': FieldValue.increment(pour > contre ? 1 : 0),
+    'stats.nuls': FieldValue.increment(pour === contre ? 1 : 0),
+    'stats.defaites': FieldValue.increment(pour < contre ? 1 : 0),
+  });
+  // La série compte les victoires consécutives : elle s'incrémente ou
+  // retombe à zéro, donc elle ne peut pas s'exprimer avec un increment.
+  const ecrire = async (id, pour, contre) => {
+    const ref = db.doc('equipes/' + id);
+    const snap = await ref.get().catch(() => null);
+    if (!snap || !snap.exists) return;
+    const serie = pour > contre ? (Number(snap.get('stats.serie')) || 0) + 1 : 0;
+    await ref.update({ ...bilan(pour, contre), 'stats.serie': serie }).catch(() => {});
+  };
+  await Promise.all([ecrire(idA, a, b), ecrire(idB, b, a)]);
+}
 
 // ---------- Rappels programmés (toutes les 30 min, heure de Paris) ----------
 exports.rappels = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/Paris' }, async () => {

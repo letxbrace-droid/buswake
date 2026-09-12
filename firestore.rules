@@ -200,10 +200,18 @@ service cloud.firestore {
         && request.resource.data.capitaineUid == request.auth.uid
         && request.auth.uid in request.resource.data.membres
         && equipeValide();
-      allow update: if isSignedIn() && (
-           (resource.data.capitaineUid == request.auth.uid && equipeValide())
-        || rejointOuQuitte()
-      );
+      // Le palmarès (`stats`) est HORS DE PORTÉE DE TOUT CLIENT, capitaine
+      // compris. Il n'est écrit qu'à la création (à zéro) et par la Cloud
+      // Function qui clôt un match, via l'Admin SDK qui contourne ces règles.
+      // Sans cette interdiction, gonfler le palmarès de son équipe tiendrait
+      // en trois lignes dans la console du navigateur — et le classement par
+      // équipe ne vaudrait rien.
+      allow update: if isSignedIn()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['stats'])
+        && (
+             (resource.data.capitaineUid == request.auth.uid && equipeValide())
+          || rejointOuQuitte()
+        );
       allow delete: if isSignedIn()
         && (resource.data.capitaineUid == request.auth.uid || isAdmin());
     }
