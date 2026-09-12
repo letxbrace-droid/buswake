@@ -67,6 +67,18 @@ overall = vitesse×0,15 + dribble×0,20 + frappe×0,25
 Le rang de la carte en découle : **≥ 80 or**, **≥ 70 argent**, sinon
 **bronze**.
 
+### Un seul sport offert, plusieurs sports supportés
+
+`SPORTS_ACTIFS = ['foot5']` gouverne ce que l'app **propose**. Le
+catalogue `SPORTS`, le champ `sport` et `maxJoueurs()` restent en place :
+un match de padel créé avant la restriction s'affiche toujours
+correctement, et rouvrir un sport tient en une entrée de ce tableau.
+
+Supprimer le multi-sport aurait voulu dire le réécrire le jour où il
+revient. Trois sélecteurs se masquent quand un seul sport est actif —
+accueil, création de match, création d'équipe — et le héros cesse
+d'annoncer un sport que tout le monde connaît déjà.
+
 ### `equipes/{equipeId}`
 
 Une équipe est **une moitié de match** : cinq joueurs en affrontent cinq.

@@ -3034,6 +3034,18 @@ function sportPhoto(m) {
 }
 const SPORT_DEFAUT = 'foot5';
 
+// ===== SPORTS OFFERTS =====
+// Le produit se concentre sur le foot à 5. On retire le CHOIX, pas le code :
+// le catalogue, le champ `sport` et `maxJoueurs()` restent en place, donc un
+// match de padel créé avant s'affiche toujours correctement, et rouvrir un
+// sport tient en une entrée dans ce tableau. Supprimer le multi-sport aurait
+// voulu dire le réécrire le jour où il revient.
+const SPORTS_ACTIFS = ['foot5'];
+function sportsOfferts() {
+  return Object.entries(SPORTS).filter(([id]) => SPORTS_ACTIFS.includes(id));
+}
+const MONO_SPORT = SPORTS_ACTIFS.length <= 1;
+
 // ===== ÉQUIPES =====
 // Une équipe, c'est une MOITIÉ de match : cinq joueurs affrontent cinq
 // joueurs. L'effectif se déduit donc du sport, il ne se saisit pas —
@@ -4214,7 +4226,7 @@ async function renderHome() {
   const gardeSport = d => !_sportFiltre || ((d.data().sport || SPORT_DEFAUT) === _sportFiltre);
   confirmes.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['confirmé', d]); });
   sondages.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['sondage', d]); });
-  html += sportsRangeeHTML([snapC, snapS], currentUser?.uid);
+  if (!MONO_SPORT) html += sportsRangeeHTML([snapC, snapS], currentUser?.uid);
   if (rest.length) {
     html += `<div class="mlist-lbl">${_sportFiltre ? escapeHtml(SPORTS[_sportFiltre].nom) : 'À suivre aussi'}</div>`;
     html += rest.slice(0, 4).map(([st, d]) => matchCardHTML(d.id, d.data(), st, fills, motms)).join('');
@@ -4491,12 +4503,12 @@ window.openCreerEquipe = function() {
   const body = `<div class="create-form">
     <div class="section-sub">${ICON.edit} Le nom de ton équipe</div>
     <input id="ce-nom" class="input" maxlength="28" placeholder="Kolektif Massy" autocomplete="off">
-    <div class="section-sub" style="margin-top:18px">${ICON.ball} Quel sport ?</div>
-    <div class="cm-sports" id="ce-sports">${Object.entries(SPORTS).map(([id, sp]) => `
+    ${MONO_SPORT ? '' : `<div class="section-sub" style="margin-top:18px">${ICON.ball} Quel sport ?</div>
+    <div class="cm-sports" id="ce-sports">${sportsOfferts().map(([id, sp]) => `
       <div class="cm-sport${id === _ceSport ? ' on' : ''}" onclick="ceSetSport('${id}')">
         <div class="cm-sport-ic">${_icS(sp.ic)}</div>
         <b>${escapeHtml(sp.nom)}</b><small>${Math.max(1, Math.round(sp.joueursMax / 2))} joueurs par équipe</small>
-      </div>`).join('')}</div>
+      </div>`).join('')}</div>`}
     <div class="section-sub" style="margin-top:18px">${ICON.zap} Niveau</div>
     <div class="ce-niveaux" id="ce-niveaux">${Object.entries(NIVEAUX).map(([id, lbl]) => `
       <button class="ce-niv${id === _ceNiveau ? ' on' : ''}" onclick="ceSetNiveau('${id}')">${lbl}</button>`).join('')}</div>
@@ -4926,7 +4938,7 @@ function homeHeroHTML(id, m, statut, fills) {
     const _hTxt = _whenMs ? new Date(_whenMs).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) : '';
     return `<div class="home-hero confirme"><div class="hh-glow"></div><div class="hh-body">
       <div class="hh-eyebrow" style="color:var(--orange)">${sportIcone(m)} ${quandLabel(_whenMs)}</div>
-      <div class="hh-date">${escapeHtml(sportDe(m).nom)}</div>
+      <div class="hh-date">${escapeHtml(MONO_SPORT ? dateDayLabel(_whenMs) : sportDe(m).nom)}</div>
       <div class="hh-meta">${ICON.pin} ${escapeHtml(m.lieuFinal || 'Lieu à définir')}</div>
       <div class="hh-facts">
         ${_kmTxt ? `<span class="hh-fact">${ICON.pin}${_kmTxt}</span>` : ''}
@@ -4966,7 +4978,7 @@ function homeHeroHTML(id, m, statut, fills) {
   const _dateTxt = best ? dateDayLabel(best.date, best.heure) : '';
   return `<div class="home-hero sondage" onclick="openMatchDetail('${id}')"><div class="hh-glow"></div><div class="hh-body">
     <div class="hh-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> Vote ouvert · on cherche le créneau</div>
-    <div class="hh-date">${escapeHtml(sportDe(m).nom)}</div>
+    <div class="hh-date">${escapeHtml(MONO_SPORT ? 'On cherche le créneau.' : sportDe(m).nom)}</div>
     <div class="hh-meta">${ICON.pin} ${escapeHtml(best ? best.lieu : ((creneaux.find(c => c && c.lieu) || {}).lieu || 'Lieu à définir'))}</div>
     <div class="hh-facts">
       ${_dateTxt ? `<span class="hh-fact">${ICON.calendar}${escapeHtml(_dateTxt)}</span>` : ''}
@@ -5944,15 +5956,15 @@ function renderCmModal() {
     return `<div class="cm-slot on" onclick="cmToggleSlot('${s.id}')">${top.replace('.', '')}<small>${s.heure}</small></div>`;
   }).join('');
   const today = new Date().toISOString().split('T')[0];
-  const sportsHtml = Object.entries(SPORTS).map(([id, sp]) =>
+  const sportsHtml = sportsOfferts().map(([id, sp]) =>
     `<div class="cm-sport${_cmSport === id ? ' on' : ''}" onclick="cmSetSport('${id}')">
        <div class="cm-sport-ic">${_icS(sp.ic)}</div>
        <b>${escapeHtml(sp.nom)}</b><small>${escapeHtml(sp.format)} · ${sp.joueursMax} joueurs</small>
      </div>`).join('');
   const body = `<div class="create-form">
-    <div class="section-sub">${ICON.ball} On joue à quoi ?</div>
-    <div class="cm-sports">${sportsHtml}</div>
-    <div class="section-sub" style="margin-top:18px">${ICON.pin} On joue où ?</div>
+    ${MONO_SPORT ? '' : `<div class="section-sub">${ICON.ball} On joue à quoi ?</div>
+    <div class="cm-sports">${sportsHtml}</div>`}
+    <div class="section-sub"${MONO_SPORT ? '' : ' style="margin-top:18px"'}>${ICON.pin} On joue où ?</div>
     <div id="cm-venues">${venuesHtml}</div>
     <div class="cm-search-toggle" onclick="cmToggleSearch()">${ICON.pin} Un autre terrain…</div>
     <div class="cm-search-box" id="cm-search-box">
