@@ -34,7 +34,7 @@ pas notifier un autre client).
 
 ## Modèle de données
 
-Deux collections racines, une sous-collection.
+Trois collections racines, une sous-collection.
 
 ### `users/{uid}`
 
@@ -66,6 +66,34 @@ overall = vitesse×0,15 + dribble×0,20 + frappe×0,25
 
 Le rang de la carte en découle : **≥ 80 or**, **≥ 70 argent**, sinon
 **bronze**.
+
+### `equipes/{equipeId}`
+
+Une équipe est **une moitié de match** : cinq joueurs en affrontent cinq.
+L'effectif ne se saisit donc pas, il se **déduit du sport**
+(`joueursMax / 2`) — foot à 5 → 5, basket 3×3 → 3, padel → 2. C'est ce qui
+permet au modèle de rester multi-sport.
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `nom` | string | 2 à 28 caractères |
+| `sport` | string | Clé du catalogue `SPORTS` |
+| `niveau` | string | `debutant` \| `intermediaire` \| `confirme` |
+| `couleur` | string | Une des six couleurs du blason |
+| `ville`, `lat`, `lon` | — | Pour le rayon, repris du profil du capitaine |
+| `capitaineUid` | string | Seul habilité à renommer, gérer, dissoudre |
+| `membres` | array | UID de l'effectif — **le capitaine est toujours dedans** |
+| `stats` | objet | `{ matchs, victoires, nuls, defaites, butsPour, butsContre, serie }` |
+
+**Trois états, définis par le MANQUE et non par un pourcentage :** complet
+= *prête* ; il manque un = *incomplète* ; il en manque plus = *en
+recherche*. C'est ce que dessine le Kolektif Pulse sur chaque carte.
+
+**Sécurité.** L'équipe est publique en lecture (on doit pouvoir la
+découvrir pour la rejoindre). Deux écritures seulement : le capitaine
+gère tout ; un joueur ne peut qu'ajouter ou retirer **son propre** uid de
+`membres` — la règle `rejointOuQuitte()` vérifie que le diff ne touche
+que ce tableau et que la variation est exactement de un, sur soi.
 
 ### `matchs/{matchId}`
 

@@ -1276,6 +1276,58 @@
     .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
+    /* ===== ÉQUIPES ===== */
+    .blason { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
+      border-radius:30% 30% 42% 42% / 26% 26% 60% 60%;
+      background:linear-gradient(160deg, color-mix(in srgb, var(--bc) 88%, #fff 12%), var(--bc));
+      color:#06231A; font-family:Anton,sans-serif; letter-spacing:.5px;
+      box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.35); }
+    @supports not (background: color-mix(in srgb, red 50%, blue)) {
+      .blason { background:var(--bc); }
+    }
+    .eq-carte { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-lg);
+      padding:14px; margin-bottom:10px;
+      transition:border-color var(--t-base) var(--ease); }
+    .eq-prete { border-color:rgba(0,216,138,.45); }
+    .eq-incomplete { border-color:rgba(255,138,61,.38); }
+    .eq-top { display:flex; align-items:center; gap:12px; }
+    .eq-id { flex:1; min-width:0; }
+    .eq-nom { font-size:16px; font-weight:700; color:var(--text); display:flex; align-items:center; gap:7px; }
+    .eq-cap { font-size:9px; letter-spacing:1.2px; font-weight:700; color:#06231A;
+      background:var(--orange); border-radius:var(--r-xs); padding:2px 5px; }
+    .eq-meta { display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-muted); margin-top:3px; }
+    .eq-meta .ic { width:13px; height:13px; flex-shrink:0; }
+    .eq-etat { font-family:Anton,sans-serif; font-size:17px; letter-spacing:.5px; flex-shrink:0; }
+    .eq-etat-prete { color:var(--orange); }
+    .eq-etat-incomplete { color:#FF8A3D; }
+    .eq-etat-recherche { color:var(--text-sec); }
+    .eq-bas { display:flex; align-items:center; gap:10px; margin-top:12px; }
+    .eq-bilan { font-size:12px; color:var(--text-muted); white-space:nowrap;
+      overflow:hidden; text-overflow:ellipsis; }
+    .eq-bilan b { color:var(--text); font-weight:700; }
+    /* `.btn-primary` porte width:100% — sans cette remise à zéro, le bouton
+       occupe toute la rangée et écrase le bilan en colonne d'une lettre. */
+    .eq-act { margin-left:auto; flex-shrink:0; width:auto; padding:10px 18px; }
+    .eq-pleine { margin-left:auto; font-size:12px; color:var(--text-muted); }
+    .eq-vide { background:var(--card); border:1.5px dashed var(--border); border-radius:var(--r-lg);
+      padding:22px 18px; text-align:center; }
+    .eq-vide-t { font-family:Anton,sans-serif; font-size:21px; color:#fff; }
+    .eq-vide-s { font-size:13px; color:var(--text-sec); margin:8px auto 18px; max-width:290px; line-height:1.5; }
+    .eq-note { text-align:center; color:var(--text-muted); font-size:12.5px; padding:16px 8px; }
+    .ce-niveaux { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
+    .ce-niv { min-height:44px; padding:11px 6px; border-radius:var(--r-sm); font-family:inherit;
+      background:var(--card); border:1.5px solid var(--border); color:var(--text-sec);
+      font-size:12.5px; font-weight:600; cursor:pointer;
+      transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease),
+                 background var(--t-base) var(--ease), transform var(--t-fast) var(--ease); }
+    .ce-niv:active { transform:scale(.96); }
+    .ce-niv.on { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
+    .ce-couleurs { display:flex; gap:10px; margin-top:8px; flex-wrap:wrap; }
+    .ce-coul { width:38px; height:38px; border-radius:50%; background:var(--bc); cursor:pointer;
+      border:2.5px solid transparent; transition:transform var(--t-fast) var(--ease), border-color var(--t-base) var(--ease); }
+    .ce-coul:active { transform:scale(.9); }
+    .ce-coul.on { border-color:#fff; transform:scale(1.08); }
+
     /* ===== « TU VEUX JOUER ? » ===== */
     .cta-jouer { position:relative; border-radius:var(--r-xl); overflow:hidden;
       background:url('art-hero-jouer.jpg') center 62%/cover, #0B0D12;
@@ -2473,6 +2525,11 @@
       <div id="profil-content"></div>
     </section>
 
+    <!-- ÉQUIPES -->
+    <section id="screen-equipes" class="screen">
+      <div id="equipes-content"></div>
+    </section>
+
     <!-- CLASSEMENT -->
     <section id="screen-classement" class="screen">
       <div id="classement-content"></div>
@@ -2499,6 +2556,12 @@
          bouton, il ne navigue pas, il agit. -->
     <button class="nav-plus" onclick="openCreateMatch()" aria-label="Proposer un match">
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+    <button class="nav-btn" data-screen="equipes" onclick="navigateTo('equipes')">
+      <div class="nav-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M12 2.6l7 2.6v6c0 4.4-3 8.1-7 10.2-4-2.1-7-5.8-7-10.2v-6z"/><circle cx="12" cy="10" r="2.3"/><path d="M8.4 16.6c.6-1.8 1.9-2.7 3.6-2.7s3 .9 3.6 2.7"/></svg>
+      </div>
+      <span>Équipes</span>
     </button>
     <button class="nav-btn" data-screen="classement" onclick="navigateTo('classement')">
       <div class="nav-icon-wrap">
@@ -2861,6 +2924,43 @@ function sportPhoto(m) {
   return `sport-${id}.jpg`;
 }
 const SPORT_DEFAUT = 'foot5';
+
+// ===== ÉQUIPES =====
+// Une équipe, c'est une MOITIÉ de match : cinq joueurs affrontent cinq
+// joueurs. L'effectif se déduit donc du sport, il ne se saisit pas —
+// foot à 5 → 5, basket 3×3 → 3, padel → 2. C'est ce qui permet au modèle
+// de rester multi-sport alors que le brief parle de foot à 5.
+const NIVEAUX = { debutant: 'Débutant', intermediaire: 'Intermédiaire', confirme: 'Confirmé' };
+const COULEURS_EQUIPE = ['#00D88A', '#00B0FF', '#FF8A3D', '#B36BFF', '#FFD24A', '#FF5A6E'];
+function effectifEquipe(e) {
+  const sp = SPORTS[(e && e.sport) || SPORT_DEFAUT] || SPORTS[SPORT_DEFAUT];
+  return Math.max(1, Math.round(sp.joueursMax / 2));
+}
+// Trois états, et c'est le manque qui les sépare — pas un pourcentage.
+// Complet = prête. Il manque un = incomplète. Il en manque plus = en recherche.
+function etatEquipe(e) {
+  const n = (e.membres || []).length, t = effectifEquipe(e);
+  const manque = Math.max(0, t - n);
+  if (manque === 0) return { cle: 'prete', label: 'Prête', manque: 0 };
+  if (manque === 1) return { cle: 'incomplete', label: 'Il manque 1 joueur', manque: 1 };
+  return { cle: 'recherche', label: `Il manque ${manque} joueurs`, manque };
+}
+function initialesEquipe(nom) {
+  return (nom || '?').trim().split(/\s+/).slice(0, 2).map(m => m[0] || '').join('').toUpperCase() || '?';
+}
+function couleurEquipe(e) {
+  return (e && e.couleur && COULEURS_EQUIPE.includes(e.couleur)) ? e.couleur : COULEURS_EQUIPE[0];
+}
+function blasonHTML(e, taille) {
+  const S = taille || 46;
+  return `<span class="blason" style="width:${S}px;height:${S}px;--bc:${couleurEquipe(e)};font-size:${Math.round(S * 0.36)}px">${escapeHtml(initialesEquipe(e && e.nom))}</span>`;
+}
+// Bilan : le brief demande V — N — D. `victoires` existait déjà ;
+// `nuls` et `defaites` sont nouveaux et valent 0 sur les équipes d'avant.
+function bilanEquipe(e) {
+  const st = (e && e.stats) || {};
+  return { v: st.victoires || 0, n: st.nuls || 0, d: st.defaites || 0, serie: st.serie || 0 };
+}
 // Repli pour les matchs créés avant l'arrivée du champ : ils sont tous
 // du foot à 5, puisque c'est tout ce que l'app savait faire.
 const MIN_CONFIRM = 10;
@@ -3517,7 +3617,7 @@ document.addEventListener('click', (e) => {
   if (t) haptic(12);
 }, true);
 
-const NAV_ORDER = ['home', 'matchs', 'profil', 'classement'];
+const NAV_ORDER = ['home', 'matchs', 'equipes', 'classement', 'profil'];
 function navigateTo(screen) {
   const prevIdx = NAV_ORDER.indexOf(currentScreen);
   const nextIdx = NAV_ORDER.indexOf(screen);
@@ -3538,6 +3638,7 @@ window.navigateTo = navigateTo;
 function renderScreen(screen) {
   if (screen === 'home') renderHome();
   else if (screen === 'matchs') renderMatchs();
+  else if (screen === 'equipes') renderEquipes();
   else if (screen === 'profil') renderProfil();
   else if (screen === 'classement') renderClassement();
 }
@@ -3917,7 +4018,204 @@ async function renderHome() {
       <button class="sp-reset" onclick="setSportFiltre('${_sportFiltre}')">Voir tous les sports</button></div>`;
   }
 
-  // ===== « TU VEUX JOUER ? » =====
+  // ===== ÉCRAN ÉQUIPES =====
+// Trois situations, et le brief insiste pour qu'aucune ne ferme la porte :
+//   j'ai une équipe  → je la gère et je cherche un adversaire
+//   je suis seul     → je rejoins, ou je crée
+//   incomplète       → je recrute
+// L'écran répond donc d'abord à « où j'en suis », jamais par une liste brute.
+let _mesEquipes = [];
+async function renderEquipes() {
+  const el = document.getElementById('equipes-content');
+  el.innerHTML = listSkeleton(4);
+  const uid = currentUser?.uid;
+  if (!uid) { el.innerHTML = ''; return; }
+
+  let mienne = [], autres = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'equipes'), limit(150)));
+    const toutes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    mienne = toutes.filter(e => (e.membres || []).includes(uid));
+    autres = toutes.filter(e => !(e.membres || []).includes(uid) && dansLeRayonEquipe(e));
+  } catch (err) {
+    el.innerHTML = `<div class="empty-state"><p>Impossible de charger les équipes.<br><span style="color:var(--text-muted);font-size:12px">${escapeHtml(err.message || '')}</span></p></div>`;
+    return;
+  }
+  _mesEquipes = mienne;
+
+  let html = `<div class="screen-navbar"><h1 class="screen-title">Équipes</h1></div>`;
+
+  if (mienne.length) {
+    html += `<div class="mlist-lbl">${mienne.length > 1 ? 'Tes équipes' : 'Ton équipe'}</div>`;
+    html += mienne.map(e => carteEquipeHTML(e, uid, true)).join('');
+  } else {
+    html += `<div class="eq-vide">
+      <div class="eq-vide-t">Tu n'as pas encore d'équipe.</div>
+      <div class="eq-vide-s">Crée la tienne, ou rejoins une équipe qui recrute près de chez toi.</div>
+      <button class="btn-primary" style="width:100%" onclick="openCreerEquipe()">${ICON.plus} Créer mon équipe</button>
+    </div>`;
+  }
+
+  // Les équipes qui recrutent d'abord : c'est l'action possible.
+  const recrutent = autres.filter(e => etatEquipe(e).manque > 0);
+  const completes = autres.filter(e => etatEquipe(e).manque === 0);
+  if (recrutent.length) {
+    html += `<div class="mlist-lbl" style="margin-top:20px">Elles cherchent des joueurs</div>`;
+    html += recrutent.slice(0, 12).map(e => carteEquipeHTML(e, uid, false)).join('');
+  }
+  if (completes.length) {
+    html += `<div class="mlist-lbl" style="margin-top:20px">Équipes complètes autour de toi</div>`;
+    html += completes.slice(0, 12).map(e => carteEquipeHTML(e, uid, false)).join('');
+  }
+  if (!recrutent.length && !completes.length && mienne.length) {
+    html += `<div class="eq-note">Aucune autre équipe dans ton rayon pour l'instant.</div>`;
+  }
+  el.innerHTML = html;
+  jouerEntree(el);
+}
+
+// Même règle de rayon que les matchs : sans coordonnées, on n'exclut pas.
+function dansLeRayonEquipe(e) {
+  const km = rayonKm();
+  if (!km) return true;
+  const home = _venueHome();
+  if (!home || e.lat == null || e.lon == null) return true;
+  return haversine(home.lat, home.lon, e.lat, e.lon) <= km;
+}
+
+function carteEquipeHTML(e, uid, mienne) {
+  const total = effectifEquipe(e);
+  const n = (e.membres || []).length;
+  const et = etatEquipe(e);
+  const b = bilanEquipe(e);
+  const sp = SPORTS[e.sport] || SPORTS[SPORT_DEFAUT];
+  const capitaine = e.capitaineUid === uid;
+  const dist = (() => {
+    const home = _venueHome();
+    if (!home || e.lat == null || e.lon == null) return '';
+    const d = haversine(home.lat, home.lon, e.lat, e.lon);
+    return ' · ' + (d < 10 ? d.toFixed(1).replace('.', ',') : Math.round(d)) + ' km';
+  })();
+  const action = mienne
+    ? (capitaine
+        ? `<button class="btn-sm btn-outline eq-act" onclick="event.stopPropagation();quitterEquipe('${e.id}')">Dissoudre</button>`
+        : `<button class="btn-sm btn-outline eq-act" onclick="event.stopPropagation();quitterEquipe('${e.id}')">Quitter</button>`)
+    : (et.manque > 0
+        ? `<button class="btn-sm btn-primary eq-act" onclick="event.stopPropagation();rejoindreEquipe('${e.id}')">Rejoindre</button>`
+        : `<span class="eq-pleine">Complète</span>`);
+  return `<div class="eq-carte eq-${et.cle}">
+    <div class="eq-top">
+      ${blasonHTML(e, 46)}
+      <div class="eq-id">
+        <div class="eq-nom">${escapeHtml(e.nom || 'Équipe')}${capitaine ? '<span class="eq-cap">CAP</span>' : ''}</div>
+        <div class="eq-meta">${sportIcone(e)} ${escapeHtml(sp.nom)} · ${escapeHtml(NIVEAUX[e.niveau] || '—')}${escapeHtml(e.ville ? ' · ' + e.ville : '')}${dist}</div>
+      </div>
+      <span class="eq-etat eq-etat-${et.cle}">${n} / ${total}</span>
+    </div>
+    <div class="kpulse-row">${kolektifPulse(n, total)}<span class="kpulse-cnt">${escapeHtml(et.label)}</span></div>
+    <div class="eq-bas">
+      <span class="eq-bilan"><b>${b.v}</b> V · <b>${b.n}</b> N · <b>${b.d}</b> D${b.serie >= 2 ? ` <span class="li-serie">${FLAMME}${b.serie}</span>` : ''}</span>
+      ${action}
+    </div>
+  </div>`;
+}
+
+window.rejoindreEquipe = async function(id) {
+  const uid = currentUser?.uid; if (!uid) return;
+  try {
+    const snap = await getDoc(doc(db, 'equipes', id));
+    if (!snap.exists()) return showToast('Équipe introuvable.', 'error');
+    const e = snap.data();
+    if ((e.membres || []).length >= effectifEquipe(e)) return showToast('Cette équipe est complète.', 'error');
+    await updateDoc(doc(db, 'equipes', id), { membres: arrayUnion(uid) });
+    momentRejoint((e.membres || []).length + 1, effectifEquipe(e));
+    renderEquipes();
+  } catch (err) { showToast('Impossible de rejoindre.', 'error'); }
+};
+
+window.quitterEquipe = async function(id) {
+  const uid = currentUser?.uid; if (!uid) return;
+  const snap = await getDoc(doc(db, 'equipes', id));
+  if (!snap.exists()) return;
+  const e = snap.data();
+  const capitaine = e.capitaineUid === uid;
+  const seul = (e.membres || []).length <= 1;
+  const msg = capitaine
+    ? (seul ? `Dissoudre « ${e.nom} » ? C'est définitif.`
+            : `Tu es capitaine. Quitter dissout l'équipe pour tout le monde. Continuer ?`)
+    : `Quitter « ${e.nom} » ?`;
+  if (!confirm(msg)) return;
+  try {
+    if (capitaine) await deleteDoc(doc(db, 'equipes', id));
+    else await updateDoc(doc(db, 'equipes', id), { membres: arrayRemove(uid) });
+    showToast(capitaine ? 'Équipe dissoute.' : 'Tu as quitté l\'équipe.', 'success');
+    renderEquipes();
+  } catch (err) { showToast('Action impossible.', 'error'); }
+};
+
+// ===== CRÉER UNE ÉQUIPE =====
+let _ceSport = SPORT_DEFAUT, _ceNiveau = 'intermediaire', _ceCouleur = COULEURS_EQUIPE[0];
+window.openCreerEquipe = function() {
+  _ceSport = SPORT_DEFAUT; _ceNiveau = 'intermediaire'; _ceCouleur = COULEURS_EQUIPE[0];
+  const d = currentUserData || {};
+  const body = `<div class="create-form">
+    <div class="section-sub">${ICON.edit} Le nom de ton équipe</div>
+    <input id="ce-nom" class="input" maxlength="28" placeholder="Kolektif Massy" autocomplete="off">
+    <div class="section-sub" style="margin-top:18px">${ICON.ball} Quel sport ?</div>
+    <div class="cm-sports" id="ce-sports">${Object.entries(SPORTS).map(([id, sp]) => `
+      <div class="cm-sport${id === _ceSport ? ' on' : ''}" onclick="ceSetSport('${id}')">
+        <div class="cm-sport-ic">${_icS(sp.ic)}</div>
+        <b>${escapeHtml(sp.nom)}</b><small>${Math.max(1, Math.round(sp.joueursMax / 2))} joueurs par équipe</small>
+      </div>`).join('')}</div>
+    <div class="section-sub" style="margin-top:18px">${ICON.zap} Niveau</div>
+    <div class="ce-niveaux" id="ce-niveaux">${Object.entries(NIVEAUX).map(([id, lbl]) => `
+      <button class="ce-niv${id === _ceNiveau ? ' on' : ''}" onclick="ceSetNiveau('${id}')">${lbl}</button>`).join('')}</div>
+    <div class="section-sub" style="margin-top:18px">${ICON.pin} Ville</div>
+    <input id="ce-ville" class="input" maxlength="40" placeholder="Massy" value="${escapeHtml(d.ville || '')}" autocomplete="off">
+    <div class="section-sub" style="margin-top:18px">Couleur</div>
+    <div class="ce-couleurs" id="ce-couleurs">${COULEURS_EQUIPE.map(c => `
+      <button class="ce-coul${c === _ceCouleur ? ' on' : ''}" style="--bc:${c}" onclick="ceSetCouleur('${c}')" aria-label="Couleur"></button>`).join('')}</div>
+    <button class="btn-primary" style="width:100%;margin-top:22px" onclick="creerEquipe()">${ICON.check} Créer l'équipe</button>
+  </div>`;
+  openModal('Créer une équipe', body);
+};
+window.ceSetSport = function(id) { _ceSport = id;
+  document.querySelectorAll('#ce-sports .cm-sport').forEach((el, i) =>
+    el.classList.toggle('on', Object.keys(SPORTS)[i] === id)); };
+window.ceSetNiveau = function(id) { _ceNiveau = id;
+  document.querySelectorAll('#ce-niveaux .ce-niv').forEach((el, i) =>
+    el.classList.toggle('on', Object.keys(NIVEAUX)[i] === id)); };
+window.ceSetCouleur = function(c) { _ceCouleur = c;
+  document.querySelectorAll('#ce-couleurs .ce-coul').forEach((el, i) =>
+    el.classList.toggle('on', COULEURS_EQUIPE[i] === c)); };
+
+window.creerEquipe = async function() {
+  const uid = currentUser?.uid; if (!uid) return;
+  const nom = (document.getElementById('ce-nom')?.value || '').trim();
+  if (nom.length < 2) return showToast('Donne un nom à ton équipe.', 'error');
+  const ville = (document.getElementById('ce-ville')?.value || '').trim().slice(0, 40);
+  const d = currentUserData || {};
+  try {
+    const ref = await addDoc(collection(db, 'equipes'), {
+      nom, sport: _ceSport, niveau: _ceNiveau, couleur: _ceCouleur,
+      ville: ville || null,
+      lat: d.lat ?? d.domicileLat ?? null,
+      lon: d.lon ?? d.domicileLon ?? null,
+      capitaineUid: uid, membres: [uid],
+      stats: { matchs: 0, victoires: 0, nuls: 0, defaites: 0, butsPour: 0, butsContre: 0, serie: 0 },
+      createdAt: serverTimestamp(),
+    });
+    closeModal();
+    showToast('Équipe créée !', 'success');
+    haptic([18, 40, 30]);
+    navigateTo('equipes');
+    return ref;
+  } catch (err) {
+    showToast('Création impossible.', 'error');
+  }
+};
+
+// ===== « TU VEUX JOUER ? » =====
 // Le bloc d'appel des maquettes. Même composition que la bannière de
 // partage et que le héros de match : photo à droite, texte à gauche sur
 // noir plein — c'est ce qui fait qu'on reconnaît le produit d'un écran à

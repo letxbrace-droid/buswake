@@ -149,6 +149,51 @@ service cloud.firestore {
       allow delete: if isSignedIn() && (resource.data.uid == request.auth.uid || isAdmin());
     }
 
+    // ----- ÉQUIPES -----
+    // Une équipe est publique en lecture : on doit pouvoir en découvrir une
+    // pour la rejoindre ou la défier. Deux écritures seulement sont permises :
+    // le capitaine gère son équipe, et un joueur ajoute ou retire SA propre
+    // présence de l'effectif. Rien d'autre.
+    function equipeValide() {
+      let d = request.resource.data;
+      return d.nom is string && d.nom.size() >= 2 && d.nom.size() <= 28
+        && d.capitaineUid is string
+        && d.sport is string
+        && d.niveau in ['debutant', 'intermediaire', 'confirme']
+        && d.membres is list && d.membres.size() >= 1 && d.membres.size() <= 20
+        && (!('description' in d) || d.description == null ||
+            (d.description is string && d.description.size() <= 160));
+    }
+    // Un joueur ne peut modifier QUE le tableau `membres`, et uniquement en y
+    // ajoutant ou retirant son propre uid. Il ne peut ni renommer l'équipe,
+    // ni toucher aux statistiques, ni inscrire quelqu'un d'autre.
+    function rejointOuQuitte() {
+      let d = request.resource.data;
+      let o = resource.data;
+      let moi = request.auth.uid;
+      return d.diff(o).affectedKeys().hasOnly(['membres'])
+        && (
+          (d.membres.size() == o.membres.size() + 1
+            && d.membres.hasAll(o.membres) && moi in d.membres && !(moi in o.membres))
+          ||
+          (d.membres.size() == o.membres.size() - 1
+            && o.membres.hasAll(d.membres) && moi in o.membres && !(moi in d.membres))
+        );
+    }
+    match /equipes/{equipeId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.capitaineUid == request.auth.uid
+        && request.auth.uid in request.resource.data.membres
+        && equipeValide();
+      allow update: if isSignedIn() && (
+           (resource.data.capitaineUid == request.auth.uid && equipeValide())
+        || rejointOuQuitte()
+      );
+      allow delete: if isSignedIn()
+        && (resource.data.capitaineUid == request.auth.uid || isAdmin());
+    }
+
     // Lieux : lecture pour tous les connectés, écriture via Admin SDK only.
     match /lieux/{lieuId} {
       allow read: if isSignedIn();
