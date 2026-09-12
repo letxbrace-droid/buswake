@@ -1057,7 +1057,9 @@
 
     .rank-badge {
       display:inline-flex; align-items:center; gap:6px;
-      background:rgba(93,214,44,.1); border:1px solid rgba(93,214,44,.4);
+      /* Fond opaque : posée sur une photo, une pastille à 10 % d'opacité
+         laisse remonter la pelouse et le vert sur vert tombe sous le seuil. */
+      background:#16210F; border:1px solid rgba(93,214,44,.4);
       border-radius:var(--r-lg); padding:7px 16px;
       font-size:14px; font-weight:700; color:var(--orange);
       margin-bottom:16px;
@@ -1607,30 +1609,53 @@
        protège le texte (sombre en haut où vit la salutation, très sombre en
        bas où s'empilent les cartes), le radial ramène un peu de lumière au
        centre pour qu'on voie encore la pelouse. */
-    #screen-home { position:relative; }
-    #screen-home::before {
+    /* ===== UN TERRAIN PAR SECTION =====
+       Chaque écran a son lieu, et c'est le lieu qui le nomme avant le
+       titre : l'accueil sous les projecteurs avec des joueurs, les matchs
+       sur un terrain extérieur au crépuscule, les équipes dans une halle
+       éclairée en vert, le classement dans une cage sous un seul spot, le
+       profil sur la pelouse vue de près — la page personnelle n'a pas de
+       lieu, elle a une matière.
+       Le fond est FIXE (position:fixed dans un écran qui défile) : il tient
+       pendant que les plaques glissent dessus. Un fond qui défile avec le
+       contenu n'est qu'une image de plus.
+       Deux voiles superposés, et aucun n'est décoratif : le vertical protège
+       le texte, le radial ramène un peu de lumière au centre.
+       Pas de position:relative ici : .screen est déjà en position:absolute
+       plus haut dans la feuille, et le redéclarer casserait la mise en page
+       des écrans. */
+    .screen::before {
       content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
       background:
         linear-gradient(180deg, rgba(15,15,15,.46) 0%, rgba(15,15,15,.56) 38%,
                                 rgba(15,15,15,.64) 72%, rgba(15,15,15,.72) 100%),
         radial-gradient(120% 55% at 50% 28%, rgba(93,214,44,.10), transparent 60%),
-        url('art-hero-jouer.jpg') center 34%/cover no-repeat,
+        var(--fond, none) center 34%/cover no-repeat,
         var(--bg);
     }
-    #home-content { position:relative; z-index:1; }
+    #screen-home       { --fond:url('art-hero-jouer.jpg'); }
+    #screen-matchs     { --fond:url('fond-matchs.jpg'); }
+    #screen-equipes    { --fond:url('fond-equipes.jpg'); }
+    #screen-classement { --fond:url('fond-classement.jpg'); }
+    #screen-profil     { --fond:url('fond-profil.jpg'); }
+    #home-content, #matchs-content, #equipes-content,
+    #classement-content, #profil-content { position:relative; z-index:1; }
 
-    /* Sections flottantes : translucides et floutées, pour que le terrain
-       respire ENTRE elles. Le flou est réservé à l'accueil — c'est la
-       couche la plus coûteuse du rendu, inutile de la payer partout. */
-    #screen-home .mc,
-    #screen-home .autour .au-stat,
-    #screen-home .prog-card,
-    #screen-home .ap-carte,
-    #screen-home .activity-list,
-    #screen-home .eq-carte,
-    #screen-home .home-hero,
-    #screen-home .cold-hero,
-    #screen-home .jours {
+    /* ===== LES PLAQUES =====
+       Translucides et floutées, pour que le terrain respire ENTRE elles. */
+    .screen .mc,
+    .screen .card,
+    .screen .stat-box,
+    .screen .autour .au-stat,
+    .screen .prog-card,
+    .screen .ap-carte,
+    .screen .activity-list,
+    .screen .eq-carte,
+    .screen .home-hero,
+    .screen .cold-hero,
+    .screen .jours,
+    .screen .cls-hero,
+    .screen .friends-search-box {
       /* La face est éclairée d'en haut : elle s'assombrit vers le bas.
          C'est ce dégradé, pas l'ombre, qui fait la matière — au-dessus d'un
          terrain aussi sombre, une ombre portée noire ne se voit pas. */
@@ -1645,13 +1670,13 @@
       border-bottom-color:rgba(0,0,0,.62);
       /* ===== L'ÉPAISSEUR DE LA PLAQUE =====
          Une plaque flottante n'est pas une carte avec une grosse ombre.
-         Il lui faut quatre choses, et les quatre sont ici :
-         1. une arête haute éclairée et une arête basse dans l'ombre —
-            la lumière vient d'en haut, comme partout ailleurs dans l'app ;
-         2. une tranche : deux ombres dures, sans flou, juste sous la carte.
-            C'est elle qui donne la matière ; sans elle on ne voit qu'un flou ;
-         3. une ombre de contact, courte et dense, qui colle la plaque au fond ;
-         4. une ombre ambiante, longue et diffuse, qui la décolle du terrain.
+         Mesuré sur l'écran réel : la face est à 0,007 de luminance, le vide
+         sous elle à 0,001 — toute ombre portée y est noire sur noir, donc
+         invisible. Le relief vient de la lumière :
+         1. une arête haute éclairée et une arête basse dans l'ombre ;
+         2. un dégradé de face qui tombe du haut vers le bas ;
+         3. une tranche dure de 3 px, qui sert quand le fond est clair ;
+         4. deux ombres, une de contact et une ambiante.
          Aucune rotation : incliner la carte abîmerait le rendu du texte sur
          mobile, et le relief se lit déjà sans ça. */
       box-shadow:
@@ -1664,10 +1689,11 @@
     }
     /* Ce qu'on peut toucher s'enfonce : la plaque perd sa tranche et son
        ombre de contact se resserre. C'est le seul retour tactile du relief. */
-    #screen-home .mc:active,
-    #screen-home .ap-carte:active,
-    #screen-home .eq-carte:active,
-    #screen-home .au-stat:active {
+    .screen .mc:active,
+    .screen .ap-carte:active,
+    .screen .eq-carte:active,
+    .screen .au-stat:active,
+    .screen .card-hover:active {
       transform:translateY(2px);
       box-shadow:
         0 1px 0 rgba(255,255,255,.06) inset,
@@ -1677,7 +1703,7 @@
         0 14px 30px -18px rgba(0,0,0,.7);
     }
     /* Le héros porte la plus grosse plaque : plus épaisse, plus détachée. */
-    #screen-home .home-hero, #screen-home .cold-hero {
+    .screen .home-hero, .screen .cold-hero, .screen .cls-hero {
       box-shadow:
         0 1px 0 rgba(255,255,255,.12) inset,
         0 -14px 20px -16px rgba(0,0,0,.8) inset,
@@ -1685,22 +1711,31 @@
         0 18px 30px -10px rgba(0,0,0,.66),
         0 44px 78px -26px rgba(0,0,0,.8);
     }
+    /* Une plaque posée sur une plaque ne flotte pas : à l'intérieur d'une
+       carte, les encarts redeviennent plats. Sans cette règle, les six
+       cases d'atouts du profil décollent chacune de leur côté. */
+    .screen .card .stat-box, .screen .card .card,
+    .screen .mc .card, .screen .home-hero .card {
+      background:var(--card2); -webkit-backdrop-filter:none; backdrop-filter:none;
+      border:1px solid var(--border); box-shadow:none; transition:none;
+    }
     /* Sur les appareils qui ne savent pas flouter, on épaissit le fond :
        une carte translucide non floutée devient illisible sur une photo. */
     @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
-      #screen-home .mc, #screen-home .autour .au-stat, #screen-home .prog-card,
-      #screen-home .ap-carte, #screen-home .activity-list, #screen-home .eq-carte,
-      #screen-home .home-hero, #screen-home .cold-hero, #screen-home .jours {
+      .screen .mc, .screen .card, .screen .stat-box, .screen .autour .au-stat,
+      .screen .prog-card, .screen .ap-carte, .screen .activity-list,
+      .screen .eq-carte, .screen .home-hero, .screen .cold-hero,
+      .screen .jours, .screen .cls-hero, .screen .friends-search-box {
         background:linear-gradient(180deg, rgba(34,39,31,.96), rgba(20,24,18,.96)); }
     }
     @media (prefers-reduced-transparency:reduce) {
-      #screen-home::before { background:var(--bg); }
+      .screen::before { background:var(--bg); }
     }
     @media (prefers-reduced-motion:reduce) {
-      #screen-home .mc, #screen-home .ap-carte, #screen-home .eq-carte,
-      #screen-home .au-stat { transition:none; }
-      #screen-home .mc:active, #screen-home .ap-carte:active,
-      #screen-home .eq-carte:active, #screen-home .au-stat:active { transform:none; }
+      .screen .mc, .screen .ap-carte, .screen .eq-carte,
+      .screen .au-stat, .screen .card-hover { transition:none; }
+      .screen .mc:active, .screen .ap-carte:active, .screen .eq-carte:active,
+      .screen .au-stat:active, .screen .card-hover:active { transform:none; }
     }
 
     /* ===== BANDE DE JOURS =====
@@ -3828,6 +3863,7 @@ window.doLogout = doLogout;
 // l'app n'apparaît pas dans le menu.
 function menuHTML() {
   const km = rayonKm();
+  const admin = currentUser?.email === 'letxbrace@gmail.com';
   const notifEtat = (typeof Notification === 'undefined') ? 'absent' : Notification.permission;
   const notifSub = notifEtat === 'granted' ? 'Déjà autorisées sur cet appareil'
                  : notifEtat === 'denied'  ? 'Bloquées — à réautoriser dans le navigateur'
@@ -3836,12 +3872,20 @@ function menuHTML() {
   const peutInstaller = (typeof _canOfferInstall === 'function') && _canOfferInstall();
   const ic = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
     stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
-  const icBell   = ic('<path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/>');
-  const icDl     = ic('<path d="M12 4v10"/><path d="m8 11 4 4 4-4"/><path d="M5 19h14"/>');
-  const icShare  = ic('<circle cx="17.5" cy="5.5" r="2.6"/><circle cx="6.5" cy="12" r="2.6"/><circle cx="17.5" cy="18.5" r="2.6"/><path d="M8.9 10.7 15.1 6.8M8.9 13.3l6.2 3.9"/>');
-  const icUser   = ic('<circle cx="12" cy="9.2" r="3.4"/><path d="M5.4 19c.9-3 3.3-4.5 6.6-4.5S17.7 16 18.6 19"/>');
-  const icOut    = ic('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>');
-  const icPin    = ic('<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>');
+  const icBell  = ic('<path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/>');
+  const icDl    = ic('<path d="M12 4v10"/><path d="m8 11 4 4 4-4"/><path d="M5 19h14"/>');
+  const icLink  = ic('<path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1 1"/><path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1-1"/>');
+  const icImg   = ic('<rect x="3" y="3" width="18" height="18" rx="2.4"/><circle cx="8.6" cy="8.6" r="1.5"/><path d="M21 15l-5-5L5 21"/>');
+  const icUser  = ic('<circle cx="12" cy="9.2" r="3.4"/><path d="M5.4 19c.9-3 3.3-4.5 6.6-4.5S17.7 16 18.6 19"/>');
+  const icLock  = ic('<rect x="3.5" y="11" width="17" height="10.5" rx="2.2"/><path d="M7.5 11V7a4.5 4.5 0 0 1 9 0v4"/>');
+  const icOut   = ic('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>');
+  const icTrash = ic('<path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>');
+  const icPin   = ic('<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>');
+  const item = (cls, action, icone, titre, sous) =>
+    `<button class="mn-item${cls ? ' ' + cls : ''}" onclick="${action}">
+      <span class="mn-ic">${icone}</span>
+      <span class="mn-txt">${titre}${sous ? `<small>${sous}</small>` : ''}</span>
+    </button>`;
 
   return `
   <div class="mn-head">
@@ -3858,30 +3902,15 @@ function menuHTML() {
       remontent plus. Les tiens restent toujours visibles.</div>
   </div>
 
-  <button class="mn-item" onclick="menuNotifs()"${notifEtat === 'absent' ? ' disabled' : ''}>
-    <span class="mn-ic">${icBell}</span>
-    <span class="mn-txt">Notifications<small>${notifSub}</small></span>
-  </button>
-
-  ${peutInstaller ? `<button class="mn-item" onclick="menuInstall()">
-    <span class="mn-ic">${icDl}</span>
-    <span class="mn-txt">Installer l'app<small>Plein écran, hors-ligne, sur ton écran d'accueil</small></span>
-  </button>` : ''}
-
-  <button class="mn-item" onclick="menuPartager()">
-    <span class="mn-ic">${icShare}</span>
-    <span class="mn-txt">Inviter des joueurs<small>Partager le lien de Kolektif</small></span>
-  </button>
-
-  <button class="mn-item" onclick="menuAller('profil')">
-    <span class="mn-ic">${icUser}</span>
-    <span class="mn-txt">Ma carte joueur<small>Photo, poste, atouts, badges</small></span>
-  </button>
-
-  <button class="mn-item danger" onclick="closeMenu(); doLogout();">
-    <span class="mn-ic">${icOut}</span>
-    <span class="mn-txt">Se déconnecter</span>
-  </button>
+  ${item('', 'menuNotifs()', icBell, 'Notifications', notifSub)}
+  ${peutInstaller ? item('', 'menuInstall()', icDl, "Installer l'app", "Plein écran, hors-ligne, sur ton écran d'accueil") : ''}
+  ${item('', 'menuFaire("copyInviteLink")', icLink, 'Inviter des joueurs', 'Copier mon lien d\'invitation')}
+  ${item('', 'menuFaire("exportFutCard")', icImg, 'Partager ma carte', 'Une image prête à poster')}
+  ${item('', 'menuAller("profil")', icUser, 'Ma carte joueur', 'Photo, poste, atouts, badges')}
+  ${item('', 'menuFaire("openChangePassword")', icLock, 'Changer mon mot de passe')}
+  ${admin ? item('danger', 'menuFaire("cleanupAllMatchs")', icTrash, 'Nettoyer tous les matchs', 'Administration') : ''}
+  ${item('danger', 'closeMenu(); doLogout();', icOut, 'Se déconnecter')}
+  ${item('danger', 'menuFaire("openDeleteAccount")', icTrash, 'Supprimer mon compte')}
 
   <div class="mn-foot">KOLEKTIF · foot à 5</div>`;
 }
@@ -3913,16 +3942,24 @@ window.toggleMenu = function() {
   if (d && d.classList.contains('on')) closeMenu(); else openMenu();
 };
 function _menuEsc(e) { if (e.key === 'Escape') closeMenu(); }
-function menuOuvert() {
-  const d = document.getElementById('menu-drawer');
-  return !!(d && d.classList.contains('on'));
-}
 // Rafraîchit le menu sur place (le rayon coché, l'état des notifications)
 // sans le refermer sous le doigt.
 function rafraichirMenu() {
   const d = document.getElementById('menu-drawer');
   if (d && d.classList.contains('on')) d.innerHTML = menuHTML();
 }
+// Le tiroir referme avant d'ouvrir une boîte de dialogue : deux couches
+// modales empilées, et la croix du dessus ferme la mauvaise.
+window.menuFaire = function(nom) { closeMenu(); const f = window[nom]; if (typeof f === 'function') f(); };
+window.menuNotifs = async function() {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+    showToast('Notifications bloquées : réautorise-les dans les réglages du navigateur.', 'error');
+    return;
+  }
+  await enableNotifications();
+  rafraichirMenu();
+};
+window.menuInstall = function() { closeMenu(); triggerInstall(); };
 window.menuAller = function(ecran) { closeMenu(); navigateTo(ecran); };
 window.menuNotifs = async function() {
   if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
@@ -3933,19 +3970,6 @@ window.menuNotifs = async function() {
   rafraichirMenu();
 };
 window.menuInstall = function() { closeMenu(); triggerInstall(); };
-window.menuPartager = async function() {
-  const url = location.origin + location.pathname;
-  const data = { title: 'KOLEKTIF', text: 'On monte un five ? Rejoins-moi sur Kolektif.', url };
-  if (navigator.share) {
-    try { await navigator.share(data); return; } catch (_) { return; }
-  }
-  try {
-    await navigator.clipboard.writeText(url);
-    showToast('Lien copié.', 'success');
-  } catch (_) {
-    showToast(url, '');
-  }
-};
 
 // ===== CONNEXION GOOGLE =====
 async function doGoogleSignIn() {
@@ -7476,19 +7500,11 @@ function openEditProfile() {
 window.openEditProfile = openEditProfile;
 
 // Feuille Réglages : tout ce qui n'est pas l'identité (partage, compte, admin)
-window.openSettings = function() {
-  const isAdmin = currentUser?.email === 'letxbrace@gmail.com';
-  const canInstall = !_isStandalone();
-  openModal('Réglages', `
-    ${canInstall ? `<button class="profile-action-btn" onclick="closeModal();window.triggerInstall()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Installer l'application</button>` : ''}
-    <button class="profile-action-btn" onclick="window.exportFutCard()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Partager ma carte</button>
-    <button class="profile-action-btn" onclick="window.copyInviteLink()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1 1"/><path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1-1"/></svg>Copier mon lien d'invitation</button>
-    <button class="profile-action-btn" onclick="window.enableNotifications()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>Activer les notifications</button>
-    <button class="profile-action-btn" onclick="window.openChangePassword()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Changer mon mot de passe</button>
-    ${isAdmin ? `<button class="profile-action-btn" style="border-color:rgba(255,23,68,.35);color:var(--red)" onclick="window.cleanupAllMatchs()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Nettoyer tous les matchs</button>` : ''}
-    <button class="delete-account-btn" onclick="window.openDeleteAccount()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>Supprimer mon compte</button>
-  `);
-};
+// Un seul écran de réglages. Il y en avait deux — cette boîte de dialogue
+// et le tiroir du hamburger — avec des entrées différentes dans chacune :
+// deux réglages qui se contredisent valent moins qu'un seul complet.
+// L'engrenage du profil ouvre le tiroir, comme le hamburger.
+window.openSettings = function() { openMenu(); };
 
 window.saveProfile = async function() {
   if (!currentUser) return;

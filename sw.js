@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v79';
+const CACHE = 'cs5-v80';
 // `og-*.jpg` n'est volontairement PAS ici : ces bannières ne sont lues que
 // par les robots d'aperçu (WhatsApp, iMessage), jamais par l'app. Les
 // précharger coûtait 128 ko à chaque installation pour rien.
@@ -10,6 +10,7 @@ const PRECACHE = [
   './art-bolt.png','./art-goal.png','./art-player.png',
   './art-empty-histo.png','./art-empty-amis.png','./art-empty-vestiaire.png','./art-podium.png',
   './texture-turf.jpg','./art-hero-jouer.jpg',
+  './fond-matchs.jpg','./fond-equipes.jpg','./fond-classement.jpg','./fond-profil.jpg',
   './terrain-indoor.jpg','./terrain-urban.jpg','./terrain-plein-air.jpg',
   './fonts/anton-latin.woff2','./fonts/anton-latin-ext.woff2',
   './fonts/spacegrotesk-latin.woff2','./fonts/spacegrotesk-latin-ext.woff2',
