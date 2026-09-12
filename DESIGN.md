@@ -425,10 +425,29 @@ de la payer sur tous les écrans. Sur un appareil qui ne sait pas flouter,
 le fond des cartes s'épaissit à 94 % : une carte translucide non floutée
 posée sur une photo est illisible.
 
-**Le voile a été choisi par mesure, pas à l'œil.** Quatre intensités
-testées ; toutes passent une fois `--text-muted` corrigé, donc on garde
-la plus légère (34 % en haut) — celle qui montre le plus de pelouse.
-Salutation 7,48:1 · sous-titre 5,47:1.
+**Le voile a été choisi par mesure, pas à l'œil** — et remesuré quand la
+photo a changé. Avec un terrain **vide**, les quatre intensités testées
+passaient et on gardait la plus légère (34 %). Avec la photo de **joueurs**,
+bien plus lumineuse, cette même intensité tombe à **4,09:1** sur le
+sous-titre. Réglage retenu : 46 % en haut → 93 % en bas. Salutation
+7,49:1 · sous-titre 5,52:1.
+
+La leçon tient en une phrase : **un voile n'est pas réglé une fois pour
+toutes, il est réglé pour une image donnée.**
+
+**Le fond est PORTRAIT** (900 × 1600), pas un bandeau. Il couvre tout
+l'écran en `cover` ; une source paysage aurait été rognée jusqu'à ne
+montrer qu'une colonne centrale de 27 % de large — les joueurs seraient
+sortis du cadre. La photo est posée au tiers supérieur, avec un fondu de
+170 px en haut et 230 px en bas : sans eux, deux arêtes franches coupent
+l'écran en trois.
+
+**Retirer un filigrane de générateur.** Le losange ne se repère ni par sa
+clarté (la ligne blanche du terrain est plus claire) ni par sa position :
+il se repère par sa **désaturation** — `rgb(51,61,53)` au milieu d'un
+gazon franchement vert. Et la rustine doit avoir des **bords fondus** :
+une greffe à bord net laisse une couture rectangulaire plus visible que
+le filigrane qu'elle efface.
 
 ### Terrains — une photo par TYPE, jamais par terrain
 
