@@ -1341,6 +1341,19 @@
     .ce-emb svg { width:22px; height:22px; }
     .ce-emb b { font-size:13px; letter-spacing:.5px; }
     .ce-emb.on { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
+    .blason-club { background:linear-gradient(160deg,#161B21,#0E1216);
+      border:2px solid var(--bc); box-shadow:0 4px 14px rgba(0,0,0,.45); }
+    .blason-club b { color:var(--bc); font-family:Anton,sans-serif; letter-spacing:.5px; }
+    .ce-note { font-size:12px; color:var(--text-muted); margin-top:6px; line-height:1.45; }
+    .ce-clubs { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:10px; }
+    .ce-club { display:flex; align-items:center; gap:9px; min-height:44px; padding:9px 11px;
+      background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-sm);
+      color:var(--text-sec); font-family:inherit; font-size:13px; font-weight:600; cursor:pointer;
+      text-align:left;
+      transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease),
+                 background var(--t-base) var(--ease), transform var(--t-fast) var(--ease); }
+    .ce-club:active { transform:scale(.96); }
+    .ce-club.on { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
 
     /* ===== DÉFIS ===== */
     .df-carte { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-lg);
@@ -3049,6 +3062,19 @@ function couleurEquipe(e) {
 }
 function blasonHTML(e, taille) {
   const S = taille || 46;
+  // Club de cœur : l'écusson prend la place du symbole, mais la FORME reste
+  // la nôtre. Le blason Kolektif encadre le club au lieu d'être remplacé —
+  // sans quoi on perdrait la grammaire visuelle à chaque équipe.
+  const cl = e && e.club && CLUBS.find(c => c.id === e.club);
+  if (cl) {
+    const D = Math.round(S * 0.66);
+    return `<span class="blason blason-club" style="width:${S}px;height:${S}px;--bc:${couleurEquipe(e)};font-size:${Math.round(S * 0.3)}px">
+      <img src="https://crests.football-data.org/${cl.fdId}.png" width="${D}" height="${D}" alt="${escapeHtml(cl.name)}"
+        loading="lazy" style="object-fit:contain;display:block"
+        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <b style="display:none">${escapeHtml(cl.short)}</b>
+    </span>`;
+  }
   const emb = e && e.embleme && EMBLEMES[e.embleme];
   const dedans = emb
     ? `<svg viewBox="0 0 24 24" width="${Math.round(S * 0.54)}" height="${Math.round(S * 0.54)}" fill="#06231A" aria-hidden="true"><path d="${emb}"/></svg>`
@@ -4380,9 +4406,9 @@ window.quitterEquipe = async function(id) {
 };
 
 // ===== CRÉER UNE ÉQUIPE =====
-let _ceSport = SPORT_DEFAUT, _ceNiveau = 'intermediaire', _ceCouleur = COULEURS_EQUIPE[0], _ceEmbleme = '';
+let _ceSport = SPORT_DEFAUT, _ceNiveau = 'intermediaire', _ceCouleur = COULEURS_EQUIPE[0], _ceEmbleme = '', _ceClub = '';
 window.openCreerEquipe = function() {
-  _ceSport = SPORT_DEFAUT; _ceNiveau = 'intermediaire'; _ceCouleur = COULEURS_EQUIPE[0]; _ceEmbleme = '';
+  _ceSport = SPORT_DEFAUT; _ceNiveau = 'intermediaire'; _ceCouleur = COULEURS_EQUIPE[0]; _ceEmbleme = ''; _ceClub = '';
   const d = currentUserData || {};
   const body = `<div class="create-form">
     <div class="section-sub">${ICON.edit} Le nom de ton équipe</div>
@@ -4404,8 +4430,15 @@ window.openCreerEquipe = function() {
     <div class="section-sub" style="margin-top:18px">Emblème</div>
     <div class="ce-apercu" id="ce-apercu"></div>
     <div class="ce-emblemes" id="ce-emblemes">${EMBLEME_ORDRE.map(id => `
-      <button class="ce-emb${id === _ceEmbleme ? ' on' : ''}" data-id="${id}" onclick="ceSetEmbleme('${id}')" aria-label="${id || 'initiales'}">
+      <button class="ce-emb${(id === _ceEmbleme && !_ceClub) ? ' on' : ''}" data-id="${id}" onclick="ceSetEmbleme('${id}')" aria-label="${id || 'initiales'}">
         ${id ? `<svg viewBox="0 0 24 24" fill="currentColor"><path d="${EMBLEMES[id]}"/></svg>` : '<b>AB</b>'}
+      </button>`).join('')}</div>
+    <div class="section-sub" style="margin-top:18px">${ICON.ball} Club de cœur</div>
+    <div class="ce-note">Optionnel. L'écusson du club prend la place du symbole ;
+      la forme et la couleur du blason restent celles de ton équipe.</div>
+    <div class="ce-clubs" id="ce-clubs">${CLUBS.map(c => `
+      <button class="ce-club${c.id === _ceClub ? ' on' : ''}" data-id="${c.id}" onclick="ceSetClub('${c.id}')">
+        ${clubShield(c.id, 26)}<span>${escapeHtml(c.name)}</span>
       </button>`).join('')}</div>
     <button class="btn-primary" style="width:100%;margin-top:22px" onclick="creerEquipe()">${ICON.check} Créer l'équipe</button>
   </div>`;
@@ -4424,9 +4457,18 @@ window.ceSetCouleur = function(c) { _ceCouleur = c;
   document.querySelectorAll('#ce-couleurs .ce-coul').forEach((el, i) =>
     el.classList.toggle('on', COULEURS_EQUIPE[i] === c));
   ceApercu(); };
-window.ceSetEmbleme = function(id) { _ceEmbleme = id;
+window.ceSetEmbleme = function(id) { _ceEmbleme = id; _ceClub = '';
   document.querySelectorAll('#ce-emblemes .ce-emb').forEach(el =>
     el.classList.toggle('on', el.dataset.id === id));
+  document.querySelectorAll('#ce-clubs .ce-club').forEach(el => el.classList.remove('on'));
+  ceApercu(); };
+// Un club et un emblème occupent la même place : choisir l'un libère l'autre.
+window.ceSetClub = function(id) {
+  _ceClub = (_ceClub === id) ? '' : id;
+  document.querySelectorAll('#ce-clubs .ce-club').forEach(el =>
+    el.classList.toggle('on', el.dataset.id === _ceClub));
+  document.querySelectorAll('#ce-emblemes .ce-emb').forEach(el =>
+    el.classList.toggle('on', !_ceClub && el.dataset.id === _ceEmbleme));
   ceApercu(); };
 // L'aperçu se met à jour au moindre changement — nom, couleur, emblème.
 // Sans lui, on choisit à l'aveugle et on découvre son blason après coup.
@@ -4434,7 +4476,7 @@ function ceApercu() {
   const el = document.getElementById('ce-apercu');
   if (!el) return;
   const nom = (document.getElementById('ce-nom')?.value || '').trim() || 'Ton équipe';
-  el.innerHTML = blasonHTML({ nom, couleur: _ceCouleur, embleme: _ceEmbleme }, 60)
+  el.innerHTML = blasonHTML({ nom, couleur: _ceCouleur, embleme: _ceEmbleme, club: _ceClub }, 60)
     + `<span class="ce-ap-nom">${escapeHtml(nom)}</span>`;
 }
 
@@ -4448,6 +4490,7 @@ window.creerEquipe = async function() {
     const ref = await addDoc(collection(db, 'equipes'), {
       nom, sport: _ceSport, niveau: _ceNiveau, couleur: _ceCouleur,
       embleme: _ceEmbleme || null,
+      club: _ceClub || null,
       ville: ville || null,
       lat: d.lat ?? d.domicileLat ?? null,
       lon: d.lon ?? d.domicileLon ?? null,
