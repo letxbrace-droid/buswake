@@ -93,7 +93,10 @@
       /* Hiérarchie par opacité (logique Apple/HIG dark) : blanc neutre,
          pas de teinte décorative, s'adapte au fond, lisible (AA). */
       --text-sec: rgba(255,255,255,0.62);
-      --text-muted: rgba(255,255,255,0.45);
+      /* 0,45 donnait 4,38:1 sur une carte et ~3,9 sur le fond photo de
+         l'accueil — sous le seuil AA, et ce AVANT même le fond de terrain.
+         0,52 le remonte à 5,4 sur carte et 5,7 sur fond. */
+      --text-muted: rgba(255,255,255,0.52);
       /* Alias de l'accent — il a longtemps valu #00E676, un vert voisin mais
          DIFFÉRENT : deux verts à 6 % d'écart se lisent comme une erreur, pas
          comme une intention. Une seule couleur d'accent, comme annoncé plus bas. */
@@ -1512,6 +1515,63 @@
     .sp-vide { text-align:center; color:var(--text-muted); font-size:13px; padding:18px 8px; }
     .sp-reset { display:block; margin:10px auto 0; background:none; border:none; font-family:inherit;
       color:var(--orange); font-size:13px; font-weight:600; cursor:pointer; text-decoration:underline; }
+
+    /* Bandeau photo de la carte de match — le type du terrain, comme dans
+       le sélecteur. Il ne remplace aucune information : il donne un ancrage
+       visuel à une liste qui n'était que du texte empilé. */
+    .mc-photo { position:relative; height:88px; background-size:cover; background-position:center 55%;
+      border-bottom:1px solid rgba(255,255,255,.06); }
+    .mc-photo::after { content:''; position:absolute; inset:0;
+      background:linear-gradient(180deg, rgba(15,15,15,.10) 0%, rgba(15,15,15,.55) 62%, rgba(28,32,26,.92) 100%); }
+
+    /* ===== ACCUEIL SUR TERRAIN =====
+       Le fond est FIXE pendant que le contenu défile : c'est ce qui donne
+       l'impression que les sections flottent au-dessus du terrain plutôt
+       que d'être collées dessus. Un fond qui défile avec le contenu n'est
+       qu'une image de plus.
+       Deux voiles superposés, et aucun n'est décoratif : le vertical
+       protège le texte (sombre en haut où vit la salutation, très sombre en
+       bas où s'empilent les cartes), le radial ramène un peu de lumière au
+       centre pour qu'on voie encore la pelouse. */
+    #screen-home { position:relative; }
+    #screen-home::before {
+      content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+      background:
+        linear-gradient(180deg, rgba(15,15,15,.34) 0%, rgba(15,15,15,.50) 38%,
+                                rgba(15,15,15,.74) 72%, rgba(15,15,15,.90) 100%),
+        radial-gradient(120% 55% at 50% 28%, rgba(93,214,44,.10), transparent 60%),
+        url('art-hero-jouer.jpg') center 34%/cover no-repeat,
+        var(--bg);
+    }
+    #home-content { position:relative; z-index:1; }
+
+    /* Sections flottantes : translucides et floutées, pour que le terrain
+       respire ENTRE elles. Le flou est réservé à l'accueil — c'est la
+       couche la plus coûteuse du rendu, inutile de la payer partout. */
+    #screen-home .mc,
+    #screen-home .autour .au-stat,
+    #screen-home .prog-card,
+    #screen-home .ap-carte,
+    #screen-home .activity-list,
+    #screen-home .eq-carte {
+      background:rgba(28,32,26,.62);
+      -webkit-backdrop-filter:blur(16px) saturate(1.15);
+      backdrop-filter:blur(16px) saturate(1.15);
+      border-color:rgba(255,255,255,.10);
+      box-shadow:0 10px 34px rgba(0,0,0,.45);
+    }
+    #screen-home .home-hero { background:rgba(20,24,18,.58);
+      -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); }
+    /* Sur les appareils qui ne savent pas flouter, on épaissit le fond :
+       une carte translucide non floutée devient illisible sur une photo. */
+    @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+      #screen-home .mc, #screen-home .autour .au-stat, #screen-home .prog-card,
+      #screen-home .ap-carte, #screen-home .activity-list, #screen-home .eq-carte,
+      #screen-home .home-hero { background:rgba(24,28,22,.94); }
+    }
+    @media (prefers-reduced-transparency:reduce) {
+      #screen-home::before { background:var(--bg); }
+    }
 
     /* ===== VIGNETTE DE TERRAIN ===== */
     .cm-v-photo { width:54px; height:54px; flex-shrink:0; border-radius:var(--r-sm);
@@ -3320,6 +3380,15 @@ const TERRAINS = {
 function typeTerrain(v) {
   const t = (v && v.t) || '';
   return TERRAINS[t] || TERRAINS[''];
+}
+// Un match ne stocke qu'un NOM de lieu, pas son type. On le retrouve dans
+// le catalogue ; un terrain cherché librement via Nominatim n'y est pas et
+// retombe sur « plein air », ce qui est le cas le plus probable dehors.
+function typeTerrainMatch(m) {
+  const nom = (m && (m.lieuFinal
+    || ((m.creneauxProposes || []).find(c => c && c.lieu) || {}).lieu)) || '';
+  const v = VENUES_91.find(x => x.n === nom);
+  return typeTerrain(v);
 }
 
 const VENUES_91 = [
@@ -5269,6 +5338,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
     if (fills) fills.push({ id, uids: voterUids.length ? voterUids : inscrits });
     return `
       <div class="mc sondage" onclick="openMatchDetail('${id}')">
+        <div class="mc-photo" style="background-image:url('${typeTerrainMatch(m).img}')"></div>
         <div class="mc-top">
           <div>
             <div class="mc-eyebrow" style="color:var(--blue)"><span class="live-dot"></span> ${escapeHtml(sportDe(m).nom)} · On joue quand ?</div>
@@ -5292,6 +5362,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
     const _whenMs = _matchWhen(m).ms; // date + heure réelles (dateFinale ne stocke que la date)
     return `
       <div class="mc confirme" onclick="openMatchDetail('${id}')">
+        <div class="mc-photo" style="background-image:url('${typeTerrainMatch(m).img}')"></div>
         <div class="mc-top">
           <div>
             <div class="mc-eyebrow" style="color:var(--orange)">${escapeHtml(sportDe(m).nom)} · ${countdownLabel(_whenMs)}</div>

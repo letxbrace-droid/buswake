@@ -411,6 +411,25 @@ Après régénération, le tiers droit du foot à 5 passe de 17/255 à
 sent. C'est un plafond, pas un réglage — au-delà, la photo commence à
 concurrencer le noir mat qui fait l'identité.
 
+### L'accueil sur terrain
+
+Le fond de l'accueil est **fixe pendant que le contenu défile**. C'est ce
+seul détail qui donne l'impression que les sections *flottent au-dessus*
+du terrain ; un fond qui défile avec le contenu n'est qu'une image de
+plus.
+
+Les blocs sont translucides et floutés — `rgba(28,32,26,.62)` +
+`blur(16px)` — pour que le terrain respire **entre** eux. Le flou est
+réservé à l'accueil : c'est la couche la plus coûteuse du rendu, inutile
+de la payer sur tous les écrans. Sur un appareil qui ne sait pas flouter,
+le fond des cartes s'épaissit à 94 % : une carte translucide non floutée
+posée sur une photo est illisible.
+
+**Le voile a été choisi par mesure, pas à l'œil.** Quatre intensités
+testées ; toutes passent une fois `--text-muted` corrigé, donc on garde
+la plus légère (34 % en haut) — celle qui montre le plus de pelouse.
+Salutation 7,48:1 · sous-titre 5,47:1.
+
 ### Terrains — une photo par TYPE, jamais par terrain
 
 | Fichier | Type | Libellé affiché |
