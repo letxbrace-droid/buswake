@@ -57,11 +57,26 @@
       /* NOM HÉRITÉ : --orange EST le vert de la marque (#00D88A), pas un orange.
          Renommer les 132 usages toucherait aussi la classe .btn-orange générée
          dans des chaînes JS — risque réel pour un gain de lisibilité seul. */
-      --orange: #00D88A;
-      --orange2: #00FF9D;
-      --orange-dark: #00B876;
-      --orange-glow: rgba(0,216,138,.4);
-      --orange-glow-soft: rgba(0,216,138,.12);
+      --orange: #00F58F;
+      --orange2: #5BFFC0;
+      --orange-dark: #00C97A;
+      --orange-glow: rgba(0,245,143,.40);
+      --orange-glow-soft: rgba(0,245,143,.12);
+
+      /* ===== SECOND ACCENT : LE FEU =====
+         ATTENTION AU PIÈGE : `--orange` ci-dessus EST LE VERT. `--feu` est
+         le vrai orange. Le nom hérité ne peut pas être renommé sans casser
+         la classe `.btn-orange` construite dans des chaînes JS.
+         Le feu ne fait pas double emploi avec le vert, il le PROTÈGE : tant
+         qu'il n'y avait qu'un accent, le vert devait à la fois dire
+         « agis ici » et « regarde ça ». Il ne dit plus que la première.
+           vert  → action, réussite, progression
+           feu   → chaleur, rareté, ce qui manque, ce qui brûle
+         Contrastes sur noir : vert 14,46 · feu 8,95. */
+      --feu: #FF8A3D;
+      --feu-dark: #E2661A;
+      --feu-glow: rgba(255,138,61,.34);
+      --feu-soft: rgba(255,138,61,.12);
       --chasuble: #FF6A00;
       --bg: #000000;
       --surface: #0B0D12;
@@ -1052,12 +1067,27 @@
     }
     .podium-block-3d::before { content:""; position:absolute; inset:0; border-radius:inherit; background:linear-gradient(180deg,rgba(255,255,255,.2),rgba(255,255,255,0) 34%); pointer-events:none; }
     .podium-block-3d .podium-num { font-family:'Anton',sans-serif; position:relative; text-shadow:0 1px 0 rgba(255,255,255,.25), 0 -1px 1px rgba(0,0,0,.28); }
-    .block-first { height:100px; background:linear-gradient(180deg,#ffdb5a,#ef9f19); }
-    .block-first .podium-num { font-size:33px; color:#171d25; }
-    .block-second { height:76px; background:linear-gradient(180deg,#3a4351,#272f3b); }
-    .block-second .podium-num { font-size:28px; color:#c2cdda; }
-    .block-third { height:60px; background:linear-gradient(180deg,#5a3318,#33200f); }
-    .block-third .podium-num { font-size:25px; color:#d89a62; }
+    /* ===== PODIUM ARCHITECTURAL =====
+       Les trois blocs ne se distinguaient que par leur hauteur et un aplat.
+       Ils gagnent une arête lumineuse — une ligne de lumière posée sur le
+       dessus de la marche, comme un néon sur du béton. L'écart de hauteur
+       passe de 100/76/60 à 108/74/56 : la première marche doit se voir
+       d'un coup d'œil, pas se déduire d'une comparaison. */
+    .podium-block-3d::after {
+      content:''; position:absolute; left:8%; right:8%; top:0; height:2.5px;
+      border-radius:2px; background:var(--arete, transparent);
+      box-shadow:0 0 14px var(--arete, transparent); }
+    .block-first { height:108px; background:linear-gradient(180deg,#ffdb5a,#ef9f19);
+      --arete:#FFF3C4; box-shadow:0 10px 30px rgba(239,159,25,.28); }
+    .block-first .podium-num { font-size:35px; color:#171d25; }
+    .block-second { height:74px; background:linear-gradient(180deg,#3a4351,#272f3b);
+      --arete:rgba(220,232,245,.85); }
+    .block-second .podium-num { font-size:27px; color:#c2cdda; }
+    /* La troisième marche passe au feu : le brun était indistinct du fond.
+       C'est aussi le second accent qui entre dans le classement. */
+    .block-third { height:56px; background:linear-gradient(180deg,var(--feu-dark),#3a1c08);
+      --arete:var(--feu); }
+    .block-third .podium-num { font-size:24px; color:#FFCB9B; }
     .podium-floor { height:50px; margin:-6px 22px 0; background:linear-gradient(to bottom,rgba(255,255,255,.06),rgba(255,255,255,0) 70%); filter:blur(12px); opacity:.5; border-radius:60%/100%; transform:scaleY(-.7); pointer-events:none; }
 
     /* Recherche */
@@ -1304,7 +1334,7 @@
     .eq-meta .ic { width:13px; height:13px; flex-shrink:0; }
     .eq-etat { font-family:Anton,sans-serif; font-size:17px; letter-spacing:.5px; flex-shrink:0; }
     .eq-etat-prete { color:var(--orange); }
-    .eq-etat-incomplete { color:#FF8A3D; }
+    .eq-etat-incomplete { color:var(--feu); }
     .eq-etat-recherche { color:var(--text-sec); }
     .eq-bas { display:flex; align-items:center; gap:10px; margin-top:12px; }
     .eq-bilan { font-size:12px; color:var(--text-muted); white-space:nowrap;
@@ -1412,7 +1442,7 @@
     .ap-nom { font-size:16px; font-weight:700; color:var(--text); }
     .ap-meta { display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-muted); margin-top:3px; }
     .ap-meta .ic { width:13px; height:13px; flex-shrink:0; }
-    .ap-manque { font-family:Anton,sans-serif; font-size:20px; color:#FF8A3D;
+    .ap-manque { font-family:Anton,sans-serif; font-size:20px; color:var(--feu);
       display:inline-flex; align-items:center; gap:3px; flex-shrink:0; }
     .ap-msg { font-size:13px; color:var(--text-sec); margin-top:10px; line-height:1.45; }
     .ap-cta { width:100%; margin-top:13px; }
@@ -1420,7 +1450,7 @@
       font-family:inherit; font-size:12.5px; font-weight:600; color:var(--orange);
       cursor:pointer; padding:6px 0; }
     .eq-appel { display:flex; align-items:flex-start; gap:7px; margin-top:10px;
-      font-size:12.5px; line-height:1.4; color:#FF8A3D; }
+      font-size:12.5px; line-height:1.4; color:var(--feu); }
     .eq-appel .ic-flam { flex-shrink:0; margin-top:2px; }
     .eq-appel span { color:var(--text-sec); }
     .ap-rappel { display:flex; align-items:center; gap:12px; }
@@ -1505,8 +1535,8 @@
       background:rgba(255,255,255,.05); border:1px solid var(--border);
       border-radius:var(--r-pill); padding:5px 10px; }
     .yh-chip b { color:var(--text); }
-    .ic-flam { width:12px; height:12px; vertical-align:-2px; color:#FF8A3D; }
-    .li-serie { color:#FF8A3D; font-weight:700; }
+    .ic-flam { width:12px; height:12px; vertical-align:-2px; color:var(--feu); }
+    .li-serie { color:var(--feu); font-weight:700; }
 
     /* ===== KOLEKTIF MOMENTS ===== */
     .kmoment { position:fixed; inset:0; z-index:900; display:flex; align-items:center; justify-content:center;
@@ -2049,12 +2079,51 @@
     .ob-next-btn:active{transform:scale(.97);}
 
     /* ===== FUT CARD SHIMMER ===== */
-    .fut-card-v3.shimmer-active::after{
-      content:'';position:absolute;inset:0;z-index:10;border-radius:inherit;pointer-events:none;
-      background:linear-gradient(105deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
-      background-size:200% 100%;animation:cardShimmer 2s ease-in-out 0.3s 3;
+    /* ===== CARTE COLLECTOR =====
+       Trois couches, et aucune n'est une image : une grille filaire qui
+       donne la matière, un voile iridescent qui donne la rareté, un balayage
+       qui donne la vie. Tout est calculé — donc recoloré par le rang de la
+       carte, et pesant zéro octet de plus. */
+
+    /* 1. La trame filaire. Elle ne couvre QUE le haut de la carte : plus bas
+       se trouvent le nom et les atouts, et une grille sous du texte se lit
+       comme une rayure d'écran cassé. */
+    .fut-card-v3::before{
+      content:'';position:absolute;inset:0;z-index:2;pointer-events:none;border-radius:inherit;
+      background-image:
+        linear-gradient(var(--tier-edge) 1px, transparent 1px),
+        linear-gradient(90deg, var(--tier-edge) 1px, transparent 1px);
+      background-size:22px 22px;
+      opacity:.10;
+      -webkit-mask-image:linear-gradient(180deg,#000 0%,#000 34%,transparent 62%);
+      mask-image:linear-gradient(180deg,#000 0%,#000 34%,transparent 62%);
     }
-    @keyframes cardShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+    /* 2. Le voile iridescent : un dégradé conique, pas un arc-en-ciel plaqué.
+       Il prend la couleur du rang, donc une carte or n'irise pas comme une
+       bronze. */
+    .fut-card-v3 .fc3-holo{
+      position:absolute;inset:0;z-index:3;pointer-events:none;border-radius:inherit;
+      background:conic-gradient(from 210deg at 30% 12%,
+        transparent 0deg, var(--tier-edge) 42deg, transparent 96deg,
+        transparent 210deg, var(--tier-num) 250deg, transparent 300deg);
+      opacity:.14; mix-blend-mode:screen;
+    }
+    /* 3. Le liseré de rang, à l'intérieur : il encadre sans agrandir la carte. */
+    .fut-card-v3::after{
+      content:'';position:absolute;inset:0;z-index:11;pointer-events:none;border-radius:inherit;
+      box-shadow:inset 0 0 0 1.5px var(--tier-edge), inset 0 0 26px -8px var(--tier-edge);
+    }
+    /* Le balayage devient une couche à part, pour cohabiter avec le liseré. */
+    .fut-card-v3 .fc3-sweep{
+      position:absolute;inset:0;z-index:10;border-radius:inherit;pointer-events:none;
+      background:linear-gradient(105deg,transparent 34%,rgba(255,255,255,.30) 50%,transparent 66%);
+      background-size:220% 100%;
+    }
+    .fut-card-v3.shimmer-active .fc3-sweep{ animation:cardShimmer 2.2s ease-in-out .3s 3; }
+    @keyframes cardShimmer{0%{background-position:220% 0}100%{background-position:-220% 0}}
+    @media (prefers-reduced-motion: reduce){
+      .fut-card-v3.shimmer-active .fc3-sweep{ animation:none; }
+    }
 
     /* ===== VOTE BARS match cards ===== */
     .mlc-vote-bars{padding:2px 16px 10px;}
@@ -3052,7 +3121,7 @@ const MONO_SPORT = SPORTS_ACTIFS.length <= 1;
 // foot à 5 → 5, basket 3×3 → 3, padel → 2. C'est ce qui permet au modèle
 // de rester multi-sport alors que le brief parle de foot à 5.
 const NIVEAUX = { debutant: 'Débutant', intermediaire: 'Intermédiaire', confirme: 'Confirmé' };
-const COULEURS_EQUIPE = ['#00D88A', '#00B0FF', '#FF8A3D', '#B36BFF', '#FFD24A', '#FF5A6E'];
+const COULEURS_EQUIPE = ['#00D88A', '#00B0FF', 'var(--feu)', '#B36BFF', '#FFD24A', '#FF5A6E'];
 // Emblèmes d'équipe. Quatorze tracés + les initiales, six couleurs :
 // quatre-vingt-dix combinaisons, et chacune est une identité distincte.
 //
@@ -3585,6 +3654,8 @@ window.viewPlayerCard = async function(uid) {
       <div class="fut-card-v3 ${tier} shimmer-active fut-tilt">
         <div class="fc3-photo-zone">${photoHtml}</div>
         <div class="fc3-scrim"></div>
+      <div class="fc3-holo"></div>
+      <div class="fc3-sweep"></div>
         <div class="fc3-top">
           <div class="fc3-meta">
             <div class="fc3-overall">${ovr}</div>
@@ -6701,6 +6772,8 @@ async function renderProfil() {
     <div class="fut-card-v3 ${tierCls} shimmer-active fut-tilt" id="profile-fut-card">
       <div class="fc3-photo-zone">${photoHtml}</div>
       <div class="fc3-scrim"></div>
+      <div class="fc3-holo"></div>
+      <div class="fc3-sweep"></div>
       <div class="fc3-top">
         <div class="fc3-meta">
           <div class="fc3-overall">${noteGlobal}</div>

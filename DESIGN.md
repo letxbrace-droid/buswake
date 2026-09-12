@@ -208,6 +208,33 @@ D'où deux règles opposables :
 2. **Le halo est réservé à ce qu'on touche.** Il a été retiré des nombres
    et des icônes de section : une information ne rayonne pas.
 
+**Deux accents, pas un.** Tant qu'il n'y en avait qu'un, le vert devait à
+la fois dire *« agis ici »* et *« regarde ça »* — et ne disait plus ni
+l'un ni l'autre. Le feu prend la seconde charge.
+
+| | Rôle |
+|---|---|
+| **vert** `--orange` `#00F58F` | action, réussite, progression |
+| **feu** `--feu` `#FF8A3D` | chaleur, rareté, ce qui manque, ce qui brûle |
+
+⚠️ **Le piège de nommage :** `--orange` **est le vert**. Nom hérité,
+non renommable sans casser `.btn-orange` construit dans des chaînes JS.
+Le vrai orange s'appelle `--feu`.
+
+Le vert est passé de `#00D88A` à `#00F58F` : contraste sur noir de
+**11,19 à 14,46**. Plus éclatant *et* plus lisible — ce n'est pas un
+arbitrage, les deux vont dans le même sens sur fond noir.
+
+### La carte collector
+
+Trois couches, **et aucune n'est une image** : une trame filaire qui donne
+la matière, un voile iridescent en dégradé conique qui donne la rareté, un
+balayage qui donne la vie. Tout est calculé, donc **recoloré par le rang**
+— une carte or n'irise pas comme une bronze — et pesant zéro octet.
+
+La trame ne couvre que le tiers haut : sous du texte, une grille se lit
+comme une rayure d'écran cassé.
+
 | Token | Usage |
 |---|---|
 | `--green` `#00D88A` | L'accent unique — actions, succès, marque |
