@@ -61,17 +61,38 @@ ce qui donne l'impression d'un objet moulé d'une pièce.
 La règle émotionnelle : **le doigt en `fast`, l'interface en `base`, la
 récompense en `slow` + `spring`.**
 
+### Le Kolektif Pulse
+
+**Le groupe qui se constitue, joueur par joueur.** Une place prise = un
+point plein ; deux places prises côte à côte = un segment qui s'allume
+entre elles. `kolektifPulse(n, total)`.
+
+C'est la même idée que la marque — un groupe incomplet, et ce qui vient
+le refermer — mais **dépliée**. Le RING montre *l'état*, le PULSE montre
+*la constitution*.
+
+Il a remplacé la barre de remplissage partout où elle existait, pour une
+raison de récit : une barre à 70 % dit « 70 % » ; sept points posés
+disent « sept personnes sont là, il en manque trois ». C'est la même
+donnée et ce n'est pas la même phrase.
+
+**Règle de fabrication : la taille des points est fixe, c'est la longueur
+du ruban qui varie.** Un padel à 4 donne une chaîne courte (64 px), un
+foot à 7 une longue (224 px). L'inverse — ruban fixe, points variables —
+donnait des pastilles énormes à 4 joueurs et des miettes à 14.
+
 ### Le mouvement comme signature
 
 C'est la seule part de l'identité qu'un concurrent ne peut pas copier
 depuis une capture d'écran — et le produit a un geste évident à mettre
 en scène : **un groupe qui se complète**.
 
-- **La jauge monte toujours depuis zéro**, au ressort (`kFill`). On le
-  ressent à chaque ouverture, sur chaque match. C'est LE geste de la
-  marque, en mouvement.
+- **Les points se posent un par un**, de gauche à droite, au ressort
+  (`kPulseIn`, 38 ms d'écart). C'est LE geste de la marque : on ne voit
+  pas une barre grandir, on voit une équipe se réunir. Le délai est porté
+  par `--i` dans le markup — une règle CSS au lieu de quarante.
 - **Le compteur arrive juste après** (`kPop`, 180 ms de retard) : le
-  chiffre confirme ce que la barre vient de raconter.
+  chiffre confirme ce que la chaîne vient de raconter.
 - **Les cartes entrent en cascade** (`kRise`, 55 ms d'écart) : la liste
   aussi se remplit.
 
@@ -97,10 +118,10 @@ remplit, un rang qui approche. C'est ce qui fait une grammaire visuelle
 plutôt qu'un logo isolé.
 
 **Où l'utiliser, et où ne pas l'utiliser.** Le ring va aux endroits qu'on
-*regarde* : héros de l'accueil, détail d'un match, progression. Les
-listes gardent la `fillbar` — quand on balaye, « 8/10 » à côté d'une
-barre se lit sans réfléchir, là où le ring demande une fraction de
-seconde de plus. Identité aux moments d'arrêt, efficacité au balayage.
+*regarde* : héros de l'accueil, progression. Le pulse va partout où le
+groupe est en train de se faire : cartes de match, héros de détail. Ring
+pour l'état, pulse pour la constitution — les deux cohabitent sur un même
+écran sans se répéter.
 
 Détail de fabrication : à deux chiffres le nombre rétrécit
 automatiquement, sinon le « 10 » vient toucher le point.

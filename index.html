@@ -829,7 +829,7 @@
     .md-big { font-family:Anton,sans-serif; font-size:26px; line-height:1.05; color:#fff; margin-top:8px; letter-spacing:.3px; }
     .md-meta { display:flex; align-items:center; gap:6px; font-size:13px; color:var(--text-sec); margin-top:6px; }
     .md-meta .ic { width:14px; height:14px; flex-shrink:0; }
-    .md-hero .fillbar { margin-top:12px; }
+    .md-hero .kpulse-row { margin-top:12px; }
     .md-cta { width:100%; margin-top:14px; }
     .md-sec { font-size:11px; letter-spacing:1.3px; font-weight:700; text-transform:uppercase; color:var(--text-muted); margin:18px 2px 10px; }
     .md-admin { margin-top:20px; background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md); padding:14px; }
@@ -1238,11 +1238,18 @@
     .live-dot { width:6px; height:6px; border-radius:50%; background:currentColor; animation:liveDot 1.8s infinite; }
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
-    .fillbar { display:flex; align-items:center; gap:9px; margin-top:8px; }
-    .fillbar .track { flex:1; height:7px; border-radius:var(--r-pill); background:rgba(255,255,255,.07); overflow:hidden; }
-    .fillbar .fill { display:block; height:100%; border-radius:var(--r-pill); background:linear-gradient(90deg,var(--orange-dark),var(--orange2)); box-shadow:0 0 8px var(--orange-glow); transition:width .5s var(--ease); }
-    .fillbar .cnt { font-size:12px; font-weight:700; color:var(--text-sec); font-variant-numeric:tabular-nums; }
-    .fillbar .cnt b { color:var(--text); }
+    /* ===== KOLEKTIF PULSE ===== */
+    .kpulse { display:block; max-width:100%; overflow:visible; }
+    .kp-seg { stroke:rgba(255,255,255,.12); stroke-width:1.2; stroke-linecap:round;
+      transition:stroke var(--t-base) var(--ease), stroke-width var(--t-base) var(--ease); }
+    .kp-seg.on { stroke:var(--orange); stroke-width:1.7; }
+    .kp-dot { fill:rgba(255,255,255,.15); transition:fill var(--t-base) var(--ease), r var(--t-base) var(--ease); }
+    .kp-dot.on { fill:var(--orange); }
+    .kpulse-row { display:flex; align-items:center; gap:10px; margin-top:9px; }
+    .kpulse-cnt { font-size:12px; font-weight:700; color:var(--text-sec);
+      font-variant-numeric:tabular-nums; white-space:nowrap; }
+    .kpulse-cnt b { color:var(--text); }
+
 
     .home-hi { font-size:19px; color:var(--text-sec); margin:2px 2px 14px; letter-spacing:.2px; }
     .home-hi b { color:var(--text); font-weight:700; }
@@ -1268,10 +1275,17 @@
        On met ce geste en scène plutôt que de le laisser apparaître fini.
        Tout est en CSS pur — aucun état à suivre, rien à synchroniser. */
 
-    /* La jauge MONTE toujours depuis zéro, au ressort. C'est le geste
-       signature : on le ressent à chaque ouverture, sur chaque match. */
-    .anim-in .fillbar .fill { animation: kFill var(--t-slow) var(--ease-spring) both; }
-    @keyframes kFill { from { width: 0; } }
+    /* LE geste signature : le groupe se CONSTITUE, point par point, de
+       gauche à droite. Une barre qui grandit dit « 70 % » ; une chaîne qui
+       se pose dit « sept personnes sont là ». C'est la même donnée et ce
+       n'est pas le même récit. Le délai est porté par --i, posé dans le
+       markup : une règle CSS au lieu de quarante. */
+    .anim-in .kp-dot.on, .anim-in .kp-seg.on {
+      animation: kPulseIn 300ms var(--ease-spring) both;
+      animation-delay: calc(var(--i, 0) * 38ms);
+      transform-origin: center; transform-box: fill-box;
+    }
+    @keyframes kPulseIn { from { opacity:0; transform:scale(.25); } }
 
     /* L'arc se remplit comme la barre : depuis zéro, au ressort. */
     .anim-in .kring-fill { animation: kArc var(--t-slow) var(--ease-spring) both; }
@@ -1281,7 +1295,7 @@
     @keyframes kDot { from { opacity:0; transform:scale(.2); transform-origin:center; transform-box:fill-box; } }
 
     /* Le compteur arrive juste après, d'un petit à-coup. */
-    .anim-in .fillbar .cnt { animation: kPop 420ms var(--ease-spring) 180ms both; }
+    .anim-in .kpulse-cnt { animation: kPop 420ms var(--ease-spring) 180ms both; }
     @keyframes kPop { from { opacity:0; transform:scale(.72); } }
 
     /* Les cartes entrent en cascade — la liste se remplit, elle aussi. */
@@ -1293,7 +1307,7 @@
 
     /* Rien de tout cela ne doit s'imposer à qui a demandé moins d'animation. */
     @media (prefers-reduced-motion: reduce) {
-      .anim-in .fillbar .fill, .anim-in .fillbar .cnt, .anim-in .mc,
+      .anim-in .kp-dot, .anim-in .kp-seg, .anim-in .kpulse-cnt, .anim-in .mc,
       .anim-in .kring-fill, .anim-in .kring-dot { animation:none !important; }
     }
     .vb { margin-top:8px; display:flex; flex-direction:column; gap:5px; }
@@ -3506,6 +3520,42 @@ function matchDistanceKm(m) {
   return haversine(home.lat, home.lon, c.lat, c.lon);
 }
 
+// ===== KOLEKTIF PULSE =====
+// Le groupe qui se constitue, joueur par joueur. Une place = un point ;
+// deux places prises côte à côte = un segment qui s'allume entre elles.
+// C'est la même idée que la marque (un groupe incomplet, et ce qui vient
+// le refermer), mais dépliée : le RING montre l'état, le PULSE montre la
+// constitution.
+//
+// La taille des points est FIXE et c'est la longueur du ruban qui varie
+// avec l'effectif — un padel à 4 donne une chaîne courte, un foot à 7 une
+// longue. L'inverse (ruban fixe, points variables) donnait des pastilles
+// énormes à 4 joueurs et des miettes à 14.
+//
+// Quand c'est complet, on ne passe PAS au vert clignotant : on passe au
+// RING. Chaîne tant que ça se remplit, anneau quand c'est fermé — deux
+// états d'un même signe.
+function kolektifPulse(n, total, opts) {
+  const o = opts || {};
+  const N = Math.max(1, Math.min(40, total | 0));
+  const k = Math.max(0, Math.min(N, n | 0));
+  const U = 10;                       // unité de grille dans le viewBox
+  const H = o.h || 16;                // hauteur rendue, en pixels CSS
+  let seg = '', dots = '';
+  for (let i = 0; i < N - 1; i++) {
+    // un segment ne s'allume que si ses DEUX extrémités sont prises
+    const on = (i + 1) < k;
+    seg += `<line x1="${i * U + 5}" y1="5" x2="${i * U + 15}" y2="5" class="kp-seg${on ? ' on' : ''}" style="--i:${i}"/>`;
+  }
+  for (let i = 0; i < N; i++) {
+    const on = i < k;
+    dots += `<circle cx="${i * U + 5}" cy="5" r="${on ? 3.1 : 2.1}" class="kp-dot${on ? ' on' : ''}" style="--i:${i}"/>`;
+  }
+  const W = N * U;
+  return `<svg class="kpulse" viewBox="0 0 ${W} 10" height="${H}" width="${Math.round(W * H / U)}"
+    role="img" aria-label="${k} sur ${N} joueurs" preserveAspectRatio="xMidYMid meet">${seg}${dots}</svg>`;
+}
+
 // ===== KOLEKTIF RING =====
 // Le logo devient l'indicateur de progression : arc ouvert à 116°, incliné
 // à -40°, et le point qui vient refermer le cercle quand c'est complet.
@@ -3726,7 +3776,6 @@ function homeHeroHTML(id, m, statut, fills) {
   const isInscrit = inscrits.includes(currentUser?.uid);
 
   if (statut === 'confirmé') {
-    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     const places = Math.max(0, maxJoueurs(m) - n);
     if (fills) fills.push({ id, uids: inscrits });
     const cta = isInscrit
@@ -3989,7 +4038,6 @@ function matchCardHTML(id, m, statut, fills, motms) {
   }
 
   if (statut === 'confirmé') {
-    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     const places = Math.max(0, maxJoueurs(m) - n);
     const placesTxt = places > 0 ? `<b>${places}</b> place${places > 1 ? 's' : ''} restante${places > 1 ? 's' : ''}` : 'Complet';
     if (fills) fills.push({ id, uids: inscrits });
@@ -4005,7 +4053,7 @@ function matchCardHTML(id, m, statut, fills, motms) {
         </div>
         <div class="mc-body">
           ${mcLieuHtml(m)}
-          <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
+          <div class="kpulse-row">${kolektifPulse(n, maxJoueurs(m))}<span class="kpulse-cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
         </div>
         <div class="mc-foot">
           <div class="av-stack" id="mcav-${id}"></div>
@@ -4426,13 +4474,12 @@ async function renderMatchDetail(matchId, m) {
   if (m.statut === 'sondage') {
     const n = inscrits.length;
     const nbC = (m.creneauxProposes || []).length;
-    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     // Héros : le contexte + L'action, avant tout le reste.
     html += `<div class="md-hero ph" style="--ph:url('${sportPhoto(m)}')">
       <div class="md-eyebrow">${ICON.poll} Sondage en cours · ${n}/${maxJoueurs(m)} inscrits</div>
       <div class="md-big">On cherche le créneau.</div>
       <div class="md-meta">${ICON.calendar} ${nbC} créneau${nbC > 1 ? 'x' : ''} proposé${nbC > 1 ? 's' : ''} — vote en dessous</div>
-      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
+      <div class="kpulse-row">${kolektifPulse(n, maxJoueurs(m))}<span class="kpulse-cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
     html += mdQuoteHtml(m, inscritsPseudos);
@@ -4476,13 +4523,12 @@ async function renderMatchDetail(matchId, m) {
   // ---- Match confirmé ----
   else if (m.statut === 'confirmé') {
     const n = inscrits.length;
-    const pct = Math.min(100, Math.round((n / maxJoueurs(m)) * 100));
     const w = _matchWhen(m);
     html += `<div class="md-hero ph" style="--ph:url('${sportPhoto(m)}')">
       <div class="md-eyebrow">${ICON.ball} ${countdownLabel(w.ms)}</div>
       <div class="md-big">${dateDayLabel(w.ms)}${w.heure ? ' · ' + w.heure.replace(':', 'h') : ''}</div>
       <div class="md-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
-      <div class="fillbar"><span class="track"><span class="fill" style="width:${pct}%"></span></span><span class="cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
+      <div class="kpulse-row">${kolektifPulse(n, maxJoueurs(m))}<span class="kpulse-cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
     html += mdQuoteHtml(m, inscritsPseudos);

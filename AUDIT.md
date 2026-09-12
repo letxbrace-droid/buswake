@@ -166,7 +166,7 @@ fonctions, avec exactement ces rôles :
 
 | Brief | Code existant |
 |---|---|
-| `ProgressRing` | `kolektifRing()` |
+| `ProgressRing` | `kolektifRing()` · `kolektifPulse()` |
 | `MatchCard` | `matchCardHTML()`, `mcLieuHtml()` |
 | `PlayerCard` | `.fut-card-v3` |
 | `Avatar` | `renderStackAvatars()` |
