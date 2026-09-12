@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v78';
+const CACHE = 'cs5-v79';
 // `og-*.jpg` n'est volontairement PAS ici : ces bannières ne sont lues que
 // par les robots d'aperçu (WhatsApp, iMessage), jamais par l'app. Les
 // précharger coûtait 128 ko à chaque installation pour rien.

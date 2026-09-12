@@ -363,6 +363,80 @@
     }
     .btn-icon:hover { border-color:var(--red); color:var(--red); }
 
+    /* ===== HAMBURGER + TIROIR DE RÉGLAGES =====
+       Le bouton ne se contente pas d'ouvrir : il dit où l'on en est. Les
+       trois barres deviennent une croix, donc la même cible sert à fermer —
+       pas de second bouton à chercher une fois le tiroir ouvert. */
+    .burger {
+      width:44px; height:44px; flex-shrink:0; cursor:pointer;
+      border:1px solid var(--border); border-radius:var(--r-sm);
+      background:linear-gradient(180deg, var(--card2), var(--card));
+      display:flex; align-items:center; justify-content:center;
+      box-shadow:0 1px 0 rgba(255,255,255,.07) inset, 0 2px 6px rgba(0,0,0,.45);
+      transition:border-color .18s, box-shadow .18s, transform .12s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .burger:active { transform:translateY(1px); box-shadow:0 1px 3px rgba(0,0,0,.5); }
+    .burger-box { position:relative; width:19px; height:13px; display:block; }
+    .burger-box i {
+      position:absolute; left:0; height:2px; border-radius:2px;
+      background:var(--orange); display:block;
+      transition:transform .26s cubic-bezier(.4,0,.2,1), opacity .16s, width .26s;
+    }
+    .burger-box i:nth-child(1) { top:0;    width:19px; }
+    .burger-box i:nth-child(2) { top:5.5px; width:13px; }
+    .burger-box i:nth-child(3) { top:11px; width:19px; }
+    .burger:hover .burger-box i:nth-child(2) { width:19px; }
+    .burger.on { border-color:var(--orange); box-shadow:0 0 0 1px var(--orange-glow-soft), 0 0 14px var(--orange-glow-soft); }
+    .burger.on .burger-box i:nth-child(1) { transform:translateY(5.5px) rotate(45deg); }
+    .burger.on .burger-box i:nth-child(2) { opacity:0; width:0; }
+    .burger.on .burger-box i:nth-child(3) { transform:translateY(-5.5px) rotate(-45deg); width:19px; }
+
+    #menu-scrim {
+      position:fixed; inset:0; z-index:78; background:rgba(0,0,0,.55);
+      opacity:0; pointer-events:none; transition:opacity .22s;
+      -webkit-backdrop-filter:blur(2px); backdrop-filter:blur(2px);
+    }
+    #menu-scrim.on { opacity:1; pointer-events:auto; }
+    #menu-drawer {
+      position:fixed; z-index:79; top:0; right:0; bottom:0;
+      width:min(320px, 86vw); overflow-y:auto;
+      background:var(--surface); border-left:1px solid var(--border);
+      box-shadow:-24px 0 60px rgba(0,0,0,.6);
+      transform:translateX(102%); transition:transform .28s cubic-bezier(.3,0,.2,1);
+      padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 24px);
+      display:flex; flex-direction:column; gap:14px;
+    }
+    #menu-drawer.on { transform:none; }
+    @media (prefers-reduced-motion:reduce) {
+      #menu-drawer { transition:none; }
+      .burger-box i { transition:opacity .16s; }
+    }
+    .mn-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+    .mn-title { font-family:'Anton',sans-serif; font-size:19px; letter-spacing:.6px; color:var(--text); }
+    .mn-close { width:34px; height:34px; border-radius:var(--r-xs); border:1px solid var(--border);
+      background:var(--card); color:var(--text-sec); cursor:pointer; font-size:18px; line-height:1;
+      display:flex; align-items:center; justify-content:center; }
+    .mn-block { border:1px solid var(--border); border-radius:var(--r-md); background:var(--card); padding:12px 13px; }
+    .mn-lbl { font-size:10.5px; font-weight:800; letter-spacing:1.1px; text-transform:uppercase;
+      color:var(--text-muted); margin-bottom:9px; display:flex; align-items:center; gap:6px; }
+    .mn-lbl svg { width:13px; height:13px; }
+    .mn-hint { font-size:11.5px; color:var(--text-muted); margin-top:8px; line-height:1.45; }
+    .mn-item {
+      width:100%; display:flex; align-items:center; gap:11px; cursor:pointer;
+      border:1px solid var(--border); border-radius:var(--r-md); background:var(--card);
+      color:var(--text); padding:13px 13px; font-size:13.5px; font-weight:700; text-align:left;
+      transition:border-color .16s, background .16s; -webkit-tap-highlight-color:transparent;
+    }
+    .mn-item:active { transform:translateY(1px); }
+    .mn-item .mn-ic { width:20px; height:20px; flex-shrink:0; color:var(--orange); display:flex; }
+    .mn-item .mn-ic svg { width:20px; height:20px; }
+    .mn-item small { display:block; font-size:11px; font-weight:600; color:var(--text-muted); margin-top:2px; }
+    .mn-item .mn-txt { min-width:0; flex:1; }
+    .mn-item.danger .mn-ic { color:var(--red); }
+    .mn-item.danger:hover { border-color:var(--red); }
+    .mn-foot { margin-top:auto; padding-top:6px; font-size:11px; color:var(--text-muted); text-align:center; line-height:1.5; }
+
     #screens { flex:1; overflow:hidden; position:relative; }
     .screen { position:absolute; inset:0; overflow-y:auto; padding:16px 16px calc(var(--nav-h) + 16px); display:none; }
     .screen.active { display:block; animation:fadeIn .22s ease; }
@@ -1537,8 +1611,8 @@
     #screen-home::before {
       content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
       background:
-        linear-gradient(180deg, rgba(15,15,15,.46) 0%, rgba(15,15,15,.60) 38%,
-                                rgba(15,15,15,.80) 72%, rgba(15,15,15,.93) 100%),
+        linear-gradient(180deg, rgba(15,15,15,.46) 0%, rgba(15,15,15,.56) 38%,
+                                rgba(15,15,15,.64) 72%, rgba(15,15,15,.72) 100%),
         radial-gradient(120% 55% at 50% 28%, rgba(93,214,44,.10), transparent 60%),
         url('art-hero-jouer.jpg') center 34%/cover no-repeat,
         var(--bg);
@@ -1553,25 +1627,128 @@
     #screen-home .prog-card,
     #screen-home .ap-carte,
     #screen-home .activity-list,
-    #screen-home .eq-carte {
-      background:rgba(28,32,26,.62);
+    #screen-home .eq-carte,
+    #screen-home .home-hero,
+    #screen-home .cold-hero,
+    #screen-home .jours {
+      /* La face est éclairée d'en haut : elle s'assombrit vers le bas.
+         C'est ce dégradé, pas l'ombre, qui fait la matière — au-dessus d'un
+         terrain aussi sombre, une ombre portée noire ne se voit pas. */
+      background:
+        linear-gradient(180deg, rgba(64,72,57,.74) 0%, rgba(40,46,35,.68) 44%, rgba(21,25,19,.72) 100%);
       -webkit-backdrop-filter:blur(16px) saturate(1.15);
       backdrop-filter:blur(16px) saturate(1.15);
-      border-color:rgba(255,255,255,.10);
-      box-shadow:0 10px 34px rgba(0,0,0,.45);
+      /* Quatre bords, quatre traitements. Une bordure uniforme éclaire
+         l'arête basse autant que l'arête haute : la plaque redevient plate. */
+      border:1px solid rgba(255,255,255,.075);
+      border-top-color:rgba(255,255,255,.22);
+      border-bottom-color:rgba(0,0,0,.62);
+      /* ===== L'ÉPAISSEUR DE LA PLAQUE =====
+         Une plaque flottante n'est pas une carte avec une grosse ombre.
+         Il lui faut quatre choses, et les quatre sont ici :
+         1. une arête haute éclairée et une arête basse dans l'ombre —
+            la lumière vient d'en haut, comme partout ailleurs dans l'app ;
+         2. une tranche : deux ombres dures, sans flou, juste sous la carte.
+            C'est elle qui donne la matière ; sans elle on ne voit qu'un flou ;
+         3. une ombre de contact, courte et dense, qui colle la plaque au fond ;
+         4. une ombre ambiante, longue et diffuse, qui la décolle du terrain.
+         Aucune rotation : incliner la carte abîmerait le rendu du texte sur
+         mobile, et le relief se lit déjà sans ça. */
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.10) inset,
+        0 -10px 14px -12px rgba(0,0,0,.75) inset,
+        0 3px 0 rgba(9,11,8,.92),
+        0 12px 22px -8px rgba(0,0,0,.62),
+        0 30px 56px -22px rgba(0,0,0,.78);
+      transition:transform .14s cubic-bezier(.4,0,.2,1), box-shadow .14s;
     }
-    #screen-home .home-hero { background:rgba(20,24,18,.58);
-      -webkit-backdrop-filter:blur(18px); backdrop-filter:blur(18px); }
+    /* Ce qu'on peut toucher s'enfonce : la plaque perd sa tranche et son
+       ombre de contact se resserre. C'est le seul retour tactile du relief. */
+    #screen-home .mc:active,
+    #screen-home .ap-carte:active,
+    #screen-home .eq-carte:active,
+    #screen-home .au-stat:active {
+      transform:translateY(2px);
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.06) inset,
+        0 -10px 14px -12px rgba(0,0,0,.75) inset,
+        0 1px 0 rgba(9,11,8,.92),
+        0 6px 12px -6px rgba(0,0,0,.6),
+        0 14px 30px -18px rgba(0,0,0,.7);
+    }
+    /* Le héros porte la plus grosse plaque : plus épaisse, plus détachée. */
+    #screen-home .home-hero, #screen-home .cold-hero {
+      box-shadow:
+        0 1px 0 rgba(255,255,255,.12) inset,
+        0 -14px 20px -16px rgba(0,0,0,.8) inset,
+        0 5px 0 rgba(9,11,8,.94),
+        0 18px 30px -10px rgba(0,0,0,.66),
+        0 44px 78px -26px rgba(0,0,0,.8);
+    }
     /* Sur les appareils qui ne savent pas flouter, on épaissit le fond :
        une carte translucide non floutée devient illisible sur une photo. */
     @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
       #screen-home .mc, #screen-home .autour .au-stat, #screen-home .prog-card,
       #screen-home .ap-carte, #screen-home .activity-list, #screen-home .eq-carte,
-      #screen-home .home-hero { background:rgba(24,28,22,.94); }
+      #screen-home .home-hero, #screen-home .cold-hero, #screen-home .jours {
+        background:linear-gradient(180deg, rgba(34,39,31,.96), rgba(20,24,18,.96)); }
     }
     @media (prefers-reduced-transparency:reduce) {
       #screen-home::before { background:var(--bg); }
     }
+    @media (prefers-reduced-motion:reduce) {
+      #screen-home .mc, #screen-home .ap-carte, #screen-home .eq-carte,
+      #screen-home .au-stat { transition:none; }
+      #screen-home .mc:active, #screen-home .ap-carte:active,
+      #screen-home .eq-carte:active, #screen-home .au-stat:active { transform:none; }
+    }
+
+    /* ===== BANDE DE JOURS =====
+       Un calendrier à plat : quatorze jours, et sur chacun la vérité du
+       fil — un point vert s'il s'y joue quelque chose. Le point n'est pas
+       décoratif, c'est le nombre réel de matchs ce jour-là. */
+    .jours { border-radius:var(--r-lg); padding:10px 0 11px; margin:0 0 14px; }
+    .jours-head { display:flex; align-items:baseline; justify-content:space-between;
+      gap:10px; padding:0 13px 9px; }
+    .jours-mois { font-size:11px; font-weight:800; letter-spacing:1.1px;
+      text-transform:uppercase; color:var(--text-sec); }
+    .jours-reset { background:none; border:none; cursor:pointer; padding:2px 0;
+      font-size:11.5px; font-weight:700; color:var(--orange); }
+    .jours-piste { display:flex; gap:7px; overflow-x:auto; padding:2px 13px 3px;
+      scroll-snap-type:x proximity; -webkit-overflow-scrolling:touch; }
+    .jours-piste::-webkit-scrollbar { display:none; }
+    .jours-piste { scrollbar-width:none; }
+    .jour {
+      flex:0 0 auto; width:50px; scroll-snap-align:center; cursor:pointer;
+      border:1px solid rgba(255,255,255,.07); border-radius:var(--r-md);
+      border-top-color:rgba(255,255,255,.20); border-bottom-color:rgba(0,0,0,.6);
+      background:linear-gradient(180deg, #39412F, #1B2016);
+      padding:7px 0 6px; text-align:center; color:var(--text-sec);
+      box-shadow:0 2px 0 rgba(9,11,8,.9), 0 6px 12px -6px rgba(0,0,0,.6);
+      transition:transform .13s, border-color .16s, box-shadow .16s, color .16s;
+      -webkit-tap-highlight-color:transparent;
+    }
+    .jour:active { transform:translateY(2px); box-shadow:0 1px 0 rgba(0,0,0,.4), 0 4px 8px -5px rgba(0,0,0,.6); }
+    .jour .j-dow { display:block; font-size:10px; font-weight:800; letter-spacing:.7px;
+      text-transform:uppercase; opacity:.85; }
+    .jour .j-num { display:block; font-family:'Anton',sans-serif; font-size:20px;
+      line-height:1.1; color:var(--text); margin-top:1px; }
+    .jour .j-dot { display:block; height:5px; margin-top:3px; }
+    .jour .j-dot i { display:inline-block; width:5px; height:5px; border-radius:50%;
+      background:var(--orange); margin:0 1.5px; vertical-align:middle; }
+    .jour.vide .j-num { color:var(--text-sec); }
+    .jour.auj { border-color:var(--border-light); }
+    .jour.auj .j-dow { color:var(--text); }
+    .jour.on {
+      border-color:var(--orange); color:var(--orange);
+      background:linear-gradient(180deg, rgba(93,214,44,.20), rgba(93,214,44,.07));
+      box-shadow:0 1px 0 rgba(255,255,255,.10) inset, 0 2px 0 var(--vert-profond),
+                 0 8px 16px -7px rgba(0,0,0,.6), 0 0 16px var(--orange-glow-soft);
+    }
+    .jour.on .j-num { color:var(--orange); }
+    .jour.on .j-dot i { background:var(--orange2); }
+    .jours-vide { padding:12px 13px 2px; font-size:12.5px; color:var(--text-sec); line-height:1.5; }
+    .jours-vide button { margin-top:8px; }
 
     /* ===== VIGNETTE DE TERRAIN ===== */
     .cm-v-photo { width:54px; height:54px; flex-shrink:0; border-radius:var(--r-sm);
@@ -2753,9 +2930,18 @@
     <div class="top-brand"><img src="./logo.png" alt="" class="top-logo-img" width="30" height="30"><span class="top-wordmark">KOLEKTIF</span></div>
     <div class="top-actions">
       <span class="top-xp" id="top-xp-badge">0 XP</span>
-      <button class="btn-icon" onclick="doLogout()" title="Déconnexion"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg></button>
+      <button class="burger" id="burger" onclick="toggleMenu()" aria-label="Réglages"
+              aria-expanded="false" aria-controls="menu-drawer" title="Réglages">
+        <span class="burger-box" aria-hidden="true"><i></i><i></i><i></i></span>
+      </button>
     </div>
   </header>
+
+  <!-- Tiroir de réglages. Le contenu est rendu à l'ouverture : le rayon,
+       l'état des notifications et la possibilité d'installer changent d'un
+       instant à l'autre, un menu figé mentirait. -->
+  <div id="menu-scrim" onclick="closeMenu()"></div>
+  <aside id="menu-drawer" role="dialog" aria-modal="true" aria-label="Réglages" aria-hidden="true"></aside>
 
   <!-- Screens -->
   <div id="screens">
@@ -3636,6 +3822,131 @@ async function doLogout() {
 }
 window.doLogout = doLogout;
 
+// ===== TIROIR DE RÉGLAGES =====
+// Règle tenue ici : chaque ligne du menu fait quelque chose de réel. Pas
+// d'entrée décorative, pas d'écran « bientôt ». Ce qui n'existe pas dans
+// l'app n'apparaît pas dans le menu.
+function menuHTML() {
+  const km = rayonKm();
+  const notifEtat = (typeof Notification === 'undefined') ? 'absent' : Notification.permission;
+  const notifSub = notifEtat === 'granted' ? 'Déjà autorisées sur cet appareil'
+                 : notifEtat === 'denied'  ? 'Bloquées — à réautoriser dans le navigateur'
+                 : notifEtat === 'absent'  ? 'Non supportées sur cet appareil'
+                 : 'Être prévenu des convocations et des résultats';
+  const peutInstaller = (typeof _canOfferInstall === 'function') && _canOfferInstall();
+  const ic = p => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+    stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+  const icBell   = ic('<path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M10.3 20a2 2 0 0 0 3.4 0"/>');
+  const icDl     = ic('<path d="M12 4v10"/><path d="m8 11 4 4 4-4"/><path d="M5 19h14"/>');
+  const icShare  = ic('<circle cx="17.5" cy="5.5" r="2.6"/><circle cx="6.5" cy="12" r="2.6"/><circle cx="17.5" cy="18.5" r="2.6"/><path d="M8.9 10.7 15.1 6.8M8.9 13.3l6.2 3.9"/>');
+  const icUser   = ic('<circle cx="12" cy="9.2" r="3.4"/><path d="M5.4 19c.9-3 3.3-4.5 6.6-4.5S17.7 16 18.6 19"/>');
+  const icOut    = ic('<path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/>');
+  const icPin    = ic('<path d="M12 21s7-5.6 7-11a7 7 0 1 0-14 0c0 5.4 7 11 7 11z"/><circle cx="12" cy="10" r="2.6"/>');
+
+  return `
+  <div class="mn-head">
+    <div class="mn-title">RÉGLAGES</div>
+    <button class="mn-close" onclick="closeMenu()" aria-label="Fermer">&times;</button>
+  </div>
+
+  <div class="mn-block">
+    <div class="mn-lbl">${icPin} Autour de moi</div>
+    <div class="rayon-chips">${RAYONS.map(k =>
+      `<button class="rayon-chip${km === k ? ' on' : ''}" onclick="setRayon(${k})">${rayonLabel(k)}</button>`
+    ).join('')}</div>
+    <div class="mn-hint">Au-delà de cette distance, les matchs ouverts des autres ne
+      remontent plus. Les tiens restent toujours visibles.</div>
+  </div>
+
+  <button class="mn-item" onclick="menuNotifs()"${notifEtat === 'absent' ? ' disabled' : ''}>
+    <span class="mn-ic">${icBell}</span>
+    <span class="mn-txt">Notifications<small>${notifSub}</small></span>
+  </button>
+
+  ${peutInstaller ? `<button class="mn-item" onclick="menuInstall()">
+    <span class="mn-ic">${icDl}</span>
+    <span class="mn-txt">Installer l'app<small>Plein écran, hors-ligne, sur ton écran d'accueil</small></span>
+  </button>` : ''}
+
+  <button class="mn-item" onclick="menuPartager()">
+    <span class="mn-ic">${icShare}</span>
+    <span class="mn-txt">Inviter des joueurs<small>Partager le lien de Kolektif</small></span>
+  </button>
+
+  <button class="mn-item" onclick="menuAller('profil')">
+    <span class="mn-ic">${icUser}</span>
+    <span class="mn-txt">Ma carte joueur<small>Photo, poste, atouts, badges</small></span>
+  </button>
+
+  <button class="mn-item danger" onclick="closeMenu(); doLogout();">
+    <span class="mn-ic">${icOut}</span>
+    <span class="mn-txt">Se déconnecter</span>
+  </button>
+
+  <div class="mn-foot">KOLEKTIF · foot à 5</div>`;
+}
+
+function _menuEls() {
+  return { d: document.getElementById('menu-drawer'),
+           s: document.getElementById('menu-scrim'),
+           b: document.getElementById('burger') };
+}
+window.openMenu = function() {
+  const { d, s, b } = _menuEls();
+  if (!d) return;
+  d.innerHTML = menuHTML();
+  d.classList.add('on'); d.setAttribute('aria-hidden', 'false');
+  s.classList.add('on');
+  b.classList.add('on'); b.setAttribute('aria-expanded', 'true');
+  document.addEventListener('keydown', _menuEsc);
+};
+window.closeMenu = function() {
+  const { d, s, b } = _menuEls();
+  if (!d) return;
+  d.classList.remove('on'); d.setAttribute('aria-hidden', 'true');
+  s.classList.remove('on');
+  b.classList.remove('on'); b.setAttribute('aria-expanded', 'false');
+  document.removeEventListener('keydown', _menuEsc);
+};
+window.toggleMenu = function() {
+  const d = document.getElementById('menu-drawer');
+  if (d && d.classList.contains('on')) closeMenu(); else openMenu();
+};
+function _menuEsc(e) { if (e.key === 'Escape') closeMenu(); }
+function menuOuvert() {
+  const d = document.getElementById('menu-drawer');
+  return !!(d && d.classList.contains('on'));
+}
+// Rafraîchit le menu sur place (le rayon coché, l'état des notifications)
+// sans le refermer sous le doigt.
+function rafraichirMenu() {
+  const d = document.getElementById('menu-drawer');
+  if (d && d.classList.contains('on')) d.innerHTML = menuHTML();
+}
+window.menuAller = function(ecran) { closeMenu(); navigateTo(ecran); };
+window.menuNotifs = async function() {
+  if (typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+    showToast('Notifications bloquées : réautorise-les dans les réglages du navigateur.', 'error');
+    return;
+  }
+  await enableNotifications();
+  rafraichirMenu();
+};
+window.menuInstall = function() { closeMenu(); triggerInstall(); };
+window.menuPartager = async function() {
+  const url = location.origin + location.pathname;
+  const data = { title: 'KOLEKTIF', text: 'On monte un five ? Rejoins-moi sur Kolektif.', url };
+  if (navigator.share) {
+    try { await navigator.share(data); return; } catch (_) { return; }
+  }
+  try {
+    await navigator.clipboard.writeText(url);
+    showToast('Lien copié.', 'success');
+  } catch (_) {
+    showToast(url, '');
+  }
+};
+
 // ===== CONNEXION GOOGLE =====
 async function doGoogleSignIn() {
   const errEl = document.getElementById('auth-error');
@@ -4207,7 +4518,10 @@ function rayonKm() {
 }
 window.setRayon = function(km) {
   localStorage.setItem('cs5_rayon', String(km));
-  renderMatchs();
+  // Le rayon se règle depuis Matchs ET depuis le tiroir : on redessine
+  // l'écran qu'on regarde, pas systématiquement celui des matchs.
+  renderScreen(currentScreen);
+  rafraichirMenu();
 };
 function rayonLabel(km) { return km === 0 ? 'Partout' : km + ' km'; }
 
@@ -4316,6 +4630,93 @@ function kolektifRing(n, total, S, opts) {
 }
 
 // ===== ÉCRAN ACCUEIL =====
+// ===== BANDE DE JOURS =====
+// Jour coché, au format 'AAAA-MM-JJ'. null = tout le fil.
+let _jourFiltre = null;
+
+// Une date peut arriver en Timestamp Firestore, en Date, ou en chaîne selon
+// l'âge du document. On ne suppose rien.
+function _versDate(v) {
+  if (!v) return null;
+  if (v.toDate) { try { return v.toDate(); } catch (_) { return null; } }
+  const d = v instanceof Date ? v : new Date(v);
+  return isNaN(d) ? null : d;
+}
+// Un match « occupe » un jour s'il est confirmé ce jour-là, ou si l'un de
+// ses créneaux proposés tombe dessus. Un sondage sur trois dates apparaît
+// donc sur trois jours : c'est bien ce qu'il est tant qu'on n'a pas tranché.
+function joursDuMatch(m) {
+  const out = new Set();
+  const f = _versDate(m.dateFinale);
+  if (f) out.add(_ymd(f));
+  (m.creneauxProposes || []).forEach(c => { const d = _versDate(c && c.date); if (d) out.add(_ymd(d)); });
+  return out;
+}
+function matchOccupeJour(m, ymd) { return joursDuMatch(m).has(ymd); }
+function libelleJour(ymd) {
+  const [a, mo, j] = ymd.split('-').map(Number);
+  const d = new Date(a, mo - 1, j);
+  const auj = new Date(); auj.setHours(0, 0, 0, 0);
+  const ecart = Math.round((d - auj) / 86400000);
+  if (ecart === 0) return "aujourd'hui";
+  if (ecart === 1) return 'demain';
+  return 'le ' + d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+}
+function joursHTML(docs) {
+  const auj = new Date(); auj.setHours(0, 0, 0, 0);
+  // Décompte réel par jour, sur les matchs déjà chargés pour cet écran.
+  const parJour = new Map();
+  docs.forEach(d => joursDuMatch(d.data()).forEach(k => parJour.set(k, (parJour.get(k) || 0) + 1)));
+
+  let mois = '';
+  const cases = [];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(auj); d.setDate(d.getDate() + i);
+    const k = _ymd(d);
+    const n = parJour.get(k) || 0;
+    if (i === 0 || (_jourFiltre === k)) mois = d.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
+    const dow = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.', '');
+    const cls = ['jour'];
+    if (_jourFiltre === k) cls.push('on');
+    if (i === 0) cls.push('auj');
+    if (!n) cls.push('vide');
+    // Au plus trois points : au-delà, le compte se lit dans la liste.
+    const pts = n ? '<i></i>'.repeat(Math.min(3, n)) : '';
+    const titre = n ? `${n} match${n > 1 ? 's' : ''} ${libelleJour(k)}` : `Rien de prévu ${libelleJour(k)}`;
+    cases.push(`<button class="${cls.join(' ')}" onclick="setJour('${k}')" title="${escapeHtml(titre)}"
+        aria-pressed="${_jourFiltre === k}">
+      <span class="j-dow">${escapeHtml(dow)}</span>
+      <span class="j-num">${d.getDate()}</span>
+      <span class="j-dot">${pts}</span>
+    </button>`);
+  }
+  return `<div class="jours">
+    <div class="jours-head">
+      <span class="jours-mois">${escapeHtml(mois)}</span>
+      ${_jourFiltre ? '<button class="jours-reset" onclick="setJour(null)">Tout voir</button>' : ''}
+    </div>
+    <div class="jours-piste" id="jours-piste">${cases.join('')}</div>
+  </div>`;
+}
+window.setJour = function(k) {
+  _jourFiltre = (k && _jourFiltre !== k) ? k : null;
+  renderHome();
+};
+// Proposer un match sur un jour vide : la date est déjà celle qu'on regarde.
+window.proposerLeJour = function(ymd) {
+  if (!(window._canCreateMatch?.can ?? true)) {
+    showToast('Tu joues déjà dans un match à venir. Quitte-le d\'abord.', 'error'); return;
+  }
+  const [a, mo, j] = ymd.split('-').map(Number);
+  const d = new Date(a, mo - 1, j, 19, 0, 0, 0);
+  _cmSuggest = _cmBuildSuggest();
+  _cmExtra = null; _cmMsg = ''; _cmVisib = 'public'; _cmSport = SPORT_DEFAUT;
+  const cards = _cmVenueCards();
+  _cmVenue = cards[0] || null;
+  _cmSlots = [{ id: genId(), date: ymd, heure: '19:00', dateObj: d }];
+  renderCmModal();
+};
+
 async function renderHome() {
   const el = document.getElementById('home-content');
   el.innerHTML = matchSkeleton(2);
@@ -4330,7 +4731,16 @@ async function renderHome() {
   const _pseudo = (currentUserData && currentUserData.pseudo) || '';
   if (_pseudo) html += `<div class="home-hi">Bonjour <b>${escapeHtml(_pseudo)}</b> <span class="hi-main">👋</span>
     <span class="home-hi-sub">Le sport se joue ensemble.</span></div>`;
-  html += ctaJouerHTML([snapC, snapS], currentUser?.uid);
+
+  // ===== LE CALENDRIER, AVANT TOUT LE RESTE =====
+  // La première question d'un joueur n'est pas « quoi ? » mais « quand ? ».
+  // La bande de jours répond avant qu'on la pose, et sert de filtre.
+  const _toutes = [...(snapC ? snapC.docs : []), ...(snapS ? snapS.docs : [])];
+  html += joursHTML(_toutes);
+  // Le bandeau « il y a N matchs » compte tout le fil. Quand un jour est
+  // coché il dirait le contraire de l'écran ; on le retire plutôt que de
+  // laisser deux chiffres se contredire.
+  if (!_jourFiltre) html += ctaJouerHTML([snapC, snapS], currentUser?.uid);
   const _appels = await chargerAppels(currentUser?.uid);
 
   // Éligibilité à créer un match (utilisée aussi par l'écran Matchs)
@@ -4347,14 +4757,27 @@ async function renderHome() {
   const sondages = snapS ? snapS.docs.slice().sort((a, b) =>
     (b.data().createdAt?.toMillis?.() ?? 0) - (a.data().createdAt?.toMillis?.() ?? 0)) : [];
 
+  // Un jour coché restreint tout l'écran à ce jour-là — héros compris.
+  // Sinon la bande servirait d'indicateur sans être un filtre, et cocher
+  // un jour ne changerait rien à ce qu'on lit dessous.
+  let confirmesJ = confirmes, sondagesJ = sondages;
+  if (_jourFiltre) {
+    confirmesJ = confirmes.filter(d => matchOccupeJour(d.data(), _jourFiltre));
+    sondagesJ  = sondages.filter(d => matchOccupeJour(d.data(), _jourFiltre));
+    if (!confirmesJ.length && !sondagesJ.length) {
+      html += `<div class="jours jours-vide">Rien de prévu ${escapeHtml(libelleJour(_jourFiltre))}.
+        <button class="btn-sm btn-orange" onclick="proposerLeJour('${_jourFiltre}')">Proposer un match ce jour-là</button></div>`;
+    }
+  }
+
   // ===== UN SEUL HÉROS : le focus du moment =====
   let heroId = null;
-  if (confirmes.length) { html += homeHeroHTML(confirmes[0].id, confirmes[0].data(), 'confirmé', fills); heroId = confirmes[0].id; }
-  else if (sondages.length) { html += homeHeroHTML(sondages[0].id, sondages[0].data(), 'sondage', fills); heroId = sondages[0].id; }
+  if (confirmesJ.length) { html += homeHeroHTML(confirmesJ[0].id, confirmesJ[0].data(), 'confirmé', fills); heroId = confirmesJ[0].id; }
+  else if (sondagesJ.length) { html += homeHeroHTML(sondagesJ[0].id, sondagesJ[0].data(), 'sondage', fills); heroId = sondagesJ[0].id; }
 
   // Aucun match : l'accueil "à froid" devient un moteur — il vend l'action.
   let coldActiveUids = null;
-  if (!heroId) {
+  if (!heroId && !_jourFiltre) {
     // Joueurs déjà présents (anti-désert) — calculé sur les snapshots déjà chargés
     const activeSet = new Set();
     [snapC, snapS, snapT].forEach(sn => sn && sn.docs.forEach(d => (d.data().joueursInscrits || []).forEach(u => activeSet.add(u))));
@@ -4392,8 +4815,8 @@ async function renderHome() {
   // ===== Le reste, démoté =====
   const rest = [];
   const gardeSport = d => !_sportFiltre || ((d.data().sport || SPORT_DEFAUT) === _sportFiltre);
-  confirmes.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['confirmé', d]); });
-  sondages.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['sondage', d]); });
+  confirmesJ.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['confirmé', d]); });
+  sondagesJ.forEach(d => { if (d.id !== heroId && gardeSport(d)) rest.push(['sondage', d]); });
   if (!MONO_SPORT) html += sportsRangeeHTML([snapC, snapS], currentUser?.uid);
   if (rest.length) {
     html += `<div class="mlist-lbl">${_sportFiltre ? escapeHtml(SPORTS[_sportFiltre].nom) : 'À suivre aussi'}</div>`;
@@ -4467,6 +4890,10 @@ async function renderHome() {
   }
 
   el.innerHTML = html;
+  // La bande est reconstruite à chaque rendu : sans ça, cocher le 12 du mois
+  // prochain renverrait la piste au premier jour, loin du jour coché.
+  const _pisteOn = el.querySelector('.jour.on');
+  if (_pisteOn) _pisteOn.scrollIntoView({ block: 'nearest', inline: 'center' });
   jouerEntree(el);
   hydrateMatchCards(fills, motms);
   if (coldActiveUids && coldActiveUids.length && document.getElementById('ch-proof-avs')) {
