@@ -61,6 +61,7 @@ buswake/
 │   ├── index.js        ← Les 2 fonctions : onMatchEcrit, rappels
 │   └── package.json    ← Node 22
 │   └── backfill-visibilite.js  ← rattrapage ponctuel des anciens matchs
+├── fonts/              ← Anton + Space Grotesk en woff2 (88 ko, servis par nous)
 ├── m/                  ← 5 pages de redirection, une par sport (aperçus WhatsApp)
 ├── stickers/           ← 4 stickers WhatsApp (hors app)
 ├── marketing/          ← visuels d'acquisition (hors app)

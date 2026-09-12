@@ -159,7 +159,31 @@ un groupe rejoint.
 ### Typographie
 
 - **Anton** — les grands nombres et titres de héros (score, date, XP).
-- **Space Grotesk** — tout le reste.
+- **Space Grotesk** — tout le reste (variable, 400 à 700 : un seul fichier).
+
+**Deux polices, pas trois.** C'est une règle, pas un état de fait : une
+display très reconnaissable pour les titres, les rangs, les scores et les
+XP ; une extrêmement lisible pour tout ce qui se lit vraiment — lieux,
+horaires, boutons, descriptions.
+
+**Elles sont servies par nous, pas par Google** (`fonts/`, 88 ko).
+Le service worker ignore tout ce qui n'est pas de notre origine, donc
+hors-ligne la PWA perdait ses deux polices et retombait sur la sans-serif
+du système. Une app installée qui change de typographie en entrant dans
+le métro n'est pas une app installée.
+
+Vérification (largeur de « Stagiaire 2180 » à 60 px, mesurée au canvas —
+comparer des boîtes ne suffit pas, `body` est en flex et les étire) :
+
+| | Largeur |
+|---|---|
+| Anton | 336,4 |
+| Space Grotesk 400 | 409,9 |
+| Space Grotesk 700 | 412,9 |
+| sans-serif (repli) | 387,0 |
+
+Trois valeurs distinctes du repli : les faces sont bien appliquées, et la
+graisse variable répond.
 
 ---
 
