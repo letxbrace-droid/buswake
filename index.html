@@ -3069,9 +3069,7 @@ function blasonHTML(e, taille) {
   if (cl) {
     const D = Math.round(S * 0.66);
     return `<span class="blason blason-club" style="width:${S}px;height:${S}px;--bc:${couleurEquipe(e)};font-size:${Math.round(S * 0.3)}px">
-      <img src="https://crests.football-data.org/${cl.fdId}.png" width="${D}" height="${D}" alt="${escapeHtml(cl.name)}"
-        loading="lazy" style="object-fit:contain;display:block"
-        onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      ${clubImgHTML(cl, D)}
       <b style="display:none">${escapeHtml(cl.short)}</b>
     </span>`;
   }
@@ -3112,15 +3110,28 @@ const CLUBS = [
   { id:'chelsea',   name:'Chelsea',   short:'CFC', fdId:61,  c1:'#034694', c2:'#DBA111' },
 ];
 
-// Logo réel via CDN ; fallback = pill aux couleurs du club + abréviation
+// Source d'un écusson de club, en trois niveaux de repli :
+//   1. ./clubs/<id>.png      — servi par nous, donc mis en cache, donc
+//                              disponible HORS-LIGNE. C'est le seul niveau
+//                              qui ne dépend de personne.
+//   2. le CDN football-data  — si le fichier local n'existe pas encore.
+//   3. l'abréviation du club — si les deux échouent.
+// Le `onerror` bascule du local vers le CDN une seule fois (il vide
+// `data-cdn`), puis laisse la main au texte. Sans ce garde, un CDN muet
+// ferait boucler la balise indéfiniment.
+function clubImgHTML(c, D, styleSup) {
+  return `<img src="./clubs/${c.id}.png" data-cdn="https://crests.football-data.org/${c.fdId}.png"
+    width="${D}" height="${D}" alt="${escapeHtml(c.name)}" loading="lazy"
+    style="object-fit:contain;display:block;${styleSup || ''}"
+    onerror="if(this.dataset.cdn){this.src=this.dataset.cdn;this.dataset.cdn='';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}">`;
+}
+
+// Logo réel ; repli = pastille aux couleurs du club + abréviation
 function clubShield(club, size = 36) {
   const c = CLUBS.find(x => x.name === club || x.id === club) || CLUBS[0];
   const fs = Math.max(9, Math.round(size * 0.3));
   return `<span style="position:relative;display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0;vertical-align:middle">
-    <img src="https://crests.football-data.org/${c.fdId}.png"
-      onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex'"
-      width="${size}" height="${size}"
-      style="object-fit:contain;border-radius:4px;display:block" alt="${c.name}" loading="lazy">
+    ${clubImgHTML(c, size, 'border-radius:4px;')}
     <span style="display:none;position:absolute;inset:0;background:linear-gradient(135deg,${c.c1},${c.c2});border-radius:5px;align-items:center;justify-content:center;font:900 ${fs}px Anton,sans-serif;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 3px rgba(0,0,0,.4)">${c.short}</span>
   </span>`;
 }
