@@ -162,7 +162,9 @@ service cloud.firestore {
         && d.niveau in ['debutant', 'intermediaire', 'confirme']
         && d.membres is list && d.membres.size() >= 1 && d.membres.size() <= 20
         && (!('description' in d) || d.description == null ||
-            (d.description is string && d.description.size() <= 160));
+            (d.description is string && d.description.size() <= 160))
+        && (!('appel' in d) || d.appel == null ||
+            (d.appel is string && d.appel.size() <= 120));
     }
     // Un joueur ne peut modifier QUE le tableau `membres`, et uniquement en y
     // ajoutant ou retirant son propre uid. Il ne peut ni renommer l'équipe,

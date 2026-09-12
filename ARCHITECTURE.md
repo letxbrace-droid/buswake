@@ -84,6 +84,14 @@ permet au modèle de rester multi-sport.
 | `capitaineUid` | string | Seul habilité à renommer, gérer, dissoudre |
 | `membres` | array | UID de l'effectif — **le capitaine est toujours dedans** |
 | `stats` | objet | `{ matchs, victoires, nuls, defaites, butsPour, butsContre, serie }` |
+| `appel` | string \| null | Appel à joueurs — `null` = aucun, `''` = appel sans message (≤ 120 car.) |
+
+**L'appel renverse le sens de la découverte.** Sans lui, une équipe
+incomplète *attend* dans l'onglet Équipes que quelqu'un vienne la voir.
+Avec lui, elle remonte sur **l'accueil** de tous les joueurs de son rayon.
+C'est le seul mécanisme de liquidité qui ne demande rien aux joueurs : il
+n'exige pas qu'ils déclarent une disponibilité, seulement qu'ils ouvrent
+l'app.
 
 **Trois états, définis par le MANQUE et non par un pourcentage :** complet
 = *prête* ; il manque un = *incomplète* ; il en manque plus = *en

@@ -1328,6 +1328,30 @@
     .ce-coul:active { transform:scale(.9); }
     .ce-coul.on { border-color:#fff; transform:scale(1.08); }
 
+    /* ===== APPEL D'ÉQUIPE ===== */
+    .ap-carte { background:var(--card); border:1.5px solid rgba(255,138,61,.38);
+      border-radius:var(--r-lg); padding:14px; }
+    .ap-haut { display:flex; align-items:center; gap:12px; }
+    .ap-id { flex:1; min-width:0; }
+    .ap-nom { font-size:16px; font-weight:700; color:var(--text); }
+    .ap-meta { display:flex; align-items:center; gap:5px; font-size:11.5px; color:var(--text-muted); margin-top:3px; }
+    .ap-meta .ic { width:13px; height:13px; flex-shrink:0; }
+    .ap-manque { font-family:Anton,sans-serif; font-size:20px; color:#FF8A3D;
+      display:inline-flex; align-items:center; gap:3px; flex-shrink:0; }
+    .ap-msg { font-size:13px; color:var(--text-sec); margin-top:10px; line-height:1.45; }
+    .ap-cta { width:100%; margin-top:13px; }
+    .ap-plus { display:block; width:100%; margin-top:10px; background:none; border:none;
+      font-family:inherit; font-size:12.5px; font-weight:600; color:var(--orange);
+      cursor:pointer; padding:6px 0; }
+    .eq-appel { display:flex; align-items:flex-start; gap:7px; margin-top:10px;
+      font-size:12.5px; line-height:1.4; color:#FF8A3D; }
+    .eq-appel .ic-flam { flex-shrink:0; margin-top:2px; }
+    .eq-appel span { color:var(--text-sec); }
+    .ap-rappel { display:flex; align-items:center; gap:12px; }
+    .ap-rappel b { display:block; font-size:15px; color:var(--text); }
+    .ap-rappel span { display:block; font-size:12px; color:var(--text-muted); margin-top:2px; }
+    .ap-note { font-size:12px; color:var(--text-muted); margin-top:10px; line-height:1.45; }
+
     /* ===== « TU VEUX JOUER ? » ===== */
     .cta-jouer { position:relative; border-radius:var(--r-xl); overflow:hidden;
       background:url('art-hero-jouer.jpg') center 62%/cover, #0B0D12;
@@ -3947,6 +3971,7 @@ async function renderHome() {
   if (_pseudo) html += `<div class="home-hi">Bonjour <b>${escapeHtml(_pseudo)}</b> <span class="hi-main">👋</span>
     <span class="home-hi-sub">Le sport se joue ensemble.</span></div>`;
   html += ctaJouerHTML([snapC, snapS], currentUser?.uid);
+  const _appels = await chargerAppels(currentUser?.uid);
 
   // Éligibilité à créer un match (utilisée aussi par l'écran Matchs)
   const eligibility = await checkCanCreateMatch(currentUser?.uid);
@@ -4019,6 +4044,76 @@ async function renderHome() {
   }
 
   // ===== ÉCRAN ÉQUIPES =====
+  // ===== ELLES CHERCHENT DES JOUEURS =====
+  html += appelsHTML(_appels);
+
+  // ===== AUTOUR DE TOI =====
+  html += autourDeToiHTML([snapC, snapS, snapT], currentUser?.uid, _appels.length);
+
+  // ===== Dernières activités (fil compact) =====
+  const acts = [];
+  (snapS ? snapS.docs : []).forEach(d => { const m = d.data();
+    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.poll, color:'var(--blue)', label:'Nouveau match proposé',
+      sub: (m.creneauxProposes?.length || 0) + ' créneau' + ((m.creneauxProposes?.length||0)>1?'x':'') + ' · ' + ((m.joueursInscrits||[]).length) + ' inscrits', id:d.id }); });
+  (snapC ? snapC.docs : []).forEach(d => { const m = d.data();
+    acts.push({ t: m.dateFinale?.toMillis?.() ?? m.createdAt?.toMillis?.() ?? 0, icon:ICON.checkCircle, color:'var(--green)', label:'Match confirmé',
+      sub: formatDateShort(m.dateFinale) + (m.lieuFinal ? ' · ' + m.lieuFinal : ''), id:d.id }); });
+  (snapT ? snapT.docs : []).forEach(d => { const m = d.data();
+    const na = m.equipes?.[0]?.nom || 'Équipe A', nb = m.equipes?.[1]?.nom || 'Équipe B';
+    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.flag, color:'var(--gold)', label:'Résultat',
+      sub: na + ' ' + (m.scoreA ?? '?') + '–' + (m.scoreB ?? '?') + ' ' + nb, id:d.id }); });
+  acts.sort((x, y) => y.t - x.t);
+  if (acts.length) {
+    html += `<div class="mlist-lbl" style="margin-top:18px">Dernières activités</div>`;
+    html += `<div class="activity-list">` + acts.slice(0, 5).map(it => `
+      <div class="activity-item" onclick="openMatchDetail('${it.id}')">
+        <div class="act-ic" style="color:${it.color}">${it.icon}</div>
+        <div class="act-body"><div class="act-label">${it.label}</div><div class="act-sub">${it.sub}</div></div>
+        <span class="act-chev">›</span>
+      </div>`).join('') + `</div>`;
+  }
+
+  // Action secondaire discrète (si un héros occupe déjà le devant)
+  // ===== TA PROGRESSION =====
+  // Le ring change de rôle sans changer de forme : ici il mesure le chemin
+  // vers le rang suivant. Volontairement compact — l'accueil sert à jouer,
+  // pas à consulter un tableau de bord.
+  {
+    const xp = (currentUserData && currentUserData.xp) || 0;
+    const rang = getRang(xp);
+    const suivant = RANGS.find(r => r.min > xp) || null;
+    const base = rang.min;
+    const cible = suivant ? suivant.min : Math.max(xp, 1);
+    const fait = Math.max(0, xp - base);
+    const total = Math.max(1, cible - base);
+    const pourcent = suivant ? Math.min(100, Math.round(fait / total * 100)) : 100;
+    html += `<div class="mlist-lbl" style="margin-top:18px">Ta progression</div>
+      <div class="prog-card">
+        <div class="kring-row">
+          ${kolektifRing(pourcent, 100, 72, { big: pourcent + '%', label: '' })}
+          <div class="krr-meta">
+            <div class="prog-rang">${rangDot(rang)} ${escapeHtml(rang.label)}</div>
+            <div class="prog-xp">${xp.toLocaleString('fr-FR')} XP</div>
+            <div class="prog-next">${suivant
+              ? `Plus que <b>${(cible - xp).toLocaleString('fr-FR')} XP</b> avant ${escapeHtml(suivant.label)}`
+              : 'Rang maximum atteint'}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  if (heroId && eligibility.can) {
+    html += `<button class="btn-sm btn-outline" style="width:100%;margin-top:14px" onclick="openCreateMatch()">${ICON.plus} Proposer un autre match</button>`;
+  }
+
+  el.innerHTML = html;
+  jouerEntree(el);
+  hydrateMatchCards(fills, motms);
+  if (coldActiveUids && coldActiveUids.length && document.getElementById('ch-proof-avs')) {
+    renderStackAvatars(coldActiveUids, 'ch-proof-avs', 5);
+  }
+}
+
 // Trois situations, et le brief insiste pour qu'aucune ne ferme la porte :
 //   j'ai une équipe  → je la gère et je cherche un adversaire
 //   je suis seul     → je rejoins, ou je crée
@@ -4098,7 +4193,9 @@ function carteEquipeHTML(e, uid, mienne) {
   })();
   const action = mienne
     ? (capitaine
-        ? `<button class="btn-sm btn-outline eq-act" onclick="event.stopPropagation();quitterEquipe('${e.id}')">Dissoudre</button>`
+        ? (et.manque > 0
+            ? `<button class="btn-sm btn-primary eq-act" onclick="event.stopPropagation();lancerAppel('${e.id}')">${e.appel != null ? 'Modifier l\'appel' : 'Chercher des joueurs'}</button>`
+            : `<button class="btn-sm btn-outline eq-act" onclick="event.stopPropagation();quitterEquipe('${e.id}')">Dissoudre</button>`)
         : `<button class="btn-sm btn-outline eq-act" onclick="event.stopPropagation();quitterEquipe('${e.id}')">Quitter</button>`)
     : (et.manque > 0
         ? `<button class="btn-sm btn-primary eq-act" onclick="event.stopPropagation();rejoindreEquipe('${e.id}')">Rejoindre</button>`
@@ -4113,12 +4210,48 @@ function carteEquipeHTML(e, uid, mienne) {
       <span class="eq-etat eq-etat-${et.cle}">${n} / ${total}</span>
     </div>
     <div class="kpulse-row">${kolektifPulse(n, total)}<span class="kpulse-cnt">${escapeHtml(et.label)}</span></div>
+    ${(e.appel != null && et.manque > 0) ? `<div class="eq-appel">${FLAMME}<span>${e.appel ? escapeHtml(e.appel) : 'Cherche des joueurs'}</span></div>` : ''}
     <div class="eq-bas">
       <span class="eq-bilan"><b>${b.v}</b> V · <b>${b.n}</b> N · <b>${b.d}</b> D${b.serie >= 2 ? ` <span class="li-serie">${FLAMME}${b.serie}</span>` : ''}</span>
       ${action}
     </div>
   </div>`;
 }
+
+// Une équipe incomplète ATTENDAIT dans l'onglet Équipes que quelqu'un
+// vienne la voir. L'appel renverse le sens : c'est l'équipe qui se
+// signale, et elle remonte sur l'accueil de tous les joueurs du rayon.
+// Le message est facultatif — l'appel vaut d'abord par le manque.
+window.lancerAppel = async function(id) {
+  const snap = await getDoc(doc(db, 'equipes', id));
+  if (!snap.exists()) return;
+  const e = snap.data();
+  if (e.capitaineUid !== currentUser?.uid) return;
+  const et = etatEquipe(e);
+  if (et.manque <= 0) return showToast('Ton équipe est déjà complète.', '');
+  const body = `<div class="create-form">
+    <div class="ap-rappel">${blasonHTML(e, 40)}
+      <div><b>${escapeHtml(e.nom)}</b><span>${et.label} · ${escapeHtml(SPORTS[e.sport]?.nom || '')}</span></div></div>
+    <div class="section-sub" style="margin-top:16px">${ICON.edit} Un mot (facultatif)</div>
+    <input id="ap-msg" class="input" maxlength="120" autocomplete="off"
+      placeholder="Vendredi 20:30 à Massy, niveau tranquille" value="${escapeHtml(e.appel || '')}">
+    <div class="ap-note">Ton appel apparaîtra sur l'accueil des joueurs de ton rayon,
+      tant que l'équipe n'est pas complète.</div>
+    <button class="btn-primary" style="width:100%;margin-top:18px" onclick="publierAppel('${id}')">${ICON.zap} Lancer l'appel</button>
+    ${e.appel ? `<button class="btn-sm btn-outline" style="width:100%;margin-top:10px" onclick="publierAppel('${id}', true)">Retirer l'appel</button>` : ''}
+  </div>`;
+  openModal("Chercher des joueurs", body);
+};
+window.publierAppel = async function(id, retirer) {
+  const msg = retirer ? null : ((document.getElementById('ap-msg')?.value || '').trim().slice(0, 120) || '');
+  try {
+    await updateDoc(doc(db, 'equipes', id), { appel: retirer ? null : (msg || '') });
+    closeModal();
+    showToast(retirer ? 'Appel retiré.' : 'Appel lancé !', 'success');
+    if (!retirer) haptic([18, 40, 30]);
+    renderEquipes();
+  } catch (err) { showToast('Action impossible.', 'error'); }
+};
 
 window.rejoindreEquipe = async function(id) {
   const uid = currentUser?.uid; if (!uid) return;
@@ -4239,6 +4372,45 @@ function ctaJouerHTML(snaps, uid) {
   </div>`;
 }
 
+// ===== APPELS D'ÉQUIPES SUR L'ACCUEIL =====
+// Le sens compte : ce n'est pas au joueur d'aller fouiller un onglet, c'est
+// à l'équipe qui manque de monde de se signaler là où les gens arrivent.
+// Requête bornée ; les équipes complètes sont écartées côté client, parce
+// que l'effectif dépend du sport — ce qu'une requête Firestore ne sait pas
+// calculer.
+async function chargerAppels(uid) {
+  try {
+    const snap = await getDocs(query(collection(db, 'equipes'), limit(120)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(e => !(e.membres || []).includes(uid))
+      .filter(e => etatEquipe(e).manque > 0)
+      .filter(e => dansLeRayonEquipe(e))
+      .sort((a, b) => (a.appel != null ? 0 : 1) - (b.appel != null ? 0 : 1));
+  } catch (_) { return []; }
+}
+function appelsHTML(appels) {
+  if (!appels.length) return '';
+  const e = appels[0];
+  const et = etatEquipe(e);
+  const sp = SPORTS[e.sport] || SPORTS[SPORT_DEFAUT];
+  const reste = appels.length - 1;
+  return `<div class="mlist-lbl" style="margin-top:18px">Elles cherchent des joueurs</div>
+    <div class="ap-carte">
+      <div class="ap-haut">
+        ${blasonHTML(e, 42)}
+        <div class="ap-id">
+          <div class="ap-nom">${escapeHtml(e.nom || 'Équipe')}</div>
+          <div class="ap-meta">${sportIcone(e)} ${escapeHtml(sp.nom)}${e.ville ? ' · ' + escapeHtml(e.ville) : ''}</div>
+        </div>
+        <span class="ap-manque">${FLAMME}${et.manque}</span>
+      </div>
+      ${e.appel ? `<div class="ap-msg">${escapeHtml(e.appel)}</div>` : ''}
+      <div class="kpulse-row">${kolektifPulse((e.membres || []).length, effectifEquipe(e))}<span class="kpulse-cnt">${escapeHtml(et.label)}</span></div>
+      <button class="btn-primary ap-cta" onclick="rejoindreEquipe('${e.id}')">${ICON.plus} Rejoindre l'équipe</button>
+      ${reste > 0 ? `<button class="ap-plus" onclick="navigateTo('equipes')">${reste} autre${reste > 1 ? 's' : ''} équipe${reste > 1 ? 's' : ''} cherche${reste > 1 ? 'nt' : ''} des joueurs →</button>` : ''}
+    </div>`;
+}
+
 // ===== RACCOURCIS PAR SPORT =====
 // La rangée porte un COMPTE réel, pas une simple icône décorative : « Padel 0 »
 // est une information utile, « Padel » tout seul est une promesse vide. Filtrer
@@ -4265,72 +4437,6 @@ function sportsRangeeHTML(snaps, uid) {
   }).join('') + `</div>`;
 }
 
-// ===== AUTOUR DE TOI =====
-  html += autourDeToiHTML([snapC, snapS, snapT], currentUser?.uid);
-
-  // ===== Dernières activités (fil compact) =====
-  const acts = [];
-  (snapS ? snapS.docs : []).forEach(d => { const m = d.data();
-    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.poll, color:'var(--blue)', label:'Nouveau match proposé',
-      sub: (m.creneauxProposes?.length || 0) + ' créneau' + ((m.creneauxProposes?.length||0)>1?'x':'') + ' · ' + ((m.joueursInscrits||[]).length) + ' inscrits', id:d.id }); });
-  (snapC ? snapC.docs : []).forEach(d => { const m = d.data();
-    acts.push({ t: m.dateFinale?.toMillis?.() ?? m.createdAt?.toMillis?.() ?? 0, icon:ICON.checkCircle, color:'var(--green)', label:'Match confirmé',
-      sub: formatDateShort(m.dateFinale) + (m.lieuFinal ? ' · ' + m.lieuFinal : ''), id:d.id }); });
-  (snapT ? snapT.docs : []).forEach(d => { const m = d.data();
-    const na = m.equipes?.[0]?.nom || 'Équipe A', nb = m.equipes?.[1]?.nom || 'Équipe B';
-    acts.push({ t: m.createdAt?.toMillis?.() ?? 0, icon:ICON.flag, color:'var(--gold)', label:'Résultat',
-      sub: na + ' ' + (m.scoreA ?? '?') + '–' + (m.scoreB ?? '?') + ' ' + nb, id:d.id }); });
-  acts.sort((x, y) => y.t - x.t);
-  if (acts.length) {
-    html += `<div class="mlist-lbl" style="margin-top:18px">Dernières activités</div>`;
-    html += `<div class="activity-list">` + acts.slice(0, 5).map(it => `
-      <div class="activity-item" onclick="openMatchDetail('${it.id}')">
-        <div class="act-ic" style="color:${it.color}">${it.icon}</div>
-        <div class="act-body"><div class="act-label">${it.label}</div><div class="act-sub">${it.sub}</div></div>
-        <span class="act-chev">›</span>
-      </div>`).join('') + `</div>`;
-  }
-
-  // Action secondaire discrète (si un héros occupe déjà le devant)
-  // ===== TA PROGRESSION =====
-  // Le ring change de rôle sans changer de forme : ici il mesure le chemin
-  // vers le rang suivant. Volontairement compact — l'accueil sert à jouer,
-  // pas à consulter un tableau de bord.
-  {
-    const xp = (currentUserData && currentUserData.xp) || 0;
-    const rang = getRang(xp);
-    const suivant = RANGS.find(r => r.min > xp) || null;
-    const base = rang.min;
-    const cible = suivant ? suivant.min : Math.max(xp, 1);
-    const fait = Math.max(0, xp - base);
-    const total = Math.max(1, cible - base);
-    const pourcent = suivant ? Math.min(100, Math.round(fait / total * 100)) : 100;
-    html += `<div class="mlist-lbl" style="margin-top:18px">Ta progression</div>
-      <div class="prog-card">
-        <div class="kring-row">
-          ${kolektifRing(pourcent, 100, 72, { big: pourcent + '%', label: '' })}
-          <div class="krr-meta">
-            <div class="prog-rang">${rangDot(rang)} ${escapeHtml(rang.label)}</div>
-            <div class="prog-xp">${xp.toLocaleString('fr-FR')} XP</div>
-            <div class="prog-next">${suivant
-              ? `Plus que <b>${(cible - xp).toLocaleString('fr-FR')} XP</b> avant ${escapeHtml(suivant.label)}`
-              : 'Rang maximum atteint'}</div>
-          </div>
-        </div>
-      </div>`;
-  }
-
-  if (heroId && eligibility.can) {
-    html += `<button class="btn-sm btn-outline" style="width:100%;margin-top:14px" onclick="openCreateMatch()">${ICON.plus} Proposer un autre match</button>`;
-  }
-
-  el.innerHTML = html;
-  jouerEntree(el);
-  hydrateMatchCards(fills, motms);
-  if (coldActiveUids && coldActiveUids.length && document.getElementById('ch-proof-avs')) {
-    renderStackAvatars(coldActiveUids, 'ch-proof-avs', 5);
-  }
-}
 
 // ===== AUTOUR DE TOI =====
 // Le cabinet demandait trois chiffres : matchs disponibles, joueurs qui
@@ -4361,17 +4467,19 @@ function compterAutour(snaps, uid) {
   return { matchs, places, joueurs: joueurs.size };
 }
 
-function autourDeToiHTML(snaps, uid) {
+function autourDeToiHTML(snaps, uid, nbEquipes) {
   const { matchs, places, joueurs: nbJoueurs } = compterAutour(snaps, uid);
   const joueurs = { size: nbJoueurs };
-  if (!matchs && !joueurs.size) return '';
+  if (!matchs && !joueurs.size && !nbEquipes) return '';
   const km = rayonKm();
   const stat = (n, l) => `<div class="au-stat"><b>${n}</b><span>${l}</span></div>`;
   return `<div class="mlist-lbl" style="margin-top:18px">Autour de toi · ${rayonLabel(km)}</div>
     <div class="autour" onclick="navigateTo('matchs')">
       ${stat(matchs, 'match' + (matchs > 1 ? 's' : '') + ' ouvert' + (matchs > 1 ? 's' : ''))}
       ${stat(places, 'place' + (places > 1 ? 's' : '') + ' à prendre')}
-      ${stat(joueurs.size, 'joueur' + (joueurs.size > 1 ? 's' : '') + ' actif' + (joueurs.size > 1 ? 's' : ''))}
+      ${nbEquipes
+        ? stat(nbEquipes, 'équipe' + (nbEquipes > 1 ? 's' : '') + ' en manque')
+        : stat(joueurs.size, 'joueur' + (joueurs.size > 1 ? 's' : '') + ' actif' + (joueurs.size > 1 ? 's' : ''))}
     </div>`;
 }
 
