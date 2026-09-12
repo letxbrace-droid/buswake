@@ -208,12 +208,31 @@ voie la photo **et** insuffisant pour le contraste. Le voile horizontal
 règle les deux : il protège la colonne de texte et laisse le terrain
 respirer là où il n'y a rien à lire.
 
-**Limite connue.** `sport-foot5.jpg` est le plus faible des cinq : la
-photo d'origine place son unique source de lumière au centre exact, là où
-passe le texte, et son tiers droit plafonne à 17/255 — aucun recadrage ne
-le sauve. Il est recadré dans la moitié gauche pour ramener le cône de
-lumière à droite, ce qui limite sa définition. À régénérer avec la
-lumière décentrée à droite.
+**Ce que doit dire le prompt.** La première série de photos avait un
+défaut invisible à la lecture du prompt : rien n'y disait *où* devait
+tomber la lumière. Le foot à 5 est revenu avec son unique source au
+centre exact — là où passe le texte — et un tiers droit à 17/255, que
+nul recadrage ne rattrapait. Une source est d'ailleurs toujours plus
+étroite que le cadre 880 × 500, donc **on ne peut jamais déplacer le
+sujet horizontalement** : la largeur est contrainte, seule la verticale
+reste libre. La composition doit donc être demandée à la génération.
+
+La phrase qui manquait, et qui appartient désormais à tout prompt de
+terrain :
+
+> *…the single floodlight and its light pool positioned in the **right
+> third** of the frame, the left third almost entirely dark and empty…*
+
+Après régénération, le tiers droit du foot à 5 passe de 17/255 à
+**111/255**, et son eyebrow de l'échec à 7,90:1. Contrastes finaux :
+
+| Sport | Eyebrow | Titre | Méta |
+|---|---|---|---|
+| Foot à 5 | 7,90 | 9,58 | 6,38 |
+| Foot à 7 | 5,81 | 8,52 | 7,38 |
+| Basket 3×3 | 7,53 | 12,66 | 5,15 |
+| Padel | 9,25 | 13,64 | 6,65 |
+| Tennis | 10,14 | 9,63 | 5,27 |
 
 **Le fond de l'app**, lui, est à 5 % d'opacité : on ne le voit pas, on le
 sent. C'est un plafond, pas un réglage — au-delà, la photo commence à
