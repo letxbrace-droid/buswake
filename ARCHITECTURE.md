@@ -34,7 +34,7 @@ pas notifier un autre client).
 
 ## Modèle de données
 
-Trois collections racines, une sous-collection.
+Quatre collections racines, une sous-collection.
 
 ### `users/{uid}`
 
@@ -102,6 +102,34 @@ découvrir pour la rejoindre). Deux écritures seulement : le capitaine
 gère tout ; un joueur ne peut qu'ajouter ou retirer **son propre** uid de
 `membres` — la règle `rejointOuQuitte()` vérifie que le diff ne touche
 que ce tableau et que la variation est exactement de un, sur soi.
+
+### `defis/{defiId}`
+
+Le maillon qui fait qu'une équipe peut **jouer** et pas seulement exister.
+
+| Champ | Type | Rôle |
+|---|---|---|
+| `equipeA`, `equipeB` | string | Les deux équipes (jamais la même) |
+| `capitaineA`, `capitaineB` | string | Qui envoie, qui répond |
+| `nomA`, `nomB`, `couleurA`, `couleurB` | — | Copiés au moment du défi, pour l'afficher sans relire les équipes |
+| `sport`, `date`, `heure`, `lieu` | — | Le rendez-vous proposé |
+| `statut` | string | `envoye` → `accepte` \| `refuse` |
+| `matchId` | string \| null | Le match créé à l'acceptation |
+
+**Un défi accepté fabrique un vrai match**, avec les deux effectifs réunis
+dans `joueursInscrits` et les deux camps dans `equipes`. Tout ce qui
+existait — vestiaire, saisie du score, homme du match, XP — fonctionne
+alors sans une ligne de plus.
+
+Détail de fabrication : les règles n'autorisent la création d'un match
+qu'au statut `sondage`. L'acceptation écrit donc le match en `sondage`
+puis le passe immédiatement à `confirmé` — deux écritures, plutôt
+qu'assouplir une règle de sécurité pour un cas particulier.
+
+**Sécurité.** Seul le capitaine défié peut répondre, seulement à un défi
+`envoye`, et son écriture ne peut toucher que `statut`, `matchId` et
+`repondUAt` — ni la date, ni le lieu, ni les équipes. Le capitaine qui a
+lancé le défi peut le retirer tant qu'il est en attente.
 
 ### `matchs/{matchId}`
 

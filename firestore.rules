@@ -196,6 +196,42 @@ service cloud.firestore {
         && (resource.data.capitaineUid == request.auth.uid || isAdmin());
     }
 
+    // ----- DÉFIS -----
+    // Un défi lie DEUX équipes. Il est lisible par tout connecté (les deux
+    // camps doivent le voir), créé par le capitaine de l'équipe qui défie,
+    // et la seule réponse permise est celle du capitaine défié : accepter
+    // ou refuser. Personne ne peut réécrire un défi déjà tranché.
+    function defiValide() {
+      let d = request.resource.data;
+      return d.equipeA is string && d.equipeB is string && d.equipeA != d.equipeB
+        && d.capitaineA is string && d.capitaineB is string
+        && d.sport is string
+        && d.lieu is string && d.lieu.size() >= 2 && d.lieu.size() <= 80
+        && d.statut in ['envoye', 'accepte', 'refuse']
+        && (!('message' in d) || d.message == null ||
+            (d.message is string && d.message.size() <= 140));
+    }
+    match /defis/{defiId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.resource.data.capitaineA == request.auth.uid
+        && request.resource.data.statut == 'envoye'
+        && defiValide();
+      // Seul le capitaine défié répond, et seulement à un défi en attente.
+      // Il ne peut changer QUE le statut (et le match qui en découle) :
+      // ni la date, ni le lieu, ni les équipes.
+      allow update: if isSignedIn()
+        && resource.data.statut == 'envoye'
+        && resource.data.capitaineB == request.auth.uid
+        && request.resource.data.statut in ['accepte', 'refuse']
+        && request.resource.data.diff(resource.data).affectedKeys()
+             .hasOnly(['statut', 'matchId', 'repondUAt']);
+      // L'équipe qui a lancé le défi peut le retirer tant qu'il est en attente.
+      allow delete: if isSignedIn()
+        && (isAdmin() || (resource.data.capitaineA == request.auth.uid
+                          && resource.data.statut == 'envoye'));
+    }
+
     // Lieux : lecture pour tous les connectés, écriture via Admin SDK only.
     match /lieux/{lieuId} {
       allow read: if isSignedIn();

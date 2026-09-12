@@ -1328,6 +1328,36 @@
     .ce-coul:active { transform:scale(.9); }
     .ce-coul.on { border-color:#fff; transform:scale(1.08); }
 
+    /* ===== DÉFIS ===== */
+    .df-carte { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-lg);
+      padding:15px; margin-bottom:10px; }
+    .df-carte.recu { border-color:var(--orange); background:rgba(0,216,138,.06); }
+    .df-eyebrow { display:flex; align-items:center; gap:7px; font-size:10.5px; letter-spacing:1.5px;
+      font-weight:700; text-transform:uppercase; color:var(--orange); }
+    .df-carte:not(.recu) .df-eyebrow { color:var(--text-muted); }
+    .df-eyebrow .ic { width:14px; height:14px; }
+    .df-vs { display:flex; align-items:center; gap:10px; margin-top:13px; }
+    .df-eq { flex:1; min-width:0; display:flex; flex-direction:column; align-items:center; gap:7px;
+      font-size:12.5px; font-weight:700; color:var(--text); text-align:center; line-height:1.25; }
+    .df-mid { font-family:Anton,sans-serif; font-size:15px; color:var(--text-muted); flex-shrink:0; }
+    .df-info { display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--text-sec); margin-top:9px; }
+    .df-info .ic { width:14px; height:14px; flex-shrink:0; }
+    .df-msg { font-size:12.5px; color:var(--text-muted); font-style:italic; margin-top:9px; }
+    .df-actions { display:flex; gap:9px; margin-top:14px; }
+    .df-actions .btn-sm { flex:1; }
+    .df-ok { flex:1.4; width:auto; padding:11px 14px; }
+    .eq-defier { width:100%; margin-top:12px; padding:11px; }
+    .df-liste { display:flex; flex-direction:column; gap:8px; margin-top:8px; max-height:210px; overflow-y:auto; }
+    .df-cible { display:flex; align-items:center; gap:11px; padding:10px 12px; min-height:44px;
+      background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-sm);
+      cursor:pointer; font-family:inherit; text-align:left;
+      transition:border-color var(--t-base) var(--ease), background var(--t-base) var(--ease); }
+    .df-cible.on { border-color:var(--orange); background:rgba(0,216,138,.08); }
+    .df-c-id b { display:block; font-size:14px; color:var(--text); }
+    .df-c-id small { display:block; font-size:11.5px; color:var(--text-muted); margin-top:2px; }
+    .df-quand { display:grid; grid-template-columns:1.4fr 1fr; gap:8px; margin-top:8px; }
+    .km-vs { font-size:24px; color:var(--orange); }
+
     /* ===== APPEL D'ÉQUIPE ===== */
     .ap-carte { background:var(--card); border:1.5px solid rgba(255,138,61,.38);
       border-radius:var(--r-lg); padding:14px; }
@@ -4137,8 +4167,17 @@ async function renderEquipes() {
     return;
   }
   _mesEquipes = mienne;
+  const defis = await chargerDefis(uid);
 
   let html = `<div class="screen-navbar"><h1 class="screen-title">Équipes</h1></div>`;
+
+  // Les défis en attente passent AVANT tout : c'est ce qui demande une réponse.
+  const recus = defis.filter(d => d.capitaineB === uid);
+  const envoyes = defis.filter(d => d.capitaineA === uid);
+  if (recus.length) {
+    html += `<div class="mlist-lbl">${recus.length > 1 ? 'Défis reçus' : 'Défi reçu'}</div>`;
+    html += recus.map(d => carteDefiHTML(d, uid)).join('');
+  }
 
   if (mienne.length) {
     html += `<div class="mlist-lbl">${mienne.length > 1 ? 'Tes équipes' : 'Ton équipe'}</div>`;
@@ -4149,6 +4188,11 @@ async function renderEquipes() {
       <div class="eq-vide-s">Crée la tienne, ou rejoins une équipe qui recrute près de chez toi.</div>
       <button class="btn-primary" style="width:100%" onclick="openCreerEquipe()">${ICON.plus} Créer mon équipe</button>
     </div>`;
+  }
+
+  if (envoyes.length) {
+    html += `<div class="mlist-lbl" style="margin-top:20px">En attente de réponse</div>`;
+    html += envoyes.map(d => carteDefiHTML(d, uid)).join('');
   }
 
   // Les équipes qui recrutent d'abord : c'est l'action possible.
@@ -4211,6 +4255,9 @@ function carteEquipeHTML(e, uid, mienne) {
     </div>
     <div class="kpulse-row">${kolektifPulse(n, total)}<span class="kpulse-cnt">${escapeHtml(et.label)}</span></div>
     ${(e.appel != null && et.manque > 0) ? `<div class="eq-appel">${FLAMME}<span>${e.appel ? escapeHtml(e.appel) : 'Cherche des joueurs'}</span></div>` : ''}
+    ${(mienne && capitaine && et.manque === 0)
+      ? `<button class="btn-primary eq-defier" onclick="event.stopPropagation();openDefier('${e.id}')">${ICON.zap} Défier une équipe</button>`
+      : ''}
     <div class="eq-bas">
       <span class="eq-bilan"><b>${b.v}</b> V · <b>${b.n}</b> N · <b>${b.d}</b> D${b.serie >= 2 ? ` <span class="li-serie">${FLAMME}${b.serie}</span>` : ''}</span>
       ${action}
@@ -4371,6 +4418,180 @@ function ctaJouerHTML(snaps, uid) {
     </div>
   </div>`;
 }
+
+// ===== DÉFIS ENTRE ÉQUIPES =====
+// Le maillon qui manquait : une équipe pouvait exister et recruter, mais
+// pas JOUER. Un défi est un document minuscule qui lie deux équipes, une
+// date et un lieu. Accepté, il fabrique un vrai match — donc le vestiaire,
+// le score, l'homme du match et l'XP fonctionnent sans une ligne de plus.
+function defiLibelle(d) {
+  return `${d.nomA || 'Équipe'} vs ${d.nomB || 'Équipe'}`;
+}
+window.openDefier = async function(equipeId) {
+  const moi = _mesEquipes.find(e => e.id === equipeId);
+  if (!moi) return;
+  if (moi.capitaineUid !== currentUser?.uid) return showToast('Seul le capitaine peut défier.', '');
+  let cibles = [];
+  try {
+    const snap = await getDocs(query(collection(db, 'equipes'), limit(120)));
+    cibles = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      // Même sport, sinon le match n'a pas de sens. Et pas soi-même.
+      .filter(e => e.id !== equipeId && e.sport === moi.sport && dansLeRayonEquipe(e))
+      // Une équipe incomplète ne peut pas honorer un match : on ne la propose pas.
+      .filter(e => etatEquipe(e).manque === 0);
+  } catch (_) {}
+  if (!cibles.length) {
+    return openModal('Défier une équipe', `<div class="eq-note">
+      Aucune équipe complète en ${escapeHtml(SPORTS[moi.sport]?.nom || 'ce sport')} dans ton rayon pour l'instant.<br><br>
+      Une équipe incomplète ne peut pas honorer un match — elle n'apparaît ici qu'une fois au complet.
+    </div>`);
+  }
+  const demain = new Date(Date.now() + 86400000);
+  const jour = demain.toISOString().slice(0, 10);
+  const body = `<div class="create-form">
+    <div class="ap-rappel">${blasonHTML(moi, 40)}
+      <div><b>${escapeHtml(moi.nom)}</b><span>${escapeHtml(SPORTS[moi.sport]?.nom || '')} · ${(moi.membres || []).length} joueurs</span></div></div>
+    <div class="section-sub" style="margin-top:18px">${ICON.zap} Quelle équipe ?</div>
+    <div class="df-liste" id="df-liste">${cibles.map((e, i) => `
+      <button class="df-cible${i === 0 ? ' on' : ''}" data-id="${e.id}" onclick="dfChoisir('${e.id}')">
+        ${blasonHTML(e, 34)}
+        <span class="df-c-id"><b>${escapeHtml(e.nom)}</b><small>${escapeHtml(NIVEAUX[e.niveau] || '')}${e.ville ? ' · ' + escapeHtml(e.ville) : ''}</small></span>
+      </button>`).join('')}</div>
+    <div class="section-sub" style="margin-top:18px">${ICON.calendar} Quand ?</div>
+    <div class="df-quand">
+      <input id="df-date" class="input" type="date" value="${jour}" min="${new Date().toISOString().slice(0, 10)}">
+      <input id="df-heure" class="input" type="time" value="20:30">
+    </div>
+    <div class="section-sub" style="margin-top:18px">${ICON.pin} Où ?</div>
+    <input id="df-lieu" class="input" maxlength="80" placeholder="Urban Soccer, Massy" autocomplete="off">
+    <div class="section-sub" style="margin-top:18px">${ICON.edit} Un mot (facultatif)</div>
+    <input id="df-msg" class="input" maxlength="140" placeholder="On vous attend." autocomplete="off">
+    <button class="btn-primary" style="width:100%;margin-top:20px" onclick="envoyerDefi('${equipeId}')">${ICON.zap} Envoyer le défi</button>
+  </div>`;
+  window._dfCible = cibles[0].id;
+  window._dfCibles = cibles;
+  openModal('Défier une équipe', body);
+};
+window.dfChoisir = function(id) {
+  window._dfCible = id;
+  document.querySelectorAll('#df-liste .df-cible').forEach(el =>
+    el.classList.toggle('on', el.dataset.id === id));
+};
+window.envoyerDefi = async function(equipeId) {
+  const moi = _mesEquipes.find(e => e.id === equipeId);
+  const cible = (window._dfCibles || []).find(e => e.id === window._dfCible);
+  if (!moi || !cible) return;
+  const date = document.getElementById('df-date')?.value;
+  const heure = document.getElementById('df-heure')?.value || '20:30';
+  const lieu = (document.getElementById('df-lieu')?.value || '').trim();
+  if (!date) return showToast('Choisis une date.', 'error');
+  if (lieu.length < 2) return showToast('Indique le lieu.', 'error');
+  try {
+    await addDoc(collection(db, 'defis'), {
+      equipeA: equipeId, equipeB: cible.id,
+      nomA: moi.nom, nomB: cible.nom,
+      couleurA: couleurEquipe(moi), couleurB: couleurEquipe(cible),
+      capitaineA: currentUser.uid, capitaineB: cible.capitaineUid,
+      sport: moi.sport, date, heure, lieu,
+      message: (document.getElementById('df-msg')?.value || '').trim().slice(0, 140) || null,
+      statut: 'envoye', matchId: null,
+      createdAt: serverTimestamp(),
+    });
+    closeModal();
+    showToast('Défi envoyé !', 'success');
+    haptic([18, 40, 30]);
+    renderEquipes();
+  } catch (err) { showToast('Envoi impossible.', 'error'); }
+};
+
+async function chargerDefis(uid) {
+  try {
+    const snap = await getDocs(query(collection(db, 'defis'), limit(80)));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }))
+      .filter(d => d.statut === 'envoye' && (d.capitaineA === uid || d.capitaineB === uid));
+  } catch (_) { return []; }
+}
+
+function carteDefiHTML(d, uid) {
+  const recu = d.capitaineB === uid;
+  const quand = _toDate(d.date, d.heure);
+  const q = quand ? quand.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' }) + ' · ' + (d.heure || '') : '';
+  return `<div class="df-carte${recu ? ' recu' : ''}">
+    <div class="df-eyebrow">${recu ? `${ICON.zap} Nouveau défi` : `${ICON.clock} Défi envoyé`}</div>
+    <div class="df-vs">
+      <span class="df-eq"><span class="blason" style="width:34px;height:34px;--bc:${d.couleurA || '#00D88A'};font-size:12px">${escapeHtml(initialesEquipe(d.nomA))}</span>${escapeHtml(d.nomA || '')}</span>
+      <span class="df-mid">VS</span>
+      <span class="df-eq"><span class="blason" style="width:34px;height:34px;--bc:${d.couleurB || '#00B0FF'};font-size:12px">${escapeHtml(initialesEquipe(d.nomB))}</span>${escapeHtml(d.nomB || '')}</span>
+    </div>
+    <div class="df-info">${ICON.calendar} ${escapeHtml(q)}</div>
+    <div class="df-info">${ICON.pin} ${escapeHtml(d.lieu || '')}</div>
+    ${d.message ? `<div class="df-msg">« ${escapeHtml(d.message)} »</div>` : ''}
+    ${recu
+      ? `<div class="df-actions">
+           <button class="btn-sm btn-outline" onclick="repondreDefi('${d.id}', false)">Refuser</button>
+           <button class="btn-primary df-ok" onclick="repondreDefi('${d.id}', true)">${ICON.check} Accepter</button>
+         </div>`
+      : `<button class="btn-sm btn-outline" style="width:100%;margin-top:12px" onclick="annulerDefi('${d.id}')">Retirer le défi</button>`}
+  </div>`;
+}
+
+window.annulerDefi = async function(id) {
+  if (!confirm('Retirer ce défi ?')) return;
+  try { await deleteDoc(doc(db, 'defis', id)); showToast('Défi retiré.', 'success'); renderEquipes(); }
+  catch (_) { showToast('Action impossible.', 'error'); }
+};
+
+window.repondreDefi = async function(id, accepte) {
+  const uid = currentUser?.uid; if (!uid) return;
+  const snap = await getDoc(doc(db, 'defis', id));
+  if (!snap.exists()) return;
+  const d = snap.data();
+  if (!accepte) {
+    try { await updateDoc(doc(db, 'defis', id), { statut: 'refuse', repondUAt: serverTimestamp() }); }
+    catch (_) { return showToast('Action impossible.', 'error'); }
+    showToast('Défi refusé.', '');
+    return renderEquipes();
+  }
+  try {
+    // Les deux effectifs, réunis. On lit les équipes au moment d'accepter :
+    // elles ont pu changer depuis l'envoi du défi.
+    const [a, b] = await Promise.all([
+      getDoc(doc(db, 'equipes', d.equipeA)), getDoc(doc(db, 'equipes', d.equipeB))]);
+    const membres = [...new Set([
+      ...(a.exists() ? a.data().membres || [] : []),
+      ...(b.exists() ? b.data().membres || [] : [])])];
+    const sp = SPORTS[d.sport] || SPORTS[SPORT_DEFAUT];
+    const quand = _toDate(d.date, d.heure) || new Date();
+    // Les règles n'autorisent la création qu'au statut « sondage » ;
+    // le créateur le passe ensuite à « confirmé ». Deux écritures, aucune
+    // règle à assouplir.
+    const ref = await addDoc(collection(db, 'matchs'), {
+      createurUid: uid, statut: 'sondage', visibilite: 'public',
+      sport: d.sport, joueursMax: sp.joueursMax,
+      finVisible: new Date(quand.getTime() + 24 * 3600 * 1000),
+      message: `${d.nomA} contre ${d.nomB}`,
+      creneauxProposes: [{ id: 'defi', date: d.date, heure: d.heure, lieu: d.lieu, votants: [] }],
+      votes: { defi: [] },
+      joueursInscrits: membres,
+      equipes: [{ nom: d.nomA, uids: a.exists() ? a.data().membres || [] : [] },
+                { nom: d.nomB, uids: b.exists() ? b.data().membres || [] : [] }],
+      equipeAId: d.equipeA, equipeBId: d.equipeB,
+      hommeDuMatchUid: null, scoreA: null, scoreB: null,
+      lieuFinal: d.lieu, dateFinale: d.date,
+      lieuCoords: null, createdAt: serverTimestamp(),
+    });
+    await updateDoc(ref, { statut: 'confirmé' });
+    await updateDoc(doc(db, 'defis', id), { statut: 'accepte', matchId: ref.id, repondUAt: serverTimestamp() });
+    closeModal();
+    momentKolektif({
+      variante: 'defi', eyebrow: 'Match confirmé',
+      titre: `${escapeHtml(d.nomA)}<br><span class="km-vs">vs</span><br>${escapeHtml(d.nomB)}`,
+      sous: `${escapeHtml(d.lieu)} · ${escapeHtml(d.heure || '')}`,
+      duree: 3000, vibre: [24, 70, 24],
+    });
+    renderEquipes();
+  } catch (err) { showToast('Impossible de créer le match.', 'error'); }
+};
 
 // ===== APPELS D'ÉQUIPES SUR L'ACCUEIL =====
 // Le sens compte : ce n'est pas au joueur d'aller fouiller un onglet, c'est
