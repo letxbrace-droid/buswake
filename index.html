@@ -734,6 +734,13 @@
     }
     .fc3-stat .sl { font-size:9px; letter-spacing:1.5px; font-weight:600; color:rgba(255,255,255,.42); }
     /* Tiers : seuls le chiffre et le liseré du bas changent */
+    /* Bandeau de marque de la carte : discret à l'écran, décisif en capture. */
+    .fc3-foot { display:flex; align-items:center; gap:7px; margin-top:11px;
+      padding-top:9px; border-top:1px solid rgba(255,255,255,.14); }
+    .fc3-logo { width:15px; height:15px; flex-shrink:0; }
+    .fc3-wordmark { font-size:10px; font-weight:700; letter-spacing:2.4px; color:#fff; opacity:.92; }
+    .fc3-foot-stats { margin-left:auto; font-size:9px; letter-spacing:.9px; font-weight:600;
+      color:rgba(255,255,255,.68); text-align:right; }
     .fut-card-v3.t-or     { --tier-edge:#FFD24A; --tier-num:#FFE08A; }
     .fut-card-v3.t-argent { --tier-edge:#D6DEE6; --tier-num:#EEF3F8; }
     .fut-card-v3.t-bronze { --tier-edge:#CC8A52; --tier-num:#F2C49C; }
@@ -5744,6 +5751,13 @@ async function renderProfil() {
           ${statsOrder.map(k => `<div class="fc3-stat"><span class="sn">${d.atouts?.[k] || 70}</span><span class="sl">${atoutsMap[k]}</span></div>`).join('')}
           <div class="fc3-stat"><span class="sn">${pas}</span><span class="sl">PAS</span></div>
         </div>
+        <!-- La carte est faite pour être capturée et postée. Sans la marque
+             dessus, chaque partage est de la publicité pour personne. -->
+        <div class="fc3-foot">
+          <img src="./logo.png" class="fc3-logo" alt="">
+          <span class="fc3-wordmark">KOLEKTIF</span>
+          <span class="fc3-foot-stats">${escapeHtml(rang.label)} · ${d.stats?.matchsJoues ?? 0} MATCHS${(d.stats?.hommeDuMatch) ? ` · ${d.stats.hommeDuMatch} MVP` : ''}</span>
+        </div>
       </div>
     </div>
   </div>`;
@@ -5896,7 +5910,7 @@ window.openSettings = function() {
   const canInstall = !_isStandalone();
   openModal('Réglages', `
     ${canInstall ? `<button class="profile-action-btn" onclick="closeModal();window.triggerInstall()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m8 11 4 4 4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>Installer l'application</button>` : ''}
-    <button class="profile-action-btn" onclick="window.exportFutCard()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Exporter ma carte PNG</button>
+    <button class="profile-action-btn" onclick="window.exportFutCard()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>Partager ma carte</button>
     <button class="profile-action-btn" onclick="window.copyInviteLink()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.07 0l2-2a5 5 0 0 0-7.07-7.07l-1 1"/><path d="M14 11a5 5 0 0 0-7.07 0l-2 2a5 5 0 0 0 7.07 7.07l1-1"/></svg>Copier mon lien d'invitation</button>
     <button class="profile-action-btn" onclick="window.enableNotifications()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10 21a2 2 0 0 0 4 0"/></svg>Activer les notifications</button>
     <button class="profile-action-btn" onclick="window.openChangePassword()"><svg class="pa-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Changer mon mot de passe</button>
@@ -6322,11 +6336,32 @@ window.exportFutCard = async function() {
       });
     }
     const canvas = await window.html2canvas(card, { backgroundColor: null, scale: 3, useCORS: true });
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/png'));
+    if (!blob) throw new Error('canvas vide');
+    const fichier = new File([blob], 'ma-carte-kolektif.png', { type: 'image/png' });
+
+    // Partager, pas télécharger. Sur mobile, un lien de téléchargement
+    // envoie l'image dans un dossier que personne ne rouvrira ; la feuille
+    // de partage native ouvre directement Instagram, TikTok, WhatsApp.
+    // `canShare({files})` est le seul test fiable : `share` existe sur des
+    // navigateurs qui refusent les fichiers.
+    if (navigator.canShare && navigator.canShare({ files: [fichier] })) {
+      try {
+        await navigator.share({ files: [fichier], title: 'Ma carte Kolektif' });
+        haptic([18, 40, 30]);
+        return;
+      } catch (err) {
+        // L'utilisateur a fermé la feuille de partage : ce n'est pas une erreur.
+        if (err && err.name === 'AbortError') return;
+      }
+    }
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.download = 'ma-carte-kolektif.png';
-    link.href = canvas.toDataURL('image/png');
+    link.href = url;
     link.click();
-    showToast('Carte exportée !', 'success');
+    setTimeout(() => URL.revokeObjectURL(url), 4000);
+    showToast('Carte enregistrée !', 'success');
   } catch (e) {
     showToast('Export impossible (réseau).', 'error');
   }
