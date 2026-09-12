@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-title" content="Kolektif">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="theme-color" content="#000000">
+  <meta name="theme-color" content="#0F0F0F">
   <meta name="description" content="Trouve des joueurs près de chez toi, propose un match, réunis ton équipe.">
   <title>Kolektif</title>
   <!-- Aperçu de partage : le logo + le titre s'affichent quand on envoie le lien
@@ -54,14 +54,16 @@
 
     /* ===== DESIGN SYSTEM V2 — ULTRA PREMIUM ===== */
     :root {
-      /* NOM HÉRITÉ : --orange EST le vert de la marque (#00D88A), pas un orange.
+      /* NOM HÉRITÉ : --orange EST le vert de la marque (#5DD62C), pas un orange.
          Renommer les 132 usages toucherait aussi la classe .btn-orange générée
          dans des chaînes JS — risque réel pour un gain de lisibilité seul. */
-      --orange: #00F58F;
-      --orange2: #5BFFC0;
-      --orange-dark: #00C97A;
-      --orange-glow: rgba(0,245,143,.40);
-      --orange-glow-soft: rgba(0,245,143,.12);
+      --orange: #5DD62C;
+      --orange2: #8BF05A;
+      --orange-dark: #337418;
+      --orange-glow: rgba(93,214,44,.38);
+      --orange-glow-soft: rgba(93,214,44,.12);
+      /* Vert profond : fond des surfaces teintées, jamais du texte. */
+      --vert-profond: #337418;
 
       /* ===== SECOND ACCENT : LE FEU =====
          ATTENTION AU PIÈGE : `--orange` ci-dessus EST LE VERT. `--feu` est
@@ -78,13 +80,16 @@
       --feu-glow: rgba(255,138,61,.34);
       --feu-soft: rgba(255,138,61,.12);
       --chasuble: #FF6A00;
-      --bg: #000000;
-      --surface: #0B0D12;
-      --card: #141821;
-      --card2: #1B2030;
-      --border: #20242F;
-      --border-light: #2C3140;
-      --text: #FFFFFF;
+      /* Noirs LÉGÈREMENT olivâtres, pas neutres. Le noir pur (#000) durcit
+         l'image et fait vibrer un vert saturé ; #0F0F0F teinté de vert pose
+         le gazon partout sans qu'on le voie. */
+      --bg: #0F0F0F;
+      --surface: #161915;
+      --card: #1C201A;
+      --card2: #262B23;
+      --border: #2A2F27;
+      --border-light: #3A4035;
+      --text: #F8F8F8;
       /* Hiérarchie par opacité (logique Apple/HIG dark) : blanc neutre,
          pas de teinte décorative, s'adapte au fond, lisible (AA). */
       --text-sec: rgba(255,255,255,0.62);
@@ -92,8 +97,8 @@
       /* Alias de l'accent — il a longtemps valu #00E676, un vert voisin mais
          DIFFÉRENT : deux verts à 6 % d'écart se lisent comme une erreur, pas
          comme une intention. Une seule couleur d'accent, comme annoncé plus bas. */
-      --green: #00D88A;
-      --green-glow: rgba(0,216,138,.3);
+      --green: #5DD62C;
+      --green-glow: rgba(93,214,44,.3);
       --red: #FF1744;
       --blue: #00B0FF;
       --gold: #FFD700;
@@ -3033,7 +3038,7 @@ const RANGS = [
   { min: 0,    label: 'Recrue',    color: '#A07B5B' },
   { min: 200,  label: 'Stagiaire', color: '#B8C0CC' },
   { min: 500,  label: 'Titulaire', color: '#3BA2FF' },
-  { min: 1000, label: 'Cadre',     color: '#00D88A' },
+  { min: 1000, label: 'Cadre',     color: '#5DD62C' },
   { min: 2000, label: 'Capitaine', color: '#FFC83D' },
   { min: 4000, label: 'Légende',   color: '#FF4D6D' },
 ];
@@ -3121,7 +3126,9 @@ const MONO_SPORT = SPORTS_ACTIFS.length <= 1;
 // foot à 5 → 5, basket 3×3 → 3, padel → 2. C'est ce qui permet au modèle
 // de rester multi-sport alors que le brief parle de foot à 5.
 const NIVEAUX = { debutant: 'Débutant', intermediaire: 'Intermédiaire', confirme: 'Confirmé' };
-const COULEURS_EQUIPE = ['#00D88A', '#00B0FF', 'var(--feu)', '#B36BFF', '#FFD24A', '#FF5A6E'];
+// Valeurs STOCKÉES EN BASE et validées telles quelles par les règles
+// Firestore : ce sont des littéraux, jamais des variables CSS.
+const COULEURS_EQUIPE = ['#5DD62C', '#00B0FF', '#FF8A3D', '#B36BFF', '#FFD24A', '#FF5A6E'];
 // Emblèmes d'équipe. Quatorze tracés + les initiales, six couleurs :
 // quatre-vingt-dix combinaisons, et chacune est une identité distincte.
 //
@@ -3321,7 +3328,7 @@ function _venueHome() {
 
 // ===== THÈMES DE COULEUR =====
 // Identité verrouillée sur le vert — plus de sélecteur de thème.
-// Une seule couleur d'accent, définie une fois dans :root (#00D88A).
+// Une seule couleur d'accent, définie une fois dans :root (#5DD62C).
 const currentTheme = 'vert';
 function applyTheme() {}      // no-op conservé (anciens appels)
 function renderThemeDots() {} // no-op conservé
@@ -3738,7 +3745,7 @@ function rarityClass(overall) {
   return overall >= 80 ? 'gold' : overall >= 70 ? 'silver' : 'bronze';
 }
 function _hexA(hex, a) {
-  hex = (hex || '#00D88A').trim().replace('#', '');
+  hex = (hex || '#5DD62C').trim().replace('#', '');
   if (hex.length === 3) hex = hex.split('').map(x => x + x).join('');
   const n = parseInt(hex, 16);
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
@@ -3752,7 +3759,7 @@ function drawRadar(id) {
   const ctx = cv.getContext('2d');
   const W = cv.width, H = cv.height, cx = W/2, cy = H/2, r = Math.min(W, H)/2 - 30, N = stats.length;
   const pt = (ang, rad) => [cx + Math.cos(ang)*rad, cy + Math.sin(ang)*rad];
-  const accent = (getComputedStyle(document.documentElement).getPropertyValue('--orange') || '#00D88A').trim();
+  const accent = (getComputedStyle(document.documentElement).getPropertyValue('--orange') || '#5DD62C').trim();
   function draw(prog) {
     ctx.clearRect(0, 0, W, H);
     for (let lev = 1; lev <= 4; lev++) {
@@ -3883,7 +3890,7 @@ function celebrate(label) {
   haptic([18, 40, 30]); // double-buzz "succès"
   let el = document.getElementById('celebrate');
   if (!el) { el = document.createElement('div'); el.id = 'celebrate'; document.body.appendChild(el); }
-  const cols = ['#00D88A', '#00FF9D', '#7CFFC4', '#FFD700'];
+  const cols = ['#5DD62C', '#8BF05A', '#C6F5A4', '#FFD700'];
   const parts = reduce ? '' : Array.from({ length: 14 }).map(() => {
     const a = Math.random() * Math.PI * 2, d = 58 + Math.random() * 72;
     const sz = 5 + Math.random() * 6;
@@ -4804,7 +4811,7 @@ function carteDefiHTML(d, uid) {
   return `<div class="df-carte${recu ? ' recu' : ''}">
     <div class="df-eyebrow">${recu ? `${ICON.zap} Nouveau défi` : `${ICON.clock} Défi envoyé`}</div>
     <div class="df-vs">
-      <span class="df-eq"><span class="blason" style="width:34px;height:34px;--bc:${d.couleurA || '#00D88A'};font-size:12px">${escapeHtml(initialesEquipe(d.nomA))}</span>${escapeHtml(d.nomA || '')}</span>
+      <span class="df-eq"><span class="blason" style="width:34px;height:34px;--bc:${d.couleurA || '#5DD62C'};font-size:12px">${escapeHtml(initialesEquipe(d.nomA))}</span>${escapeHtml(d.nomA || '')}</span>
       <span class="df-mid">VS</span>
       <span class="df-eq"><span class="blason" style="width:34px;height:34px;--bc:${d.couleurB || '#00B0FF'};font-size:12px">${escapeHtml(initialesEquipe(d.nomB))}</span>${escapeHtml(d.nomB || '')}</span>
     </div>
@@ -6254,7 +6261,7 @@ async function openComposerEquipes(matchId) {
   const m = snap.data();
   eqData = m.equipes && m.equipes.length > 0 ? JSON.parse(JSON.stringify(m.equipes)) : [
     { nom: 'Chasubles', couleur: '#FF6A00', logo: '🟧', joueurs: [] },
-    { nom: 'Verts',     couleur: '#00D88A', logo: '🟩', joueurs: [] },
+    { nom: 'Verts',     couleur: '#5DD62C', logo: '🟩', joueurs: [] },
   ];
   window._composerLieu = m.lieuFinal || (m.creneauxProposes && m.creneauxProposes[0]?.lieu) || 'Lieu à confirmer';
   const inscrits = m.joueursInscrits || [];
@@ -6306,7 +6313,7 @@ function renderTerrainView() {
   function teamBlock(idx, color, defName) {
     const eq = eqData[idx];
     const players = eq.joueurs || [];
-    const col = color === 'orange' ? '#FF6A00' : '#00D88A';
+    const col = color === 'orange' ? '#FF6A00' : '#5DD62C';
     const nom = (eq.nom || defName).toUpperCase();
     return `
       <div class="pitch-team-head">

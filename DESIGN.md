@@ -10,7 +10,12 @@ garantissent.
 
 ## Le principe
 
-**Noir mat, un seul vert, des formes nettes.**
+**Noir olivâtre, un seul vert gazon, des formes nettes.**
+
+Le fond n'est plus le noir pur : `#0F0F0F` légèrement teinté de vert. Le
+noir absolu durcit l'image et fait *vibrer* un vert saturé posé dessus ;
+un noir qui contient déjà une trace de gazon pose le terrain partout sans
+qu'on le voie.
 
 L'app est vectorielle : formes, traits, typographie. La photographie a
 trois emplois, et **trois seulement** : la carte de joueur, les bannières
@@ -21,7 +26,7 @@ La règle qui tient ces trois ensemble : **une photo n'est jamais de la
 décoration, elle dit où on joue.** Et elle passe toujours sous un voile
 calculé, jamais choisi à l'œil — voir plus bas.
 
-Un seul accent coloré : `#00D88A`. Les autres couleurs ne servent qu'à
+Un seul accent coloré : `#5DD62C`, un **vert gazon** et non un vert menthe. Les autres couleurs ne servent qu'à
 dire quelque chose de précis (rouge = urgence, or/argent/bronze = rang de
 carte).
 
@@ -214,16 +219,23 @@ l'un ni l'autre. Le feu prend la seconde charge.
 
 | | Rôle |
 |---|---|
-| **vert** `--orange` `#00F58F` | action, réussite, progression |
+| **vert** `--orange` `#5DD62C` | action, réussite, progression |
 | **feu** `--feu` `#FF8A3D` | chaleur, rareté, ce qui manque, ce qui brûle |
 
 ⚠️ **Le piège de nommage :** `--orange` **est le vert**. Nom hérité,
 non renommable sans casser `.btn-orange` construit dans des chaînes JS.
 Le vrai orange s'appelle `--feu`.
 
-Le vert est passé de `#00D88A` à `#00F58F` : contraste sur noir de
-**11,19 à 14,46**. Plus éclatant *et* plus lisible — ce n'est pas un
-arbitrage, les deux vont dans le même sens sur fond noir.
+Le vert a changé deux fois : `#00D88A` (menthe) → `#00F58F` (menthe vive)
+→ **`#5DD62C` (gazon)**. Contraste sur le fond : **10,15**, texte
+principal `#F8F8F8` à **18,05**.
+
+**Changer le vert ne se limite jamais au CSS.** Le signe de marque, les
+illustrations, les stickers et les bannières de partage étaient *cuits* à
+l'ancienne valeur. Ils ont été reteintés pixel par pixel — 755 000 pixels
+sur quatorze fichiers — par une règle qui ne touche que les pixels
+« verts » et qui conserve la clarté relative de chacun, donc les dégradés
+et l'anticrénelage. Un remplacement à plat les aurait aplatis.
 
 ### La carte collector
 

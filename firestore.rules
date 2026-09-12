@@ -172,7 +172,9 @@ service cloud.firestore {
              'eclair','couronne','etoile','flamme','griffe','ancre','fleche',
              'tour','cible','vague','montagne','diamant','ballon','croix'])
         && (!('couleur' in d) || d.couleur == null || d.couleur in [
-             '#00D88A','#00B0FF','#FF8A3D','#B36BFF','#FFD24A','#FF5A6E'])
+             // #00D88A est l'ancien vert : gardé pour que les équipes créées
+             // avant le changement de palette restent modifiables.
+             '#5DD62C','#00B0FF','#FF8A3D','#B36BFF','#FFD24A','#FF5A6E','#00D88A'])
         // Club de cœur : un identifiant du catalogue, pas une URL libre.
         && (!('club' in d) || d.club == null || d.club in [
              'psg','om','ol','monaco','barca','real','bayern','city','liverpool','chelsea'])
