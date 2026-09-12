@@ -175,7 +175,8 @@ service cloud.firestore {
              '#00D88A','#00B0FF','#FF8A3D','#B36BFF','#FFD24A','#FF5A6E'])
         // Club de cœur : un identifiant du catalogue, pas une URL libre.
         && (!('club' in d) || d.club == null || d.club in [
-             'psg','om','ol','monaco','barca','real','bayern','city','liverpool','chelsea']);
+             'psg','om','ol','monaco','barca','real','bayern','city','liverpool','chelsea'])
+        && (!('clubEcusson' in d) || d.clubEcusson is bool);
     }
     // Un joueur ne peut modifier QUE le tableau `membres`, et uniquement en y
     // ajoutant ou retirant son propre uid. Il ne peut ni renommer l'équipe,

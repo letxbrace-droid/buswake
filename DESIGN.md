@@ -95,7 +95,30 @@ icônes de sport : ils marchaient en grand et mentaient en petit. Une aile
 lue comme une feuille, deux épées croisées lues comme une tache, un
 trèfle lu comme une croix.
 
-**Les écussons de vrais clubs ne sont pas une option.** L'app en affiche
+**Le club de cœur donne ses COULEURS, pas son écusson.** Un blason bleu
+marine à liseré rouge dit « on est les gars du PSG » aussi bien qu'un
+écusson collé — et personne ne possède une paire de couleurs. Les
+couleurs ne sont pas stockées : `couleur` reste l'une des six valeurs que
+les règles acceptent, et celles du club sont dérivées à l'affichage.
+
+Deux règles de fabrication, toutes deux nées d'un échec mesuré :
+
+**1. Le champ porte la couleur PRIMAIRE seule.** Le premier essai étalait
+les deux couleurs en dégradé. Avec un bleu marine d'un côté et du blanc
+de l'autre (OM, Monaco, OL), *aucune* encre ne peut contraster avec les
+deux bouts : **six clubs sur dix tombaient sous 3:1**, trois d'entre eux
+à 1,00 — invisible. La seconde couleur est devenue un liseré, là où rien
+n'est écrit.
+
+**2. L'encre se choisit par comparaison, pas par seuil.** On garde celle
+des deux — blanc ou noir — qui contraste le plus avec la couleur
+primaire. Résultat sur les dix clubs : de 4,87 (Monaco) à 17,74 (Real),
+tous au-dessus du seuil.
+
+L'écusson reste possible, mais c'est une **bascule explicite** du
+capitaine, jamais un défaut.
+
+**Les écussons de vrais clubs ne sont pas un acquis.** L'app en affiche
 déjà (carte de joueur, `clubShield`) en les chargeant depuis un serveur
 tiers : c'est à la fois une dépendance qui peut tomber, une image absente
 hors-ligne, et l'usage d'une marque déposée dans un produit public.

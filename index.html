@@ -1277,14 +1277,19 @@
     @keyframes liveDot { 0%{box-shadow:0 0 0 0 rgba(0,176,255,.5)} 100%{box-shadow:0 0 0 7px rgba(0,176,255,0)} }
     .mc-body { padding:2px 16px 12px; }
     /* ===== ÉQUIPES ===== */
+    /* Champ = couleur primaire seule : c'est sur elle, et elle seule, que le
+       symbole doit se lire. La couleur secondaire est un LISERÉ — visible,
+       mais jamais sous un glyphe. */
     .blason { display:inline-flex; align-items:center; justify-content:center; flex-shrink:0;
       border-radius:30% 30% 42% 42% / 26% 26% 60% 60%;
-      background:linear-gradient(160deg, color-mix(in srgb, var(--bc) 88%, #fff 12%), var(--bc));
-      color:#06231A; font-family:Anton,sans-serif; letter-spacing:.5px;
-      box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 1px 0 rgba(255,255,255,.35); }
-    @supports not (background: color-mix(in srgb, red 50%, blue)) {
-      .blason { background:var(--bc); }
-    }
+      background:linear-gradient(160deg, var(--bc) 0%, var(--bc) 100%);
+      font-family:Anton,sans-serif; letter-spacing:.5px;
+      box-shadow:0 4px 14px rgba(0,0,0,.45),
+                 inset 0 0 0 2px var(--bc2, var(--bc)),
+                 inset 0 0 0 3px rgba(0,0,0,.18); }
+    /* Un blason très clair (Real, OM) se perd sur le noir : on lui donne un
+       liseré pour qu'il reste un objet posé, pas une tache. */
+    .blason-ec { box-shadow:0 4px 14px rgba(0,0,0,.45), inset 0 0 0 1.5px rgba(255,255,255,.25); }
     .eq-carte { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-lg);
       padding:14px; margin-bottom:10px;
       transition:border-color var(--t-base) var(--ease); }
@@ -1341,9 +1346,7 @@
     .ce-emb svg { width:22px; height:22px; }
     .ce-emb b { font-size:13px; letter-spacing:.5px; }
     .ce-emb.on { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
-    .blason-club { background:linear-gradient(160deg,#161B21,#0E1216);
-      border:2px solid var(--bc); box-shadow:0 4px 14px rgba(0,0,0,.45); }
-    .blason-club b { color:var(--bc); font-family:Anton,sans-serif; letter-spacing:.5px; }
+    .blason-ec b { font-family:Anton,sans-serif; letter-spacing:.5px; }
     .ce-note { font-size:12px; color:var(--text-muted); margin-top:6px; line-height:1.45; }
     .ce-clubs { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:10px; }
     .ce-club { display:flex; align-items:center; gap:9px; min-height:44px; padding:9px 11px;
@@ -1354,6 +1357,22 @@
                  background var(--t-base) var(--ease), transform var(--t-fast) var(--ease); }
     .ce-club:active { transform:scale(.96); }
     .ce-club.on { border-color:var(--orange); color:var(--orange); background:rgba(0,216,138,.08); }
+    .ce-cl-pastille { width:26px; height:26px; border-radius:50%; flex-shrink:0;
+      background:linear-gradient(135deg, var(--a) 0%, var(--a) 48%, var(--b) 52%, var(--b) 100%);
+      box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22); }
+    .ce-switch { display:flex; align-items:flex-start; gap:11px; margin-top:12px; cursor:pointer;
+      padding:11px 12px; background:var(--card); border:1px solid var(--border);
+      border-radius:var(--r-sm); }
+    .ce-switch input { position:absolute; opacity:0; pointer-events:none; }
+    .ce-sw-piste { flex-shrink:0; width:40px; height:24px; border-radius:var(--r-pill);
+      background:rgba(255,255,255,.12); position:relative; margin-top:1px;
+      transition:background var(--t-base) var(--ease); }
+    .ce-sw-bille { position:absolute; top:3px; left:3px; width:18px; height:18px; border-radius:50%;
+      background:#fff; transition:transform var(--t-base) var(--ease); }
+    .ce-switch input:checked + .ce-sw-piste { background:var(--orange); }
+    .ce-switch input:checked + .ce-sw-piste .ce-sw-bille { transform:translateX(16px); }
+    .ce-sw-txt b { display:block; font-size:13px; color:var(--text); font-weight:600; }
+    .ce-sw-txt small { display:block; font-size:11.5px; color:var(--text-muted); margin-top:2px; line-height:1.4; }
 
     /* ===== DÉFIS ===== */
     .df-carte { background:var(--card); border:1.5px solid var(--border); border-radius:var(--r-lg);
@@ -3060,24 +3079,63 @@ function initialesEquipe(nom) {
 function couleurEquipe(e) {
   return (e && e.couleur && COULEURS_EQUIPE.includes(e.couleur)) ? e.couleur : COULEURS_EQUIPE[0];
 }
+// Les couleurs RENDUES. Un club de cœur habille le blason de ses deux
+// couleurs ; sans club, c'est la couleur Kolektif choisie, en aplat.
+// Rien de tout ça n'est stocké : `couleur` reste l'une des six valeurs que
+// les règles Firestore acceptent, et les couleurs de club sont dérivées à
+// l'affichage. Personne ne possède une paire de couleurs.
+function couleursEquipe(e) {
+  const cl = e && e.club && CLUBS.find(c => c.id === e.club);
+  if (cl) return { a: cl.c1, b: cl.c2 };
+  const c = couleurEquipe(e);
+  return { a: c, b: c };
+}
+// Luminance relative (WCAG) d'une couleur hexadécimale.
+function _lum(hex) {
+  const h = String(hex || '').replace('#', '');
+  if (h.length !== 6) return 0;
+  const v = [0, 2, 4].map(i => {
+    const c = parseInt(h.slice(i, i + 2), 16) / 255;
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+  });
+  return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+}
+// L'encre du symbole s'adapte au fond, et on ne choisit pas par seuil : on
+// prend celle des deux encres qui contraste LE PLUS. Un seuil fixe donnait
+// six clubs sur dix sous 3:1.
+//
+// Surtout, le symbole ne repose plus que sur la couleur PRIMAIRE. Le premier
+// essai étalait les deux couleurs du club en dégradé — avec un bleu marine
+// d'un côté et du blanc de l'autre (OM, Monaco, OL), aucune encre ne peut
+// contraster avec les deux bouts. La seconde couleur devient donc un liseré,
+// là où rien n'est écrit.
+function encreBlason(a) {
+  const L = _lum(a);
+  const ct = x => (Math.max(L, x) + 0.05) / (Math.min(L, x) + 0.05);
+  return ct(_lum('#FFFFFF')) >= ct(_lum('#0B0E12')) ? '#FFFFFF' : '#0B0E12';
+}
 function blasonHTML(e, taille) {
   const S = taille || 46;
-  // Club de cœur : l'écusson prend la place du symbole, mais la FORME reste
-  // la nôtre. Le blason Kolektif encadre le club au lieu d'être remplacé —
-  // sans quoi on perdrait la grammaire visuelle à chaque équipe.
+  const { a, b } = couleursEquipe(e);
+  const encre = encreBlason(a);
   const cl = e && e.club && CLUBS.find(c => c.id === e.club);
-  if (cl) {
+  const fond = `--bc:${a};--bc2:${b};color:${encre}`;
+
+  // Écusson : décision explicite du capitaine, jamais par défaut. Même dans
+  // ce cas la FORME du blason reste la nôtre — le club est encadré, pas
+  // substitué, sinon la grammaire visuelle se dissout équipe par équipe.
+  if (cl && e.clubEcusson) {
     const D = Math.round(S * 0.66);
-    return `<span class="blason blason-club" style="width:${S}px;height:${S}px;--bc:${couleurEquipe(e)};font-size:${Math.round(S * 0.3)}px">
+    return `<span class="blason blason-ec" style="width:${S}px;height:${S}px;${fond};font-size:${Math.round(S * 0.3)}px">
       ${clubImgHTML(cl, D)}
       <b style="display:none">${escapeHtml(cl.short)}</b>
     </span>`;
   }
   const emb = e && e.embleme && EMBLEMES[e.embleme];
   const dedans = emb
-    ? `<svg viewBox="0 0 24 24" width="${Math.round(S * 0.54)}" height="${Math.round(S * 0.54)}" fill="#06231A" aria-hidden="true"><path d="${emb}"/></svg>`
+    ? `<svg viewBox="0 0 24 24" width="${Math.round(S * 0.54)}" height="${Math.round(S * 0.54)}" fill="currentColor" aria-hidden="true"><path d="${emb}"/></svg>`
     : escapeHtml(initialesEquipe(e && e.nom));
-  return `<span class="blason" style="width:${S}px;height:${S}px;--bc:${couleurEquipe(e)};font-size:${Math.round(S * 0.36)}px">${dedans}</span>`;
+  return `<span class="blason" style="width:${S}px;height:${S}px;${fond};font-size:${Math.round(S * 0.36)}px">${dedans}</span>`;
 }
 // Bilan : le brief demande V — N — D. `victoires` existait déjà ;
 // `nuls` et `defaites` sont nouveaux et valent 0 sur les équipes d'avant.
@@ -4417,9 +4475,9 @@ window.quitterEquipe = async function(id) {
 };
 
 // ===== CRÉER UNE ÉQUIPE =====
-let _ceSport = SPORT_DEFAUT, _ceNiveau = 'intermediaire', _ceCouleur = COULEURS_EQUIPE[0], _ceEmbleme = '', _ceClub = '';
+let _ceSport = SPORT_DEFAUT, _ceNiveau = 'intermediaire', _ceCouleur = COULEURS_EQUIPE[0], _ceEmbleme = '', _ceClub = '', _ceEcusson = false;
 window.openCreerEquipe = function() {
-  _ceSport = SPORT_DEFAUT; _ceNiveau = 'intermediaire'; _ceCouleur = COULEURS_EQUIPE[0]; _ceEmbleme = ''; _ceClub = '';
+  _ceSport = SPORT_DEFAUT; _ceNiveau = 'intermediaire'; _ceCouleur = COULEURS_EQUIPE[0]; _ceEmbleme = ''; _ceClub = ''; _ceEcusson = false;
   const d = currentUserData || {};
   const body = `<div class="create-form">
     <div class="section-sub">${ICON.edit} Le nom de ton équipe</div>
@@ -4445,12 +4503,17 @@ window.openCreerEquipe = function() {
         ${id ? `<svg viewBox="0 0 24 24" fill="currentColor"><path d="${EMBLEMES[id]}"/></svg>` : '<b>AB</b>'}
       </button>`).join('')}</div>
     <div class="section-sub" style="margin-top:18px">${ICON.ball} Club de cœur</div>
-    <div class="ce-note">Optionnel. L'écusson du club prend la place du symbole ;
-      la forme et la couleur du blason restent celles de ton équipe.</div>
+    <div class="ce-note">Optionnel. Ton blason prend les couleurs du club, et garde ton emblème.</div>
     <div class="ce-clubs" id="ce-clubs">${CLUBS.map(c => `
       <button class="ce-club${c.id === _ceClub ? ' on' : ''}" data-id="${c.id}" onclick="ceSetClub('${c.id}')">
-        ${clubShield(c.id, 26)}<span>${escapeHtml(c.name)}</span>
+        <span class="ce-cl-pastille" style="--a:${c.c1};--b:${c.c2}"></span><span>${escapeHtml(c.name)}</span>
       </button>`).join('')}</div>
+    <label class="ce-switch" id="ce-switch" style="${_ceClub ? '' : 'display:none'}">
+      <input type="checkbox" id="ce-ecusson" ${_ceEcusson ? 'checked' : ''} onchange="ceSetEcusson(this.checked)">
+      <span class="ce-sw-piste"><span class="ce-sw-bille"></span></span>
+      <span class="ce-sw-txt"><b>Afficher l'écusson du club</b>
+        <small>À la place de ton emblème. Chargé depuis un serveur externe.</small></span>
+    </label>
     <button class="btn-primary" style="width:100%;margin-top:22px" onclick="creerEquipe()">${ICON.check} Créer l'équipe</button>
   </div>`;
   openModal('Créer une équipe', body);
@@ -4468,26 +4531,31 @@ window.ceSetCouleur = function(c) { _ceCouleur = c;
   document.querySelectorAll('#ce-couleurs .ce-coul').forEach((el, i) =>
     el.classList.toggle('on', COULEURS_EQUIPE[i] === c));
   ceApercu(); };
-window.ceSetEmbleme = function(id) { _ceEmbleme = id; _ceClub = '';
+window.ceSetEmbleme = function(id) { _ceEmbleme = id;
   document.querySelectorAll('#ce-emblemes .ce-emb').forEach(el =>
     el.classList.toggle('on', el.dataset.id === id));
-  document.querySelectorAll('#ce-clubs .ce-club').forEach(el => el.classList.remove('on'));
   ceApercu(); };
-// Un club et un emblème occupent la même place : choisir l'un libère l'autre.
 window.ceSetClub = function(id) {
   _ceClub = (_ceClub === id) ? '' : id;
+  if (!_ceClub) _ceEcusson = false;
   document.querySelectorAll('#ce-clubs .ce-club').forEach(el =>
     el.classList.toggle('on', el.dataset.id === _ceClub));
+  const sw = document.getElementById('ce-switch');
+  if (sw) sw.style.display = _ceClub ? '' : 'none';
+  const cb = document.getElementById('ce-ecusson');
+  if (cb) cb.checked = _ceEcusson;
+  // Les couleurs du club n'effacent pas l'emblème : les deux cohabitent.
   document.querySelectorAll('#ce-emblemes .ce-emb').forEach(el =>
-    el.classList.toggle('on', !_ceClub && el.dataset.id === _ceEmbleme));
+    el.classList.toggle('on', el.dataset.id === _ceEmbleme));
   ceApercu(); };
+window.ceSetEcusson = function(v) { _ceEcusson = !!v; ceApercu(); };
 // L'aperçu se met à jour au moindre changement — nom, couleur, emblème.
 // Sans lui, on choisit à l'aveugle et on découvre son blason après coup.
 function ceApercu() {
   const el = document.getElementById('ce-apercu');
   if (!el) return;
   const nom = (document.getElementById('ce-nom')?.value || '').trim() || 'Ton équipe';
-  el.innerHTML = blasonHTML({ nom, couleur: _ceCouleur, embleme: _ceEmbleme, club: _ceClub }, 60)
+  el.innerHTML = blasonHTML({ nom, couleur: _ceCouleur, embleme: _ceEmbleme, club: _ceClub, clubEcusson: _ceEcusson }, 60)
     + `<span class="ce-ap-nom">${escapeHtml(nom)}</span>`;
 }
 
@@ -4502,6 +4570,7 @@ window.creerEquipe = async function() {
       nom, sport: _ceSport, niveau: _ceNiveau, couleur: _ceCouleur,
       embleme: _ceEmbleme || null,
       club: _ceClub || null,
+      clubEcusson: !!_ceEcusson,
       ville: ville || null,
       lat: d.lat ?? d.domicileLat ?? null,
       lon: d.lon ?? d.domicileLon ?? null,
