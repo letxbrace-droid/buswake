@@ -27,7 +27,7 @@ const _USER = ${JSON.stringify(fixtures.user || { pseudo: 'Sam', xp: 1240, badge
 const _EQ = ${JSON.stringify(fixtures.equipes || [])}.map(x => ({ id: x.id, data: () => x.d }));
 const _US = ${JSON.stringify(fixtures.users || [])}.map(x => ({ id: x.id, data: () => x.d }));
 const initializeApp=()=>({}), getAuth=()=>({}), getFirestore=()=>({}), getMessaging=()=>({});
-const doc=()=>({}), setDoc=async()=>{}, updateDoc=async()=>{}, addDoc=async()=>({id:'x'}),
+const doc=(db,col,id)=>({_doc:true,_col:col,_id:id}), setDoc=async()=>{}, updateDoc=async()=>{}, addDoc=async()=>({id:'x'}),
  collection=(db,nom)=>({_col:nom}), where=(f,o,v)=>({f,o,v}), orderBy=(f,d)=>({_ord:f,_dir:d||'asc'}),
  serverTimestamp=()=>({}), increment=n=>n, arrayUnion=()=>[], arrayRemove=()=>[],
  deleteField=()=>({}), deleteDoc=async()=>{}, limit=()=>({}), onAuthStateChanged=()=>{},
@@ -38,7 +38,18 @@ const doc=()=>({}), setDoc=async()=>{}, updateDoc=async()=>{}, addDoc=async()=>(
  updatePassword=async()=>{}, getToken=async()=>'', isSupported=async()=>false,
  onMessage=()=>{};
 const query=(...a)=>({a, _col:(a[0]&&a[0]._col)||'', _ord:(a.find(x=>x&&x._ord)||null)});
-const getDoc=async()=>({exists:()=>true, data:()=>_USER});
+// Un instantané de DOCUMENT, pas de collection : exists() et data(), pas
+// docs. Tant que les deux étaient confondus, l'écoute du détail d'un match
+// levait « snap.exists is not a function » — et cet écran, le plus consulté
+// de l'app, n'était jamais exercé par les tests.
+const _lot=(col)=> col==='equipes' ? _EQ : col==='users' ? _US : _FIX;
+const _instantDoc=(ref)=>{
+  const d=(_lot(ref&&ref._col)||[]).find(x=>x.id===(ref&&ref._id));
+  return { id:(ref&&ref._id)||'x', ref, exists:()=>!!d || (ref&&ref._col)==='users',
+           data:()=> d ? d.data() : ((ref&&ref._col)==='users' ? _USER : undefined),
+           get:(k)=>{ const o=d?d.data():null; return o?o[k]:undefined; } };
+};
+const getDoc=async(ref)=>_instantDoc(ref);
 const _trier=(docs,q)=>{
   const o=q&&q._ord; if(!o) return docs;
   const s=[...docs].sort((a,b)=>((a.data()[o._ord]??0)>(b.data()[o._ord]??0)?1:-1));
@@ -57,9 +68,11 @@ const getDocsFromServer=getDocs;
 // onSnapshot RAPPELLE. Tant qu'il ne faisait rien, l'écran Matchs restait
 // sur ses squelettes : sa liste passe par une écoute temps réel, donc elle
 // n'était jamais exercée — ni son état vide, ni ses cartes.
-const onSnapshot=(q,cb)=>{
+const onSnapshot=(cible,cb)=>{
   const suite = typeof cb === 'function' ? cb : (cb && cb.next);
-  if (suite) Promise.resolve(getDocs(q)).then(s => { try { suite(s); } catch (_) {} });
+  if (!suite) return () => {};
+  if (cible && cible._doc) { Promise.resolve().then(()=>{ try { suite(_instantDoc(cible)); } catch (_) {} }); return () => {}; }
+  Promise.resolve(getDocs(cible)).then(s => { try { suite(s); } catch (_) {} });
   return () => {};
 };
 `;

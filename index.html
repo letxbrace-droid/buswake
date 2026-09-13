@@ -1331,6 +1331,35 @@
     .tr-c-sous { font-size:11.5px; color:var(--text-sec); margin-top:3px; line-height:1.4; }
     .tr-c-chev { flex-shrink:0; color:var(--text-muted); font-size:22px; line-height:1; }
 
+    .md-adr { display:flex; align-items:center; flex-wrap:wrap; gap:8px;
+      font-size:12px; color:var(--text-sec); margin-top:7px; line-height:1.4; }
+    .tr-actions { display:flex; align-items:center; gap:7px; flex-shrink:0; }
+    .y-rond { width:38px; height:38px; padding:0; border-radius:50%;
+      justify-content:center; }
+    .y-rond svg { width:17px; height:17px; }
+
+    /* ===== Y ALLER ===== */
+    .y-aller { display:inline-flex; align-items:center; gap:5px; cursor:pointer;
+      border:1px solid rgba(93,214,44,.34); border-radius:var(--r-pill);
+      background:rgba(93,214,44,.10); color:var(--orange);
+      font-size:11.5px; font-weight:700; padding:5px 11px;
+      -webkit-tap-highlight-color:transparent; transition:background .16s, transform .12s; }
+    .y-aller .ic, .y-aller svg { width:14px; height:14px; }
+    .y-aller:active { transform:scale(.95); background:rgba(93,214,44,.2); }
+    .gps-cible { border:1px solid var(--border); border-radius:var(--r-md);
+      background:var(--card); padding:13px 14px; margin-bottom:14px; }
+    .gps-cible b { display:block; font-size:15px; color:var(--text); }
+    .gps-cible span { display:block; font-size:12.5px; color:var(--text-sec); margin-top:3px; line-height:1.45; }
+    .gps-approx { display:flex; align-items:center; gap:6px; margin-top:9px;
+      font-size:11.5px; font-style:normal; color:var(--feu); line-height:1.4; }
+    .gps-approx .ic { width:14px; height:14px; flex-shrink:0; }
+    .gps-opts { display:flex; flex-direction:column; gap:8px; }
+    .gps-opt { width:100%; padding:14px; cursor:pointer; text-align:left;
+      border:1px solid var(--border); border-radius:var(--r-md); background:var(--card);
+      color:var(--text); font-size:14px; font-weight:700;
+      -webkit-tap-highlight-color:transparent; }
+    .gps-opt:active { transform:scale(.99); border-color:var(--orange); }
+
     /* ===== TERRAINS AUTOUR DE TOI ===== */
     .tr-tel { display:flex; align-items:center; gap:8px; margin-bottom:12px;
       font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
@@ -1357,8 +1386,8 @@
     .tr-meta { flex:1; min-width:0; }
     .tr-nom { font-size:14px; font-weight:700; color:var(--text);
       white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-    .tr-sous { font-size:11.5px; color:var(--text-sec); margin-top:2px;
-      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tr-sous { font-size:11.5px; color:var(--text-sec); margin-top:2px; line-height:1.35;
+      display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
     .tr-go { flex-shrink:0; width:38px; height:38px; border-radius:50%; cursor:pointer;
       border:1px solid rgba(93,214,44,.38); background:rgba(93,214,44,.12); color:var(--orange);
       display:flex; align-items:center; justify-content:center;
@@ -3775,24 +3804,34 @@ function typeTerrainMatch(m) {
   return typeTerrain(v);
 }
 
+// Catalogue de secours. IMPORTANT : ces dix-sept entrées ont été SAISIES À
+// LA MAIN (commit 0b85d17), pas relevées sur une source officielle. Les noms
+// sont plausibles — Le Five et UrbanSoccer sont de vraies enseignes — mais ni
+// l'orthographe exacte, ni la commune, ni surtout les coordonnées à trois
+// décimales (~110 m) ne sont vérifiées, et aucune n'a d'adresse postale.
+//
+// Conséquence assumée dans le produit : elles portent `verif: false`, elles
+// passent APRÈS les terrains OpenStreetMap dans les suggestions, et
+// l'itinéraire proposé pour elles est annoncé comme approximatif. Envoyer un
+// joueur à la mauvaise adresse coûte plus cher que ne rien proposer.
 const VENUES_91 = [
-  { n:'UrbanSoccer Saint-Michel', v:'Saint-Michel-sur-Orge', cp:'91240', lat:48.638, lon:2.305, t:'urban' },
-  { n:'Urban Soccer Nation',      v:'Évry-Courcouronnes',     cp:'91000', lat:48.625, lon:2.428, t:'urban' },
-  { n:'Soccer Park Évry',         v:'Évry-Courcouronnes',     cp:'91000', lat:48.623, lon:2.441, t:'urban' },
-  { n:'Le Five Morangis',         v:'Morangis',               cp:'91420', lat:48.698, lon:2.337, t:'indoor' },
-  { n:'Le Five Bièvres',          v:'Bièvres',                cp:'91570', lat:48.758, lon:2.230, t:'indoor' },
-  { n:'Five Massy',               v:'Massy',                  cp:'91300', lat:48.726, lon:2.283, t:'indoor' },
-  { n:'Futsal Palaiseau',         v:'Palaiseau',              cp:'91120', lat:48.715, lon:2.245, t:'indoor' },
-  { n:'Five Saclay',              v:'Saclay',                 cp:'91400', lat:48.731, lon:2.172, t:'indoor' },
-  { n:'Indoor Foot Les Ulis',     v:'Les Ulis',               cp:'91940', lat:48.681, lon:2.168, t:'indoor' },
-  { n:'Five Longjumeau',          v:'Longjumeau',             cp:'91160', lat:48.694, lon:2.295, t:'indoor' },
-  { n:'Soccer Palace Brétigny',   v:'Brétigny-sur-Orge',      cp:'91220', lat:48.610, lon:2.310, t:'indoor' },
-  { n:'Soccer Savigny',           v:'Savigny-sur-Orge',       cp:'91600', lat:48.677, lon:2.345, t:'urban' },
-  { n:'Urban Foot Viry',          v:'Viry-Châtillon',         cp:'91170', lat:48.672, lon:2.378, t:'urban' },
-  { n:'UrbanSoccer Wissous',      v:'Wissous',                cp:'91320', lat:48.731, lon:2.328, t:'urban' },
-  { n:'Five Soccer Corbeil',      v:'Corbeil-Essonnes',       cp:'91100', lat:48.604, lon:2.482, t:'indoor' },
-  { n:'City Five Grigny',         v:'Grigny',                 cp:'91350', lat:48.655, lon:2.385, t:'indoor' },
-  { n:'Five Arpajon',             v:'Arpajon',                cp:'91290', lat:48.590, lon:2.247, t:'indoor' },
+  { n:'UrbanSoccer Saint-Michel', v:'Saint-Michel-sur-Orge', cp:'91240', lat:48.638, lon:2.305, t:'urban', verif:false },
+  { n:'Urban Soccer Nation',      v:'Évry-Courcouronnes',     cp:'91000', lat:48.625, lon:2.428, t:'urban', verif:false },
+  { n:'Soccer Park Évry',         v:'Évry-Courcouronnes',     cp:'91000', lat:48.623, lon:2.441, t:'urban', verif:false },
+  { n:'Le Five Morangis',         v:'Morangis',               cp:'91420', lat:48.698, lon:2.337, t:'indoor', verif:false },
+  { n:'Le Five Bièvres',          v:'Bièvres',                cp:'91570', lat:48.758, lon:2.230, t:'indoor', verif:false },
+  { n:'Five Massy',               v:'Massy',                  cp:'91300', lat:48.726, lon:2.283, t:'indoor', verif:false },
+  { n:'Futsal Palaiseau',         v:'Palaiseau',              cp:'91120', lat:48.715, lon:2.245, t:'indoor', verif:false },
+  { n:'Five Saclay',              v:'Saclay',                 cp:'91400', lat:48.731, lon:2.172, t:'indoor', verif:false },
+  { n:'Indoor Foot Les Ulis',     v:'Les Ulis',               cp:'91940', lat:48.681, lon:2.168, t:'indoor', verif:false },
+  { n:'Five Longjumeau',          v:'Longjumeau',             cp:'91160', lat:48.694, lon:2.295, t:'indoor', verif:false },
+  { n:'Soccer Palace Brétigny',   v:'Brétigny-sur-Orge',      cp:'91220', lat:48.610, lon:2.310, t:'indoor', verif:false },
+  { n:'Soccer Savigny',           v:'Savigny-sur-Orge',       cp:'91600', lat:48.677, lon:2.345, t:'urban', verif:false },
+  { n:'Urban Foot Viry',          v:'Viry-Châtillon',         cp:'91170', lat:48.672, lon:2.378, t:'urban', verif:false },
+  { n:'UrbanSoccer Wissous',      v:'Wissous',                cp:'91320', lat:48.731, lon:2.328, t:'urban', verif:false },
+  { n:'Five Soccer Corbeil',      v:'Corbeil-Essonnes',       cp:'91100', lat:48.604, lon:2.482, t:'indoor', verif:false },
+  { n:'City Five Grigny',         v:'Grigny',                 cp:'91350', lat:48.655, lon:2.385, t:'indoor', verif:false },
+  { n:'Five Arpajon',             v:'Arpajon',                cp:'91290', lat:48.590, lon:2.247, t:'indoor', verif:false },
 ];
 
 function _venueHome() {
@@ -3848,25 +3887,48 @@ function _normaliseOSM(el) {
   const lat = el.lat ?? el.center?.lat, lon = el.lon ?? el.center?.lon;
   if (typeof lat !== 'number' || typeof lon !== 'number') return null;
   const ville = (t['addr:city'] || t['addr:suburb'] || '').trim();
-  return { n: nom, v: ville, cp: (t['addr:postcode'] || '').trim(),
-           lat, lon, t: _typeOSM(t), src: 'osm' };
+  const cp = (t['addr:postcode'] || '').trim();
+  // L'adresse ne se fabrique pas : on n'écrit que ce qu'OSM porte
+  // réellement. Une rue devinée est pire qu'une rue absente.
+  const rue = [t['addr:housenumber'], t['addr:street']].filter(Boolean).join(' ').trim();
+  // PAS D'ADRESSE SANS RUE. Sans ce garde, « Palaiseau » seul était traité
+  // comme une adresse : la ligne affichait une commune à la place d'une
+  // adresse, et l'avertissement « position approximative » disparaissait
+  // alors même qu'on ne savait toujours pas où se garer.
+  const adr = rue ? [rue, [cp, ville].filter(Boolean).join(' ')].filter(Boolean).join(', ') : '';
+  return { n: nom, v: ville, cp, adr, lat, lon, t: _typeOSM(t), src: 'osm',
+           // Une entrée OSM avec une rue est vérifiable par n'importe qui.
+           verif: !!rue };
 }
 
-// Deux sources pour un même lieu : on garde la version vérifiée.
+// Deux sources pour un même lieu. La règle a d'abord été « le catalogue
+// gagne » — et elle était fausse : elle écartait l'entrée OpenStreetMap qui
+// porte une RUE au profit de celle saisie à la main qui n'a qu'une commune.
+// Le joueur qui rejoint se retrouvait avec « Massy », pas avec une adresse.
+//
+// La règle est donc : celui qui porte une adresse vérifiable gagne, et on
+// récupère sur l'autre ce qu'il sait en plus (le type de terrain, que nos
+// dix-sept entrées connaissent et qu'OSM ne dit pas toujours).
 function _fusionneTerrains(cures, osm) {
-  const out = cures.slice();
   const clef = x => x.n.toLowerCase().replace(/[^a-z0-9]/g, '');
-  const vus = new Set(out.map(clef));
-  for (const x of osm) {
-    if (vus.has(clef(x))) continue;
-    // Même nom à 300 m près = même terrain, orthographié autrement.
-    if (out.some(y => haversine(y.lat, y.lon, x.lat, x.lon) < 0.3)) continue;
-    vus.add(clef(x));
-    out.push(x);
+  const memeLieu = (a, b) =>
+    clef(a) === clef(b) || haversine(a.lat, a.lon, b.lat, b.lon) < 0.3;
+
+  const out = [];
+  const pris = new Set();
+  for (const c of cures) {
+    const jumeau = osm.find(o => !pris.has(o) && memeLieu(c, o));
+    if (!jumeau) { out.push(c); continue; }
+    pris.add(jumeau);
+    // L'entrée vérifiée porte la position et l'adresse ; le catalogue ne
+    // garde que ce qu'il apporte vraiment.
+    out.push(jumeau.verif
+      ? { ...jumeau, t: jumeau.t || c.t }
+      : { ...c, adr: jumeau.adr || c.adr || '' });
   }
+  for (const o of osm) if (!pris.has(o)) out.push(o);
   return out;
 }
-
 // Terrains autour d'un point. Renvoie TOUJOURS quelque chose : le cache,
 // puis le réseau, et à défaut le catalogue vérifié.
 async function terrainsAutour(lat, lon, km = 25) {
@@ -3907,7 +3969,10 @@ async function terrainsPourJoueur(km = 25, max = 40) {
     .filter(x => x.dist <= km)
     .sort((a, b) => {
       const rang = t => (t === 'indoor' ? 0 : t === 'urban' ? 1 : 2);
-      return rang(a.t) - rang(b.t) || a.dist - b.dist;
+      // À type et distance comparables, celui dont l'adresse est vérifiable
+      // passe devant : c'est celui où le joueur arrivera vraiment.
+      return rang(a.t) - rang(b.t) || a.dist - b.dist
+        || (b.verif === true) - (a.verif === true);
     })
     .slice(0, max);
 }
@@ -6687,7 +6752,9 @@ async function renderMatchDetail(matchId, m) {
     html += `<div class="md-hero ph" style="--ph:url('${sportPhoto(m)}')">
       <div class="md-eyebrow">${ICON.ball} ${countdownLabel(w.ms)}</div>
       <div class="md-big">${dateDayLabel(w.ms)}${w.heure ? ' · ' + w.heure.replace(':', 'h') : ''}</div>
-      <div class="md-meta">${ICON.pin} ${m.lieuFinal || 'Lieu à définir'}</div>
+      <div class="md-meta">${ICON.pin} ${escapeHtml(m.lieuFinal || 'Lieu à définir')}</div>
+      ${(function(){ const L = lieuDuMatch(m); return (L && (L.adr || L.lat != null))
+        ? `<div class="md-adr">${L.adr ? escapeHtml(L.adr) + ' ' : ''}${boutonYAller(L)}</div>` : ''; })()}
       <div class="kpulse-row">${kolektifPulse(n, maxJoueurs(m))}<span class="kpulse-cnt"><b>${n}</b>/${maxJoueurs(m)}</span></div>
       ${mdJoinCta(matchId, m, uid)}
     </div>`;
@@ -6896,6 +6963,7 @@ async function confirmerMatch(matchId, creneauId) {
     finVisible: new Date((creneau.date.toMillis ? creneau.date.toMillis()
                         : new Date(creneau.date).getTime()) + 24 * 3600 * 1000),
     lieuFinal: creneau.lieu,
+    ...(creneau.adr ? { lieuAdresse: creneau.adr } : {}),
     ...(creneau.lat && creneau.lon ? { lieuCoords: { lat: creneau.lat, lon: creneau.lon } } : {}),
   });
   celebrate('Match confirmé !');
@@ -6951,6 +7019,111 @@ function hydraterTerrainsAccueil() {
   }).catch(() => {});
 }
 
+// ===== Y ALLER =====
+// Un match n'existe que si les joueurs trouvent la porte. Jusqu'ici un match
+// ne stockait qu'un NOM de lieu : celui qui rejoignait devait deviner où.
+//
+// Deux façons de guider, et le choix entre les deux n'est pas cosmétique :
+//   - quand on tient une ADRESSE (rue + commune, telle qu'OpenStreetMap la
+//     porte), on navigue vers l'adresse. C'est vérifiable à l'œil par le
+//     joueur, et le fournisseur de cartes la corrige mieux qu'un point ;
+//   - sinon on navigue vers les COORDONNÉES, et on le dit : « position
+//     approximative ». Un point à cent mètres près amène devant le bon
+//     bâtiment ; un point faux amène ailleurs sans prévenir.
+function destinationItineraire(v) {
+  if (!v) return null;
+  const adr = (v.adr || '').trim();
+  if (adr) return { q: [v.n, adr].filter(Boolean).join(', '), exact: true };
+  if (typeof v.lat === 'number' && typeof v.lon === 'number') {
+    return { ll: v.lat.toFixed(6) + ',' + v.lon.toFixed(6), q: v.n || '', exact: false };
+  }
+  // Ni adresse ni point : on ne peut que chercher le nom, et on ne prétend pas.
+  return v.n ? { q: [v.n, v.v].filter(Boolean).join(', '), exact: false } : null;
+}
+
+function lienItineraire(v, appli) {
+  const d = destinationItineraire(v);
+  if (!d) return null;
+  const cible = d.ll || d.q;
+  if (appli === 'waze') {
+    return d.ll ? `https://waze.com/ul?ll=${d.ll}&navigate=yes`
+                : `https://waze.com/ul?q=${encodeURIComponent(d.q)}&navigate=yes`;
+  }
+  if (appli === 'apple') {
+    return `https://maps.apple.com/?daddr=${encodeURIComponent(cible)}&dirflg=d`;
+  }
+  return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(cible)}&travelmode=driving`;
+}
+
+// Le choix est mémorisé : on ne redemande pas à chaque match.
+function _appliItineraire() {
+  try { return localStorage.getItem('cs5_gps') || ''; } catch (_) { return ''; }
+}
+window.choisirGPS = function(appli, payload) {
+  try { localStorage.setItem('cs5_gps', appli); } catch (_) {}
+  closeModal();
+  ouvrirItineraire(JSON.parse(decodeURIComponent(payload)), appli);
+};
+
+window.ouvrirItineraire = function(v, appli) {
+  const choisi = appli || _appliItineraire();
+  if (!choisi) return proposerGPS(v);
+  const url = lienItineraire(v, choisi);
+  if (!url) { showToast('Ce terrain n\'a pas de position enregistrée.', 'error'); return; }
+  window.open(url, '_blank', 'noopener');
+};
+
+function proposerGPS(v) {
+  const d = destinationItineraire(v);
+  const charge = encodeURIComponent(JSON.stringify(v));
+  const ligne = (id, nom) =>
+    `<button class="gps-opt" onclick="choisirGPS('${id}', '${charge}')">${nom}</button>`;
+  openModal(`${ICON.pin} Y aller`, `
+    <div class="gps-cible">
+      <b>${escapeHtml(v.n || 'Terrain')}</b>
+      <span>${escapeHtml(v.adr || [v.v, v.cp].filter(Boolean).join(' ') || 'Position enregistrée')}</span>
+      ${d && !d.exact ? `<i class="gps-approx">${ICON.warn} Position approximative — vérifie le nom à l'arrivée</i>` : ''}
+    </div>
+    <div class="gps-opts">
+      ${ligne('waze', 'Waze')}
+      ${ligne('google', 'Google Maps')}
+      ${ligne('apple', 'Plans (Apple)')}
+    </div>
+    <p class="tr-note">Ton choix est retenu pour les prochaines fois.</p>`);
+}
+
+// Bouton compact, réutilisé partout où un lieu s'affiche.
+const IC_NAVIG = '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">'
+  + '<path d="M21.3 3.3 3.6 10.6c-.9.4-.8 1.7.2 1.9l7 1.6 1.6 7c.2 1 1.5 1.1 1.9.2l7.3-17.7c.3-.7-.4-1.5-1.3-1.3z"/></svg>';
+
+// `compact` : seulement la flèche de navigation — le glyphe que toutes les
+// applications de cartes utilisent pour « itinéraire ». Dans une liste,
+// « Y aller » en toutes lettres rognait l'adresse, et c'est l'adresse qui
+// fait arriver quelque part.
+function boutonYAller(v, opts) {
+  if (!v || (!v.adr && (typeof v.lat !== 'number'))) return '';
+  const o = opts || {};
+  const charge = JSON.stringify(v).replace(/'/g, '&#39;');
+  const nom = escapeHtml(v.n || 'le terrain');
+  return `<button class="y-aller${o.compact ? ' y-rond' : ''}${o.cls ? ' ' + o.cls : ''}"
+    onclick='event.stopPropagation();ouvrirItineraire(${charge})'
+    title="Itinéraire vers ${nom}" aria-label="Itinéraire vers ${nom}">${IC_NAVIG}${o.compact ? '' : ' Y aller'}</button>`;
+}
+
+// Le lieu d'un match, sous la forme qu'attend l'itinéraire.
+function lieuDuMatch(m) {
+  if (!m) return null;
+  const cr = (m.creneauxProposes || []).find(c => c && c.lieu && (c.adr || c.lat));
+  const c = m.lieuCoords || {};
+  return {
+    n: m.lieuFinal || (cr && cr.lieu) || '',
+    adr: m.lieuAdresse || (cr && cr.adr) || '',
+    lat: (typeof c.lat === 'number') ? c.lat : (cr && cr.lat) || null,
+    lon: (typeof c.lon === 'number') ? c.lon : (cr && cr.lon) || null,
+    v: '', cp: '',
+  };
+}
+
 // ===== TERRAINS AUTOUR DE TOI =====
 // Un joueur ne cherche pas un match d'abord : il cherche un endroit où
 // jouer. Cette vue répond à « où je peux taper le ballon près de chez
@@ -6989,15 +7162,21 @@ window.openTerrains = async function() {
     </div>
     <div class="tr-liste">${liste.map(x => {
       const tt = typeTerrain(x);
-      const sous = [tt.label, x.v].filter(Boolean).join(' · ');
+      // On affiche l'adresse réelle si OSM la porte. Sinon on nomme le
+      // doute plutôt que de laisser croire que la ville suffit à s'y rendre.
+      const sous = x.adr ? x.adr
+        : [tt.label, x.v, x.verif === false ? 'position approximative' : ''].filter(Boolean).join(' · ');
       return `<div class="tr-item">
         <div class="tr-dist ${terrainCouleurClasse(x)}"><b>${x.dist < 1 ? '&lt;1' : x.dist}</b><span>km</span></div>
         <div class="tr-meta">
           <div class="tr-nom">${escapeHtml(x.n)}</div>
           <div class="tr-sous">${escapeHtml(sous)}</div>
         </div>
-        <button class="tr-go" title="Proposer un match ici" aria-label="Proposer un match à ${escapeHtml(x.n)}"
-          onclick='terrainProposer(${JSON.stringify({ n: x.n, v: x.v, lat: x.lat, lon: x.lon, t: x.t }).replace(/'/g, "&#39;")})'>${ICON.plus}</button>
+        <div class="tr-actions">
+          ${boutonYAller(x, { compact: true })}
+          <button class="tr-go" title="Proposer un match ici" aria-label="Proposer un match à ${escapeHtml(x.n)}"
+            onclick='terrainProposer(${JSON.stringify({ n: x.n, v: x.v, adr: x.adr || '', lat: x.lat, lon: x.lon, t: x.t }).replace(/'/g, "&#39;")})'>${ICON.plus}</button>
+        </div>
       </div>`;
     }).join('')}</div>
     <p class="tr-note">Terrains issus d'OpenStreetMap et de notre catalogue vérifié.
@@ -7123,7 +7302,7 @@ function _cmVenueCards() {
     ? _cmTerrains.slice()
     : VENUES_91.map(x => ({ ...x, dist: home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null }));
   if (home) list.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
-  list = list.slice(0, 3).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon, t: x.t || '',
+  list = list.slice(0, 3).map(x => ({ n: x.n, v: x.v, adr: x.adr || '', verif: x.verif, lat: x.lat, lon: x.lon, t: x.t || '',
     dist: x.dist ?? (home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null) }));
   // épingler le terrain recherché / le dernier utilisé en tête s'il n'y est pas
   const extra = _cmExtra || (function(){ try { return JSON.parse(localStorage.getItem('cs5_lastVenue') || 'null'); } catch (_) { return null; } })();
@@ -7299,7 +7478,12 @@ window.cmVenueSearch = function() {
       const j = await (await fetch(url)).json();
       const photon = (j.features || []).map(f => {
         const p = f.properties || {}, co = (f.geometry && f.geometry.coordinates) || [];
-        return { n: p.name || [p.street, p.housenumber].filter(Boolean).join(' ') || p.city || 'Lieu', v: [p.city || p.county, p.postcode].filter(Boolean).join(' '), lat: co[1], lon: co[0] };
+        const rue = [p.housenumber, p.street].filter(Boolean).join(' ').trim();
+        const commune = [p.postcode, p.city || p.county].filter(Boolean).join(' ').trim();
+        return { n: p.name || rue || p.city || 'Lieu',
+                 v: [p.city || p.county, p.postcode].filter(Boolean).join(' '),
+                 adr: rue ? [rue, commune].filter(Boolean).join(', ') : '',
+                 verif: !!rue, lat: co[1], lon: co[0] };
       }).filter(x => x.lat && x.lon);
       if ((document.getElementById('cm-search-input')?.value || '').trim() !== raw) return;
       renderList([...stat.slice(0, 4).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon })), ...photon].slice(0, 8));
@@ -7311,7 +7495,10 @@ window.cmSubmit = function() {
   if (!_cmVenue) { showToast('Choisis un terrain.', 'error'); return; }
   if (!_cmSlots.length) { showToast('Coche au moins un créneau.', 'error'); return; }
   const lieu = _cmVenue.v ? `${_cmVenue.n} — ${_cmVenue.v}` : _cmVenue.n;
-  creneauxBuilt = _cmSlots.map(s => ({ id: s.id, date: s.date, heure: s.heure, lieu, lat: _cmVenue.lat ?? null, lon: _cmVenue.lon ?? null }));
+  // L'adresse voyage avec le créneau : sans elle, celui qui rejoint n'a
+  // qu'un nom et doit deviner où se rendre.
+  creneauxBuilt = _cmSlots.map(s => ({ id: s.id, date: s.date, heure: s.heure, lieu,
+    adr: _cmVenue.adr || '', lat: _cmVenue.lat ?? null, lon: _cmVenue.lon ?? null }));
   try { localStorage.setItem('cs5_lastVenue', JSON.stringify({ n: _cmVenue.n, v: _cmVenue.v, lat: _cmVenue.lat, lon: _cmVenue.lon })); } catch (_) {}
   window.submitCreateMatch();
 };
@@ -7335,7 +7522,7 @@ window.submitCreateMatch = async function() {
     if (!dateVal) return null;
     const dateObj = new Date(dateVal + 'T' + heureVal + ':00');
     return { id: c.id, date: dateObj, heure: heureVal, lieu: lieuVal,
-             lat: (c.lat ?? null), lon: (c.lon ?? null) };
+             adr: c.adr || '', lat: (c.lat ?? null), lon: (c.lon ?? null) };
   }).filter(Boolean);
   const _firstCoords = creneaux.find(x => x.lat && x.lon);
 
@@ -7361,7 +7548,7 @@ window.submitCreateMatch = async function() {
     equipes: [],
     hommeDuMatchUid: null,
     scoreA: null, scoreB: null,
-    lieuFinal: null, dateFinale: null,
+    lieuFinal: null, dateFinale: null, lieuAdresse: (creneaux.find(x => x.adr) || {}).adr || null,
     lieuCoords: _firstCoords ? { lat: _firstCoords.lat, lon: _firstCoords.lon } : (window._selectedVenueCoords || null),
     createdAt: serverTimestamp()
   });
