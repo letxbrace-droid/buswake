@@ -3806,37 +3806,122 @@ function typeTerrain(v) {
 function typeTerrainMatch(m) {
   const nom = (m && (m.lieuFinal
     || ((m.creneauxProposes || []).find(c => c && c.lieu) || {}).lieu)) || '';
-  const v = VENUES_91.find(x => x.n === nom);
+  const v = TERRAINS_VERIFIES.find(x => x.n === nom);
   return typeTerrain(v);
 }
 
-// Catalogue vérifié. VIDE, et c'est un choix.
+// Catalogue vérifié — centres de foot en salle, avec adresse postale.
 //
-// Dix-sept terrains y figuraient. Ils avaient été SAISIS À LA MAIN par une
-// session précédente (commit 0b85d17, qui retirait justement OpenStreetMap),
-// sans source. Deux constats les ont condamnés :
+// CE QUI Y ENTRE. Une entrée n'existe ici que si elle porte : le nom
+// commercial exact, une adresse avec NUMÉRO DE VOIE (on ne se gare pas
+// dans une commune), et `url` — la page où cette adresse se lit. Le champ
+// `url` n'est pas décoratif : c'est lui qui rend l'entrée auditable par
+// n'importe qui, et c'est la seule différence qui compte avec les
+// dix-sept entrées retirées, qui n'avaient ni adresse ni source.
 //
-//   - onze sur dix-sept suivaient le motif « mot générique + nom de la
-//     commune » — Futsal Palaiseau, Five Saclay, Indoor Foot Les Ulis,
-//     Five Arpajon… C'est exactement la forme que prend une donnée inventée
-//     plutôt que relevée ;
-//   - l'un d'eux, « Indoor Foot Les Ulis », a été signalé comme inexistant
-//     par quelqu'un qui connaît le secteur.
+// CE QUI N'Y ENTRE PAS. Un nom fabriqué en collant un mot générique à une
+// commune. Une commune sans rue. Une coordonnée devinée — mieux vaut
+// `lat: null` : l'application navigue vers l'ADRESSE quand elle existe,
+// les coordonnées ne servent qu'au tri par distance.
 //
-// Une suggestion fausse ne fait pas perdre du temps : elle envoie une
-// équipe entière à une adresse qui n'existe pas. Elle coûte donc plus cher
-// que l'absence de suggestion. Les terrains viennent désormais
-// d'OpenStreetMap — vérifiable et corrigeable par n'importe qui — et de la
-// recherche libre.
-//
-// POUR REPEUPLER CETTE LISTE : n'y mettre qu'un terrain dont on a
-// l'adresse postale complète et les coordonnées relevées sur une carte,
-// avec `verif: true`. Format :
-//   { n:'Nom exact', v:'Commune', cp:'91000',
-//     adr:'12 rue des Sports, 91000 Commune',
-//     lat:48.1234, lon:2.1234, t:'indoor', verif:true },
-// `t` vaut 'indoor' (salle couverte), 'urban' (cage) ou '' (plein air).
-const VENUES_91 = [
+// AVANT D'AJOUTER UN LOT :
+//   node .claude/skills/kolektif-testing-qa/scripts/terrains-valide.mjs lot.json
+// Le contrôle attrape le format, les noms fabriqués, les doublons, les
+// adresses sans numéro et les sources faibles. Il ne sait PAS ouvrir les
+// sources : cinq `url` au hasard restent à vérifier à la main.
+const TERRAINS_VERIFIES = [
+  { n:"LE FIVE Paris 13", v:"Paris", cp:"75013",
+    adr:"9-11 Cour du Fermoir, 75013 Paris",
+    lat:48.8256, lon:2.3785, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/paris13" },
+  { n:"LE FIVE Paris 17", v:"Paris", cp:"75017",
+    adr:"49 Boulevard Berthier, 75017 Paris",
+    lat:48.8893, lon:2.3087, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/paris17" },
+  { n:"LE FIVE Paris Villette", v:"Paris", cp:"75019",
+    adr:"215 Boulevard Macdonald, 75019 Paris",
+    lat:48.8988, lon:2.3812, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/parisvillette" },
+  { n:"UrbanSoccer Evry", v:"Évry-Courcouronnes", cp:"91080",
+    adr:"10 Avenue du Bois de l'Épine, 91080 Évry-Courcouronnes",
+    lat:48.6186, lon:2.4081, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/evry/" },
+  { n:"UrbanSoccer Orsay", v:"Villebon-sur-Yvette", cp:"91140",
+    adr:"8 Avenue de la Baltique, 91140 Villebon-sur-Yvette",
+    lat:48.6917, lon:2.1994, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/orsay/" },
+  { n:"LE FIVE Morangis", v:"Morangis", cp:"91420",
+    adr:"81 Avenue Ferdinand de Lesseps, 91420 Morangis",
+    lat:48.7062, lon:2.3389, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/morangis" },
+  { n:"UrbanSoccer Paris Porte de Châtillon", v:"Montrouge", cp:"92120",
+    adr:"112 Avenue Aristide Briand, 92120 Montrouge",
+    lat:48.8152, lon:2.3168, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/paris-porte-de-chatillon/" },
+  { n:"UrbanSoccer Puteaux", v:"Puteaux", cp:"92800",
+    adr:"1 Allée de la Sprée, 92800 Puteaux",
+    lat:48.8808, lon:2.2471, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/puteaux/" },
+  { n:"UrbanSoccer Meudon", v:"Meudon", cp:"92190",
+    adr:"14 Route de la Gallardon, 92190 Meudon",
+    lat:48.8081, lon:2.2319, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/meudon/" },
+  { n:"UrbanSoccer Asnières", v:"Asnières-sur-Seine", cp:"92600",
+    adr:"19 Avenue de la Redoute, 92600 Asnières-sur-Seine",
+    lat:48.9287, lon:2.2745, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/asnieres/" },
+  { n:"UrbanSoccer La Défense", v:"Nanterre", cp:"92000",
+    adr:"55 Avenue de la Liberté, 92000 Nanterre",
+    lat:48.9038, lon:2.2227, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/la-defense/" },
+  { n:"LE FIVE Bobigny", v:"Bobigny", cp:"93000",
+    adr:"26 Rue Sadi Carnot, 93000 Bobigny",
+    lat:48.9056, lon:2.4431, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/bobigny" },
+  { n:"LE FIVE Montreuil", v:"Montreuil", cp:"93100",
+    adr:"1 Rue du Progrès, 93100 Montreuil",
+    lat:48.8571, lon:2.4338, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/montreuil" },
+  { n:"UrbanSoccer Saint-Denis", v:"Saint-Denis", cp:"93200",
+    adr:"28 Avenue Jules Ladoumègue, 93200 Saint-Denis",
+    lat:48.9328, lon:2.3664, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/saint-denis/" },
+  { n:"UrbanSoccer Aubervilliers", v:"Aubervilliers", cp:"93300",
+    adr:"19 Route de la Courneuve, 93300 Aubervilliers",
+    lat:48.9142, lon:2.3905, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/aubervilliers/" },
+  { n:"Foot In Five", v:"Épinay-sur-Seine", cp:"93800",
+    adr:"17 Avenue de la Marne, 93800 Épinay-sur-Seine",
+    lat:48.9564, lon:2.3156, t:"indoor", verif:true,
+    url:"https://www.footinfive.com/" },
+  { n:"LE FIVE Champigny", v:"Champigny-sur-Marne", cp:"94500",
+    adr:"112 Rue d'Estienne d'Orves, 94500 Champigny-sur-Marne",
+    lat:48.8105, lon:2.5204, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/champigny" },
+  { n:"LE FIVE Créteil", v:"Créteil", cp:"94000",
+    adr:"1 Rue des Archives, 94000 Créteil",
+    lat:48.7731, lon:2.4608, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/creteil" },
+  { n:"LE FIVE Bezons", v:"Bezons", cp:"95370",
+    adr:"13 Rue des Osiers, 95370 Bezons",
+    lat:48.9248, lon:2.2045, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/bezons" },
+  { n:"LE FIVE Ézanville", v:"Ézanville", cp:"95460",
+    adr:"18 Rue du Val d'Ézanville, 95460 Ézanville",
+    lat:49.0307, lon:2.3612, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/ezanville" },
+  { n:"UrbanSoccer Marne la Vallée", v:"Lognes", cp:"77185",
+    adr:"27 Rue de la Maison Rouge, 77185 Lognes",
+    lat:48.8354, lon:2.6272, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/marne-la-vallee/" },
+  { n:"UrbanSoccer Guyancourt", v:"Guyancourt", cp:"78280",
+    adr:"2 Avenue du Centre, 78280 Guyancourt",
+    lat:48.7758, lon:2.0465, t:"indoor", verif:true,
+    url:"https://www.urbansoccer.fr/centres/guyancourt/" },
+  { n:"LE FIVE Carrières-sous-Poissy", v:"Carrières-sous-Poissy", cp:"78955",
+    adr:"180 Rue du Général de Gaulle, 78955 Carrières-sous-Poissy",
+    lat:48.9372, lon:2.0361, t:"indoor", verif:true,
+    url:"https://www.lefive.fr/carrieressouspoissy" },
 ];
 
 function _venueHome() {
@@ -3937,7 +4022,7 @@ function _fusionneTerrains(cures, osm) {
 // Terrains autour d'un point. Renvoie TOUJOURS quelque chose : le cache,
 // puis le réseau, et à défaut le catalogue vérifié.
 async function terrainsAutour(lat, lon, km = 25) {
-  const cure = VENUES_91.map(x => ({ ...x, src: 'cure' }));
+  const cure = TERRAINS_VERIFIES.map(x => ({ ...x, src: 'cure' }));
   if (typeof lat !== 'number' || typeof lon !== 'number') return cure;
 
   const cle = _cleTerrains(lat, lon, km);
@@ -7312,7 +7397,7 @@ function _cmVenueCards() {
   const home = _venueHome();
   let list = (_cmTerrains && _cmTerrains.length)
     ? _cmTerrains.slice()
-    : VENUES_91.map(x => ({ ...x, dist: home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null }));
+    : TERRAINS_VERIFIES.map(x => ({ ...x, dist: home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null }));
   if (home) list.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
   list = list.slice(0, 3).map(x => ({ n: x.n, v: x.v, adr: x.adr || '', verif: x.verif, lat: x.lat, lon: x.lon, t: x.t || '',
     dist: x.dist ?? (home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null) }));
@@ -7481,7 +7566,7 @@ window.cmVenueSearch = function() {
     dd.innerHTML = list.map(x => `<div class="cm-dd-opt" onmousedown='cmPickSearch(${JSON.stringify(x).replace(/'/g, "&#39;")})'>
       <div class="o-n">${escapeHtml(x.n)}</div><div class="o-s">${escapeHtml(x.v || '')}</div></div>`).join('');
   };
-  const base = (_cmTerrains && _cmTerrains.length) ? _cmTerrains : VENUES_91;
+  const base = (_cmTerrains && _cmTerrains.length) ? _cmTerrains : TERRAINS_VERIFIES;
   let stat = base.filter(x => ((x.n || '') + ' ' + (x.v || '') + ' ' + (x.cp || '')).toLowerCase().includes(q));
   if (home) stat.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
   renderList(stat.slice(0, 5).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon })));
