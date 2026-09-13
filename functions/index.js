@@ -121,8 +121,151 @@ async function send(map, { title, body, matchId }) {
   return res.successCount;
 }
 
+// ---------- Gamification : l'XP s'attribue ICI, et nulle part ailleurs ----------
+// Le classement par équipe était déjà protégé ; celui des joueurs ne l'était
+// pas : n'importe quel compte connecté pouvait écrire `xp` sur n'importe quel
+// document `users/{uid}`. Trois lignes dans la console suffisaient à se mettre
+// premier. Les règles refusent désormais ces champs à TOUS les clients, y
+// compris au propriétaire du compte — comme `equipes/{id}.stats`.
+//
+// Le document match est la seule source : voter, créer, noter, élire l'homme
+// du match et terminer sont tous des écritures dessus. Ce trigger les lit et
+// en déduit l'XP. Il est naturellement idempotent : il compare l'avant et
+// l'après, donc une écriture rejouée à l'identique ne donne rien.
+const XP = { participer: 100, voter: 10, creer: 50, hdm: 200, noter: 10, motm: 15, lapin: -15 };
+
+// Accumulateur : un seul update par joueur, même s'il gagne sur deux motifs.
+function ajout(acc, uid, champs) {
+  if (!uid) return;
+  const cur = acc.get(uid) || {};
+  for (const [k, v] of Object.entries(champs)) {
+    if (typeof v === 'number') cur[k] = (cur[k] || 0) + v;
+    else cur[k] = v;                       // valeur absolue (remise à zéro)
+  }
+  acc.set(uid, cur);
+}
+
+// Les uids présents dans une carte { cleCreneau: [uid, ...] }.
+function uidsDeCarte(carte) {
+  const out = new Set();
+  Object.values(carte || {}).forEach(a => (a || []).forEach(u => u && out.add(u)));
+  return out;
+}
+
+async function appliquer(acc) {
+  const ecritures = [...acc.entries()].map(async ([uid, champs]) => {
+    const maj = {};
+    for (const [k, v] of Object.entries(champs)) {
+      maj[k] = (k === 'streak' && v === 0) ? 0 : FieldValue.increment(v);
+    }
+    await db.doc('users/' + uid).update(maj).catch(() => {});
+  });
+  await Promise.all(ecritures);
+}
+
+// Badges : déduits des statistiques, jamais annoncés par le client.
+async function majBadges(uids) {
+  await Promise.all([...new Set(uids)].filter(Boolean).map(async (uid) => {
+    const ref = db.doc('users/' + uid);
+    const snap = await ref.get().catch(() => null);
+    if (!snap || !snap.exists) return;
+    const d = snap.data() || {};
+    const deja = d.badges || [];
+    const st = d.stats || {};
+    const gagnes = [];
+    if ((st.matchsJoues || 0) >= 1  && !deja.includes('premier_match')) gagnes.push('premier_match');
+    if ((st.matchsJoues || 0) >= 5  && !deja.includes('cinq_matchs'))   gagnes.push('cinq_matchs');
+    if ((st.matchsJoues || 0) >= 10 && !deja.includes('dix_matchs'))    gagnes.push('dix_matchs');
+    if ((st.hommeDuMatch || 0) >= 1 && !deja.includes('hdm'))           gagnes.push('hdm');
+    if ((d.streak || 0) >= 3        && !deja.includes('assidu'))        gagnes.push('assidu');
+    if (gagnes.length) await ref.update({ badges: FieldValue.arrayUnion(...gagnes) }).catch(() => {});
+  }));
+}
+
+// Tout ce qui se gagne AVANT la fin du match : créer, voter, noter, élire.
+//
+// Chaque gain est payé UNE FOIS par joueur et par match. Sans ça, voter,
+// retirer son vote et revoter rapporte dix XP à chaque aller-retour — le
+// classement se farme en cliquant. Comparer l'avant et l'après ne suffit
+// pas : il faut se souvenir de qui a déjà été payé. C'est le rôle de `_xp`,
+// écrit par l'Admin SDK sur le document match, comme les marqueurs `_notifs`.
+async function gainsCourants(before, after, ref) {
+  const acc = new Map();
+  const paye = after._xp || {};
+  const nouveaux = { votes: [], motm: [], notes: [] };
+  const dejaPaye = (cle, uid) => (paye[cle] || []).includes(uid)
+    || nouveaux[cle].includes(uid);
+
+  // Création : +50 au créateur, et le badge organisateur.
+  if (!before && after.createurUid) {
+    ajout(acc, after.createurUid, { xp: XP.creer });
+    await db.doc('users/' + after.createurUid)
+      .update({ badges: FieldValue.arrayUnion('organisateur') }).catch(() => {});
+  }
+  if (before) {
+    // Vote de créneau : +10 au premier vote, et au premier seulement.
+    const av = uidsDeCarte(before.votes), ap = uidsDeCarte(after.votes);
+    ap.forEach(u => {
+      if (av.has(u) || dejaPaye('votes', u)) return;
+      ajout(acc, u, { xp: XP.voter }); nouveaux.votes.push(u);
+    });
+
+    // Vote homme du match : +15, une fois. Changer d'avis ne repaie pas.
+    const mv = uidsDeCarte(before.motmVotes), mp = uidsDeCarte(after.motmVotes);
+    mp.forEach(u => {
+      if (mv.has(u) || dejaPaye('motm', u)) return;
+      ajout(acc, u, { xp: XP.motm }); nouveaux.motm.push(u);
+    });
+
+    // Notes : +10 au noteur, et la note va sur les notés.
+    // Une fiche de notes ne s'écrit qu'une fois — les règles n'autorisent
+    // un joueur qu'à toucher `ratings.{son uid}`.
+    const rAv = before.ratings || {}, rAp = after.ratings || {};
+    for (const [noteur, fiche] of Object.entries(rAp)) {
+      if (rAv[noteur] || dejaPaye('notes', noteur)) continue;
+      ajout(acc, noteur, { xp: XP.noter }); nouveaux.notes.push(noteur);
+      for (const [note, etoiles] of Object.entries(fiche || {})) {
+        const n = Number(etoiles);
+        if (!Number.isFinite(n) || n < 1 || n > 5) continue;   // note aberrante : ignorée
+        ajout(acc, note, { noteSum: n, noteCount: 1 });
+      }
+    }
+  }
+  if (!acc.size) return;
+  await appliquer(acc);
+  // On note qui vient d'être payé, pour ne pas le repayer.
+  const maj = {};
+  for (const [cle, uids] of Object.entries(nouveaux)) {
+    if (uids.length) maj['_xp.' + cle] = FieldValue.arrayUnion(...uids);
+  }
+  if (Object.keys(maj).length && ref) await ref.update(maj).catch(() => {});
+}
+
+// Fin de match : présents, absents, homme du match. Protégé par le marqueur
+// `termine`, donc compté une seule fois même si le document est réécrit.
+async function gainsFinDeMatch(m) {
+  const acc = new Map();
+  const inscrits = m.joueursInscrits || [];
+  const att = m.attendance || {};
+  const presents = inscrits.filter(u => att[u] !== false);
+  const absents = inscrits.filter(u => att[u] === false);
+
+  presents.forEach(u => ajout(acc, u, {
+    xp: XP.participer, 'stats.matchsJoues': 1, presences: 1, streak: 1,
+  }));
+  // Le lapin coûte. C'est le seul malus du jeu, et il tient le produit :
+  // sans lui, s'inscrire puis ne pas venir est gratuit.
+  absents.forEach(u => ajout(acc, u, { xp: XP.lapin, lapins: 1, streak: 0 }));
+  if (m.hommeDuMatchUid) ajout(acc, m.hommeDuMatchUid, { xp: XP.hdm, 'stats.hommeDuMatch': 1 });
+
+  await appliquer(acc);
+  await majBadges([...acc.keys()]);
+}
+
 // ---------- Trigger : le match bouge ----------
-const stripNotifs = (o) => { if (!o) return o; const { _notifs, ...rest } = o; return rest; };
+// `_notifs` et `_xp` sont des marqueurs techniques écrits par ce trigger
+// lui-même : une écriture qui ne change qu'eux ne doit pas le relancer.
+const stripNotifs = (o) => { if (!o) return o; const { _notifs, _xp, ...rest } = o; return rest; };
 
 exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   const before = event.data.before.exists ? event.data.before.data() : null;
@@ -135,6 +278,10 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   const ref = event.data.after.ref;
   const notifs = after._notifs || {};
   const mark = (k) => ref.update({ ['_notifs.' + k]: Date.now() }).catch(() => {});
+
+  // L'XP d'abord : les branches de notification se terminent par `return`,
+  // et une écriture qui déclenche une notif donne souvent aussi de l'XP.
+  await gainsCourants(before, after, ref).catch(() => {});
 
   // 1. Nouveau sondage → tout le monde sauf le créateur.
   if (!before && after.statut === 'sondage') {
@@ -201,6 +348,7 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
     // garantit aussi qu'on ne compte le match qu'UNE fois, même si le
     // document est réécrit ensuite.
     await majBilanEquipes(after);
+    await gainsFinDeMatch(after);
     const map = await collectTokens(after.joueursInscrits || []);
     await send(map, {
       title: 'Match terminé 🏁',

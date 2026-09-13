@@ -1,21 +1,29 @@
-const CACHE = 'cs5-v80';
+const CACHE = 'cs5-v81';
 // `og-*.jpg` n'est volontairement PAS ici : ces bannières ne sont lues que
 // par les robots d'aperçu (WhatsApp, iMessage), jamais par l'app. Les
 // précharger coûtait 128 ko à chaque installation pour rien.
 // `m/*.html` y est, en revanche : hors-ligne, un lien de partage doit
 // pouvoir exécuter sa redirection, sinon le `#j=<id>` est perdu.
+// `'./'` n'est plus listé : c'était une SECONDE entrée de cache pour les
+// mêmes 470 Ko qu'`index.html`. Le repli hors-ligne ne perd rien — le
+// gestionnaire de navigation retombe explicitement sur './index.html'.
 const PRECACHE = [
-  './','./index.html','./manifest.json',
+  './index.html','./manifest.json',
   './icon-512.png','./icon-192.png','./logo.png',
-  './art-bolt.png','./art-goal.png','./art-player.png',
+  './art-bolt.png','./art-goal.png','./art-player.jpg',
   './art-empty-histo.png','./art-empty-amis.png','./art-empty-vestiaire.png','./art-podium.png',
   './texture-turf.jpg','./art-hero-jouer.jpg',
   './fond-matchs.jpg','./fond-equipes.jpg','./fond-classement.jpg','./fond-profil.jpg',
   './terrain-indoor.jpg','./terrain-urban.jpg','./terrain-plein-air.jpg',
   './fonts/anton-latin.woff2','./fonts/anton-latin-ext.woff2',
   './fonts/spacegrotesk-latin.woff2','./fonts/spacegrotesk-latin-ext.woff2',
-  './sport-foot5.jpg','./sport-foot7.jpg','./sport-basket3.jpg','./sport-padel.jpg','./sport-tennis.jpg',
-  './m/foot5.html','./m/foot7.html','./m/basket3.html','./m/padel.html','./m/tennis.html',
+  // Un seul sport est offert (SPORTS_ACTIFS = ['foot5']). Les photos et les
+  // redirections des autres restent dans le dépôt — un match de padel créé
+  // avant s'affiche toujours — mais elles ne sont plus préchargées : c'était
+  // 169 Ko imposés à chaque installation pour des écrans que personne
+  // n'ouvre. Elles redeviennent préchargées le jour où le sport rouvre.
+  './sport-foot5.jpg',
+  './m/foot5.html',
 ];
 
 self.addEventListener('install', e => {

@@ -33,25 +33,38 @@ service cloud.firestore {
              && (!('xp' in d) || d.xp is number);
     }
 
-    // Champs qu'un AUTRE joueur a le droit de modifier (gamification + social) :
-    // XP/badges/stats lors de la fin d'un match, demandes/listes d'amis.
-    // Les champs sensibles (pseudo, email, atouts, poste...) restent réservés
-    // au propriétaire du compte.
-    function onlyGamificationAndSocial() {
+    // Champs de JEU : XP, badges, statistiques, séries, notes reçues.
+    // Ils sont HORS DE PORTÉE DE TOUT CLIENT, propriétaire du compte compris,
+    // exactement comme `equipes/{id}.stats`. Ils ne sont écrits que par la
+    // Cloud Function `onMatchEcrit` (Admin SDK, qui contourne ces règles).
+    //
+    // Avant cela, n'importe quel compte connecté pouvait écrire `xp` sur
+    // n'importe quel document utilisateur : le classement des joueurs se
+    // truquait en trois lignes dans la console du navigateur. Le classement
+    // par équipe était protégé, celui des joueurs ne l'était pas.
+    //
+    // Ces champs restent posés à la CRÉATION du compte (à zéro) : `create`
+    // est une règle distincte, et un document neuf n'a rien à gonfler.
+    function champsDeJeu() {
+      return ['xp', 'badges', 'stats', 'noteSum', 'noteCount',
+              'presences', 'lapins', 'streak'];
+    }
+    // Ce qu'un AUTRE joueur peut modifier : uniquement le social.
+    // Une demande d'ami s'écrit forcément chez quelqu'un d'autre.
+    function onlySocial() {
       return request.resource.data.diff(resource.data).affectedKeys()
-        .hasOnly(['xp', 'badges', 'stats', 'noteSum', 'noteCount',
-                  'presences', 'lapins', 'streak',
-                  'friends', 'friendRequestsSent', 'friendRequestsReceived']);
+        .hasOnly(['friends', 'friendRequestsSent', 'friendRequestsReceived']);
     }
 
     // Utilisateurs : lecture pour les connectés (classement).
     match /users/{uid} {
       allow read: if isSignedIn();
       allow create: if isOwner(uid) && validUserData();
-      // Le propriétaire modifie tout son doc (avec validation du pseudo).
-      allow update: if isOwner(uid) && validUserData();
-      // Les autres joueurs ne touchent QUE la gamification et le social.
-      allow update: if isSignedIn() && onlyGamificationAndSocial();
+      // Le propriétaire modifie son profil — mais pas son score.
+      allow update: if isOwner(uid) && validUserData()
+        && !request.resource.data.diff(resource.data).affectedKeys().hasAny(champsDeJeu());
+      // Les autres joueurs ne touchent QUE le social.
+      allow update: if isSignedIn() && onlySocial();
       allow delete: if isOwner(uid);
     }
 
@@ -109,6 +122,10 @@ service cloud.firestore {
       allow create: if isSignedIn()
         && request.resource.data.createurUid == request.auth.uid
         && request.resource.data.statut == 'sondage'
+        // Un match naît sans marqueurs : les pré-remplir reviendrait à
+        // priver d'avance les votants de leurs points.
+        && !('_xp' in request.resource.data)
+        && !('_notifs' in request.resource.data)
         && (!('message' in request.resource.data)
             || request.resource.data.message == null
             || (request.resource.data.message is string
@@ -120,10 +137,28 @@ service cloud.firestore {
         && (!('joueursMax' in request.resource.data)
             || (request.resource.data.joueursMax is int
                 && request.resource.data.joueursMax >= 2
-                && request.resource.data.joueursMax <= 40));
+                && request.resource.data.joueursMax <= 40))
+        // Créneaux : au plus dix. Les règles ne savent pas parcourir une
+        // liste pour borner le nom de chaque lieu ; ce nom vient d'un
+        // géocodeur tiers et s'affiche à tous les participants, sa
+        // protection est l'échappement côté client. Ce qu'on peut borner
+        // ici, c'est le NOMBRE de créneaux.
+        && (!('creneauxProposes' in request.resource.data)
+            || (request.resource.data.creneauxProposes is list
+                && request.resource.data.creneauxProposes.size() <= 10));
+      // Marqueurs techniques écrits par les Cloud Functions (Admin SDK, qui
+      // contourne ces règles) : `_notifs` empêche d'envoyer deux fois la
+      // même notification, `_xp` retient qui a déjà été payé pour ce match.
+      // Aucun client n'y touche — y compris le créateur, qui pourrait sinon
+      // vider `_xp` et se faire repayer, ou le pré-remplir pour priver les
+      // autres de leurs points.
+      function pasDeMarqueurs() {
+        return !request.resource.data.diff(resource.data).affectedKeys()
+                 .hasAny(['_notifs', '_xp']);
+      }
       // Gestion complète par le créateur — sans transfert de propriété,
       // et avec un statut toujours valide.
-      allow update: if isSignedIn() && managesMatch()
+      allow update: if isSignedIn() && managesMatch() && pasDeMarqueurs()
         && request.resource.data.get('createurUid', null)
              == resource.data.get('createurUid', null)
         && request.resource.data.statut in ['sondage', 'confirmé', 'terminé'];

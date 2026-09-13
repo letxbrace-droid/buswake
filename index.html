@@ -1103,7 +1103,12 @@
     /* ===== CLASSEMENT IMMERSIF ===== */
     .cls-hero { padding:2px 2px 4px; margin-bottom:6px; }
     /* Bandeau "Toi" du classement */
-    .you-hero { position:relative; background:linear-gradient(135deg,rgba(93,214,44,.14),rgba(93,214,44,.03)); border:1px solid rgba(93,214,44,.35); border-radius:var(--r-lg); padding:14px 16px; margin:4px 0 6px; box-shadow:inset 0 1px 0 rgba(255,255,255,.05); }
+    /* Le fond et l'ombre viennent de la règle des plaques : cette carte est
+       posée sur une photo de terrain, et un dégradé vert à 14 % laissait
+       remonter la pelouse — « 2 fois homme du match » tombait à 4,26 pour un
+       seuil de 4,5. Ce qui reste ici est sa signature : le liseré vert. */
+    .you-hero { position:relative; border-radius:var(--r-lg); padding:14px 16px; margin:4px 0 6px; }
+    .screen .you-hero { border-color:rgba(93,214,44,.35); border-top-color:rgba(93,214,44,.5); }
     .yh-top { display:flex; align-items:center; gap:12px; }
     .yh-rank { font-family:'Anton',sans-serif; font-size:28px; color:var(--text); min-width:42px; }
     .yh-meta { flex:1; min-width:0; }
@@ -1655,6 +1660,7 @@
     .screen .cold-hero,
     .screen .jours,
     .screen .cls-hero,
+    .screen .you-hero,
     .screen .friends-search-box {
       /* La face est éclairée d'en haut : elle s'assombrit vers le bas.
          C'est ce dégradé, pas l'ombre, qui fait la matière — au-dessus d'un
@@ -1725,7 +1731,8 @@
       .screen .mc, .screen .card, .screen .stat-box, .screen .autour .au-stat,
       .screen .prog-card, .screen .ap-carte, .screen .activity-list,
       .screen .eq-carte, .screen .home-hero, .screen .cold-hero,
-      .screen .jours, .screen .cls-hero, .screen .friends-search-box {
+      .screen .jours, .screen .cls-hero, .screen .you-hero,
+      .screen .friends-search-box {
         background:linear-gradient(180deg, rgba(34,39,31,.96), rgba(20,24,18,.96)); }
     }
     @media (prefers-reduced-transparency:reduce) {
@@ -3512,7 +3519,7 @@ function blasonHTML(e, taille) {
     const D = Math.round(S * 0.66);
     return `<span class="blason blason-ec" style="width:${S}px;height:${S}px;${fond};font-size:${Math.round(S * 0.3)}px">
       ${clubImgHTML(cl, D)}
-      <b style="display:none">${escapeHtml(cl.short)}</b>
+      <b style="display:${CLUBS_ECUSSONS_LOCAUX ? 'none' : 'block'}">${escapeHtml(cl.short)}</b>
     </span>`;
   }
   const emb = e && e.embleme && EMBLEMES[e.embleme];
@@ -3536,9 +3543,10 @@ function maxJoueurs(m) {
 }
 function sportDe(m) { return SPORTS[(m && m.sport) || SPORT_DEFAUT] || SPORTS[SPORT_DEFAUT]; }
 
-// ===== DONNÉES CLUBS — VRAIS ÉCUSSONS =====
-// Logos : crests.football-data.org (PNG publics, sans clé API)
-// Fallback : pill coloré aux couleurs du club (pas de SVG, pas de CDN secondaire)
+// ===== DONNÉES CLUBS =====
+// `c1`/`c2` habillent le blason ; `short` sert de repli lisible.
+// `fdId` est l'identifiant football-data, conservé pour qui voudrait
+// récupérer les écussons — l'app, elle, n'appelle plus aucun CDN.
 const CLUBS = [
   { id:'psg',       name:'PSG',       short:'PSG', fdId:524, c1:'#001E5D', c2:'#DA020E' },
   { id:'om',        name:'OM',        short:'OM',  fdId:516, c1:'#2196F3', c2:'#FFFFFF' },
@@ -3561,11 +3569,21 @@ const CLUBS = [
 // Le `onerror` bascule du local vers le CDN une seule fois (il vide
 // `data-cdn`), puis laisse la main au texte. Sans ce garde, un CDN muet
 // ferait boucler la balise indéfiniment.
+// Le dossier `clubs/` est VIDE (voir clubs/README.md). Tant qu'il l'est,
+// chaque écusson coûtait une 404 locale, puis un aller-retour vers un CDN
+// tiers, puis un repli texte — jusqu'à dix requêtes ratées par écran, et
+// des marques déposées chargées depuis un serveur qui n'est pas le nôtre.
+// On ne tente donc pas : la pastille aux couleurs du club est directement
+// rendue. Déposer les dix PNG dans `clubs/` et passer ce drapeau à `true`
+// rend les vrais écussons — et, contrairement au CDN, hors-ligne.
+const CLUBS_ECUSSONS_LOCAUX = false;
+
 function clubImgHTML(c, D, styleSup) {
-  return `<img src="./clubs/${c.id}.png" data-cdn="https://crests.football-data.org/${c.fdId}.png"
+  if (!CLUBS_ECUSSONS_LOCAUX) return '';
+  return `<img src="./clubs/${c.id}.png"
     width="${D}" height="${D}" alt="${escapeHtml(c.name)}" loading="lazy"
     style="object-fit:contain;display:block;${styleSup || ''}"
-    onerror="if(this.dataset.cdn){this.src=this.dataset.cdn;this.dataset.cdn='';}else{this.style.display='none';this.nextElementSibling.style.display='flex';}">`;
+    onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">`;
 }
 
 // Logo réel ; repli = pastille aux couleurs du club + abréviation
@@ -3574,7 +3592,7 @@ function clubShield(club, size = 36) {
   const fs = Math.max(9, Math.round(size * 0.3));
   return `<span style="position:relative;display:inline-flex;width:${size}px;height:${size}px;flex-shrink:0;vertical-align:middle">
     ${clubImgHTML(c, size, 'border-radius:4px;')}
-    <span style="display:none;position:absolute;inset:0;background:linear-gradient(135deg,${c.c1},${c.c2});border-radius:5px;align-items:center;justify-content:center;font:900 ${fs}px Anton,sans-serif;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 3px rgba(0,0,0,.4)">${c.short}</span>
+    <span style="display:${CLUBS_ECUSSONS_LOCAUX ? 'none' : 'flex'};position:absolute;inset:0;background:linear-gradient(135deg,${c.c1},${c.c2});border-radius:5px;align-items:center;justify-content:center;font:900 ${fs}px Anton,sans-serif;color:#fff;letter-spacing:-0.5px;text-shadow:0 1px 3px rgba(0,0,0,.4)">${c.short}</span>
   </span>`;
 }
 
@@ -3698,45 +3716,9 @@ function getRang(xp) {
   return rang;
 }
 
-// Vérifie et attribue les badges
-async function checkBadges(uid, userData) {
-  const badges = userData.badges || [];
-  const stats = userData.stats || {};
-  const matchsJoues = stats.matchsJoues || 0;
-  const newBadges = [];
-
-  if (matchsJoues >= 1 && !badges.includes('premier_match')) newBadges.push('premier_match');
-  if (matchsJoues >= 5 && !badges.includes('cinq_matchs')) newBadges.push('cinq_matchs');
-  if (matchsJoues >= 10 && !badges.includes('dix_matchs')) newBadges.push('dix_matchs');
-  if (stats.hommeDuMatch >= 1 && !badges.includes('hdm')) newBadges.push('hdm');
-
-  if (newBadges.length > 0) {
-    await updateDoc(doc(db, 'users', uid), { badges: arrayUnion(...newBadges) });
-    newBadges.forEach(b => {
-      const def = BADGES_DEF.find(x => x.id === b);
-      if (def) showToast(`Badge débloqué : ${def.name}`, 'success');
-    });
-  }
-}
-
-// Ajoute de l'XP et notifie le level-up
-async function addXP(uid, amount) {
-  const ref = doc(db, 'users', uid);
-  const snap = await getDoc(ref);
-  const data = snap.data();
-  const oldXP = data.xp || 0;
-  const newXP = oldXP + amount;
-  const oldRang = getRang(oldXP);
-  const newRang = getRang(newXP);
-  await updateDoc(ref, { xp: increment(amount) });
-  // Ce garde-fou n'est pas cosmétique : `addXP` est appelé EN BOUCLE sur
-  // tous les présents quand le créateur termine un match. Sans lui, le
-  // créateur voyait « Level up ! Tu es maintenant Cadre » une fois par
-  // joueur monté de rang — pour des rangs qui n'étaient pas les siens.
-  if (uid !== currentUser?.uid) return;
-  if (newRang.min > oldRang.min) momentLevelUp(oldRang, newRang, amount);
-  else if (amount > 0) toastXP(amount);
-}
+// Les badges sont attribués par la Cloud Function `majBadges`, à partir des
+// statistiques qu'elle vient elle-même d'écrire. Le client ne fait que les
+// afficher : c'est `renderProfil` qui les lit dans `users/{uid}.badges`.
 
 // Gain ordinaire : un toast dont le chiffre monte. Pas d'écran plein —
 // on vote plusieurs fois par semaine, on ne change pas de rang tous les jours.
@@ -4076,7 +4058,7 @@ window.viewPlayerCard = async function(uid) {
   const poste = POSTES.find(p => p.id === d.posteFavori) || POSTES[2];
   const rang = getRang(d.xp || 0);
   const photo = d.photo || localStorage.getItem('cs5_photo_' + uid);
-  const photoHtml = photo ? `<img src="${photo}" class="fc3-photo" alt="">` : `<img src="./art-player.png" class="fc3-photo" alt="">`;
+  const photoHtml = photo ? `<img src="${photo}" class="fc3-photo" alt="">` : `<img src="./art-player.jpg" class="fc3-photo" alt="">`;
   const html = `
     <div style="text-align:center;margin-bottom:4px">
       <span class="rank-badge">${rangDot(rang)}${rang.label} · ${d.xp||0} XP${d.codePostal ? ` · ${ICON.pin} ${d.codePostal}` : ''}</span>
@@ -4099,7 +4081,7 @@ window.viewPlayerCard = async function(uid) {
         </div>
         <div class="fc3-bottom">
           <div class="fc3-pos">${poste.label} · ${tierLabel}</div>
-          <div class="fc3-name">${(d.pseudo || 'JOUEUR').toUpperCase()}</div>
+          <div class="fc3-name">${escapeHtml((d.pseudo || 'JOUEUR').toUpperCase())}</div>
           <div class="fc3-divider"></div>
           <div class="fc3-stats">
             ${statsOrder.map(k => `<div class="fc3-stat"><span class="sn">${a[k]||70}</span><span class="sl">${atoutsMap[k]}</span></div>`).join('')}
@@ -4375,7 +4357,11 @@ function showToast(msg, type = '') {
   const t = document.createElement('div');
   t.className = 'toast ' + type;
   const icons = { success: ICON.checkCircle, error: ICON.xCircle, levelup: ICON.zap, '': ICON.info };
-  t.innerHTML = `<span class="toast-icon">${icons[type] || ICON.info}</span><span>${msg}</span>`;
+  // Le message est posé en TEXTE. Plusieurs appelants passent un pseudo
+  // brut (« ${pseudo} inscrit au match ») : interpolé en innerHTML, un
+  // pseudo est du HTML exécutable. L'icône, elle, est du SVG de notre code.
+  t.innerHTML = `<span class="toast-icon">${icons[type] || ICON.info}</span><span class="toast-msg"></span>`;
+  t.querySelector('.toast-msg').textContent = msg;
   wrap.appendChild(t);
   setTimeout(() => t.remove(), 3500);
 }
@@ -4452,9 +4438,9 @@ function buildJoueursListHtml(joueursAvecDist, matchId, isCreateur) {
       h += `<div class="jd-bench-sep">— Remplaçants —</div>`;
     h += `<div class="jd-row${isBench ? ' jd-bench' : ''}" data-dept="${(j.codePostal||'').slice(0,3)}">
       <div class="jd-rank">${rankLabel}</div>
-      <div class="j-avatar">${initiales(j.pseudo)}</div>
+      <div class="j-avatar">${escapeHtml(initiales(j.pseudo))}</div>
       <div class="jd-info">
-        <span class="jd-pseudo">${j.pseudo}</span>
+        <span class="jd-pseudo">${escapeHtml(j.pseudo)}</span>
       </div>
       ${pill}
       ${isCreateur ? `<button class="jd-remove" title="Retirer ce joueur" aria-label="Retirer ${escapeHtml(j.pseudo)}" onclick="window._removePlayerFromMatch('${matchId}','${j.uid}')">✕</button>` : ''}
@@ -5102,9 +5088,9 @@ window.quitterEquipe = async function(id) {
   const capitaine = e.capitaineUid === uid;
   const seul = (e.membres || []).length <= 1;
   const msg = capitaine
-    ? (seul ? `Dissoudre « ${e.nom} » ? C'est définitif.`
+    ? (seul ? `Dissoudre « ${escapeHtml(e.nom)} » ? C'est définitif.`
             : `Tu es capitaine. Quitter dissout l'équipe pour tout le monde. Continuer ?`)
-    : `Quitter « ${e.nom} » ?`;
+    : `Quitter « ${escapeHtml(e.nom)} » ?`;
   if (!confirm(msg)) return;
   try {
     if (capitaine) await deleteDoc(doc(db, 'equipes', id));
@@ -5722,7 +5708,7 @@ async function renderStackAvatars(uids, containerId, max = 4) {
   let h = '';
   for (const uid of uids.slice(0, max)) {
     const u = await getUserData(uid);
-    h += `<span>${initiales(u ? u.pseudo : '?')}</span>`;
+    h += `<span>${escapeHtml(initiales(u ? u.pseudo : '?'))}</span>`;
   }
   if (uids.length > max) h += `<span class="av-more">+${uids.length - max}</span>`;
   c.innerHTML = h;
@@ -6196,7 +6182,11 @@ function playersSectionHtml(matchId, m, joueursAvecDist, venueCoords, isCreateur
 }
 // Pastille couleur d'équipe (remplace l'emoji logo).
 function eqDot(couleur) {
-  const c = couleur || 'var(--orange)';
+  // La couleur finit dans un attribut `style` : une chaîne libre y ouvre
+  // la porte à d'autres attributs. Les équipes sont bornées par les règles
+  // Firestore, mais `m.equipes[]` est écrit dans le document MATCH, que
+  // rien ne valide. On n'accepte donc que la palette connue.
+  const c = COULEURS_EQUIPE.includes(couleur) ? couleur : 'var(--orange)';
   return `<span class="eq-dot" style="background:${c};color:${c}"></span>`;
 }
 
@@ -6263,7 +6253,7 @@ async function renderMatchDetail(matchId, m) {
         <div class="creneau-vote${hasVoted ? ' voted' : ''}${isTop ? ' top' : ''}" onclick="voterCreneau('${matchId}','${c.id}')">
           <div class="info">
             <div class="date-str">${formatDate(c.date, c.heure)}</div>
-            <div class="lieu-str">${ICON.pin} ${c.lieu}${isTop ? ' <strong style="color:var(--green)">· Plus voté</strong>' : ''}</div>
+            <div class="lieu-str">${ICON.pin} ${escapeHtml(c.lieu)}${isTop ? ' <strong style="color:var(--green)">· Plus voté</strong>' : ''}</div>
           </div>
           <div class="vote-count">
             <div class="vote-num">${voteCount}</div>
@@ -6308,7 +6298,7 @@ async function renderMatchDetail(matchId, m) {
       html += `<div class="md-sec">Équipes</div>`;
       html += m.equipes.map(eq => `
         <div class="equipe-block" style="border-left-color:${eq.couleur || 'var(--orange)'}">
-          <div class="equipe-nom">${eqDot(eq.couleur)}${eq.nom}</div>
+          <div class="equipe-nom">${eqDot(eq.couleur)}${escapeHtml(eq.nom)}</div>
           <div class="equipe-joueurs">
             ${(eq.joueurs || []).map(u => `<div class="joueur-chip"><div class="j-avatar" style="background:${eq.couleur||'var(--orange)'}">${initiales(inscritsPseudos[u])}</div>${inscritsPseudos[u]}</div>`).join('')}
           </div>
@@ -6368,7 +6358,7 @@ async function renderMatchDetail(matchId, m) {
       html += `<div class="md-sec">Équipes</div>`;
       html += m.equipes.map(eq => `
         <div class="equipe-block" style="border-left-color:${eq.couleur || 'var(--orange)'}">
-          <div class="equipe-nom">${eqDot(eq.couleur)}${eq.nom}</div>
+          <div class="equipe-nom">${eqDot(eq.couleur)}${escapeHtml(eq.nom)}</div>
           <div class="equipe-joueurs">
             ${(eq.joueurs || []).map(u => `<div class="joueur-chip">${inscritsPseudos[u]}</div>`).join('')}
           </div>
@@ -6396,7 +6386,7 @@ async function voterCreneau(matchId, creneauId) {
     update[`votes.${creneauId}`] = arrayRemove(uid);
   } else {
     update[`votes.${creneauId}`] = arrayUnion(uid);
-    await addXP(uid, XP.voter);
+    annonceXP(uid, XP.voter);
     showToast('+10 XP pour ton vote !', 'success');
   }
   await updateDoc(ref, update);
@@ -6781,13 +6771,8 @@ window.submitCreateMatch = async function() {
   });
   window._selectedVenueCoords = null;
 
-  await addXP(uid, XP.creer);
-  // Badge organisateur
-  const ud = await getUserData(uid);
-  if (ud && !(ud.badges || []).includes('organisateur')) {
-    await updateDoc(doc(db, 'users', uid), { badges: arrayUnion('organisateur') });
-    showToast('Badge débloqué : Organisateur', 'success');
-  }
+  annonceXP(uid, XP.creer);
+  // Le badge organisateur est posé par la Cloud Function à la création.
   showToast('Match proposé ! +50 XP 🎉', 'success');
   closeModal();
   navigateTo('matchs');
@@ -6891,7 +6876,7 @@ function renderTerrainView() {
       <div class="pitch-center"></div>
       ${teamBlock(1, 'green', 'Verts')}
       ${benchHtml}
-      <div class="pitch-foot">${lieu} • Five indoor • 5v5</div>
+      <div class="pitch-foot">${escapeHtml(lieu)} • Five indoor • 5v5</div>
     </div>
     <div class="terrain-actions">
       <button class="btn-sm btn-outline" style="flex:1" onclick="setCompoMode('auto')">${ICON.zap} Équilibrer auto</button>
@@ -6980,7 +6965,7 @@ window.openAssignMenu = function(uid) {
     <div class="pdp-header">
       <div class="pdp-photo">${photo?`<img src="${photo}" style="width:100%;height:100%;object-fit:cover;border-radius:var(--r-xs)">`:(initiales(pseudo)||'?')}</div>
       <div style="flex:1;min-width:0">
-        <div class="pdp-name">${pseudo.toUpperCase()}</div>
+        <div class="pdp-name">${escapeHtml(pseudo.toUpperCase())}</div>
         <div style="margin-top:3px;font-size:12px;color:var(--text-sec)">${ovr} OVR · ${rar==='gold'?'⭐ Or':rar==='silver'?'🥈 Argent':'🥉 Bronze'}</div>
       </div>
       <button id="pdp-close" style="background:none;border:none;color:var(--text-muted);font-size:22px;cursor:pointer;padding:4px 8px;line-height:1;flex-shrink:0">✕</button>
@@ -7232,48 +7217,17 @@ window.terminerMatch = async function(matchId) {
     attendance: att
   });
 
-  // Présents : +XP, match compté, présence + streak
-  for (const uid of present) {
-    await addXP(uid, XP.participer);
-    await updateDoc(doc(db, 'users', uid), {
-      'stats.matchsJoues': increment(1),
-      presences: increment(1),
-      streak: increment(1)
-    });
-  }
-  // Absents (lapin) : malus XP, streak remis à zéro
-  for (const uid of absent) {
-    await updateDoc(doc(db, 'users', uid), {
-      xp: increment(-15),
-      lapins: increment(1),
-      streak: 0
-    });
-  }
-  // XP HDM
-  if (hdmUid) {
-    await addXP(hdmUid, XP.hdm);
-    await updateDoc(doc(db, 'users', hdmUid), {
-      'stats.hommeDuMatch': increment(1)
-    });
-    // Le moment est pour l'élu. Le créateur, lui, a juste besoin de savoir
-    // que son vote est enregistré. Limite connue : si l'élu n'est pas la
-    // personne devant l'écran, il l'apprend par notification — il faudrait
-    // un marqueur sur son document pour lui jouer le moment à sa prochaine
-    // ouverture.
-    if (hdmUid === currentUser?.uid) {
-      const _me = await getUserData(hdmUid);
-      momentMVP(_me?.pseudo, XP.hdm);
-    } else {
-      showToast('Homme du match élu !', 'success');
-    }
-  }
-  // Vérif badges pour les présents
-  for (const uid of present) {
-    delete usersCache[uid];
-    const d = await getUserData(uid);
-    if (d) await checkBadges(uid, { ...d, stats: { ...d.stats, matchsJoues: (d.stats?.matchsJoues || 0) + 1 } });
-  }
-  absent.forEach(uid => delete usersCache[uid]);
+  // Présences, XP, série, homme du match : plus rien n'est écrit ici.
+  // Ces champs sont refusés aux clients par les règles et calculés par
+  // `gainsFinDeMatch` dans la Cloud Function, à partir de `attendance` et
+  // de `hommeDuMatchUid` qu'on vient d'écrire sur le match. Le créateur
+  // n'a donc plus à distribuer l'XP des autres — il n'en a plus le droit.
+  annonceXP(currentUser?.uid, present.includes(currentUser?.uid) ? XP.participer : 0);
+
+  // Le cache local est vidé pour tout le monde : la Cloud Function vient
+  // d'écrire leurs statistiques et leurs badges, et le prochain affichage
+  // doit relire Firestore plutôt que servir des valeurs d'avant-match.
+  [...present, ...absent].forEach(uid => delete usersCache[uid]);
 
   showToast(`Match terminé · ${present.length} présent${present.length>1?'s':''}${absent.length?` · ${absent.length} absent${absent.length>1?'s':''}`:''}`, 'success');
   closeModal();
@@ -7315,7 +7269,7 @@ async function renderProfil() {
   const savedPhoto = d.photo || localStorage.getItem('cs5_photo_' + uid);
   const photoHtml = savedPhoto
     ? `<img src="${savedPhoto}" class="fc3-photo" alt="photo">`
-    : `<img src="./art-player.png" class="fc3-photo" alt="">`;
+    : `<img src="./art-player.jpg" class="fc3-photo" alt="">`;
 
   const tierCls = noteGlobal >= 85 ? 't-or' : noteGlobal >= 75 ? 't-argent' : 't-bronze';
   const tierLabel = noteGlobal >= 85 ? 'OR' : noteGlobal >= 75 ? 'ARGENT' : 'BRONZE';
@@ -7340,7 +7294,7 @@ async function renderProfil() {
       </div>
       <div class="fc3-bottom">
         <div class="fc3-pos">${posteData.label} · ${tierLabel}</div>
-        <div class="fc3-name">${(d.pseudo || 'JOUEUR').toUpperCase()}</div>
+        <div class="fc3-name">${escapeHtml((d.pseudo || 'JOUEUR').toUpperCase())}</div>
         <div class="fc3-divider"></div>
         <div class="fc3-stats">
           ${statsOrder.map(k => `<div class="fc3-stat"><span class="sn">${d.atouts?.[k] || 70}</span><span class="sl">${atoutsMap[k]}</span></div>`).join('')}
@@ -7456,7 +7410,7 @@ function openEditProfile() {
   openModal(`${ICON.edit} Modifier mon profil`, `
     <div class="form-group">
       <label class="input-label">Pseudo</label>
-      <input class="input-field" id="ep-pseudo" value="${d.pseudo || ''}">
+      <input class="input-field" id="ep-pseudo" value="${escapeHtml(d.pseudo || '')}">
     </div>
     <div class="form-group" style="margin-top:12px">
       <label class="input-label">Code postal <span style="font-weight:400;opacity:.6">(distance au terrain)</span></label>
@@ -7669,7 +7623,7 @@ async function renderClassement() {
     return `
       <div class="${s.cls}">
         <div class="podium-avatar-stack float-anim ${s.delay}">
-          <div class="p-avatar-3d ${s.av}">${initiales(s.u.pseudo)}${s.ring}</div>
+          <div class="p-avatar-3d ${s.av}">${escapeHtml(initiales(s.u.pseudo))}${s.ring}</div>
         </div>
         <div class="podium-name-3d">${escapeHtml(s.u.pseudo)}${isMe ? ' 👋' : ''}</div>
         <div class="podium-xp-3d"><span class="xp-count" data-xp="${s.u.xp || 0}">0</span> XP</div>
@@ -7685,8 +7639,8 @@ async function renderClassement() {
     const avCls = i === 0 ? 'r1' : i === 1 ? 'r2' : i === 2 ? 'r3' : '';
     const mdm = u.stats?.hommeDuMatch ?? 0;
     const avatar = isMe
-      ? `<div class="me-avatar-wrap"><span class="me-ring-pulse" aria-hidden="true"></span><div class="p-li-avatar ${avCls}">${initiales(u.pseudo)}</div></div>`
-      : `<div class="p-li-avatar ${avCls}">${initiales(u.pseudo)}</div>`;
+      ? `<div class="me-avatar-wrap"><span class="me-ring-pulse" aria-hidden="true"></span><div class="p-li-avatar ${avCls}">${escapeHtml(initiales(u.pseudo))}</div></div>`
+      : `<div class="p-li-avatar ${avCls}">${escapeHtml(initiales(u.pseudo))}</div>`;
     return `
       <div class="player-row${isMe ? ' me' : ''}" data-name="${escapeHtml((u.pseudo || '').toLowerCase())}" onclick="viewPlayerCard('${u.id}')">
         <div class="player-rank ${rk}">${i + 1}</div>
@@ -7727,7 +7681,7 @@ async function renderClassement() {
     youHero = `<div class="you-hero">
       <div class="yh-top">
         <div class="yh-rank">#${meIdx + 1}</div>
-        <div class="me-avatar-wrap"><span class="me-ring-pulse" aria-hidden="true"></span><div class="p-li-avatar">${initiales(me.pseudo)}</div></div>
+        <div class="me-avatar-wrap"><span class="me-ring-pulse" aria-hidden="true"></span><div class="p-li-avatar">${escapeHtml(initiales(me.pseudo))}</div></div>
         <div class="yh-meta">
           <div class="yh-name">Toi · ${escapeHtml(me.pseudo)}</div>
           <div class="yh-sub">${rangDot(myRang)}${myRang.label} · ${me.xp || 0} XP</div>
@@ -8206,7 +8160,7 @@ function _renderApList() {
   list.innerHTML = rows.map(u => {
     const rang = getRang(u.xp || 0);
     return `<div class="ap-row">
-      <div class="ap-av">${initiales(u.pseudo)}</div>
+      <div class="ap-av">${escapeHtml(initiales(u.pseudo))}</div>
       <div class="ap-meta">
         <div class="ap-name">${escapeHtml(u.pseudo)}</div>
         <div class="ap-sub">${rang.label} · ${u.xp || 0} XP</div>
@@ -8303,7 +8257,7 @@ window.openRatePlayers = async function(matchId) {
       const pre = already ? (already[r.uid] || 0) : 0;
       return `<div class="rate-row">
         <div class="rate-av">${r.photo ? `<img src="${r.photo}" style="width:100%;height:100%;object-fit:cover">` : initiales(r.pseudo)}</div>
-        <div class="rate-name">${r.pseudo}</div>
+        <div class="rate-name">${escapeHtml(r.pseudo)}</div>
         <div class="rate-stars" data-uid="${r.uid}">
           ${[1,2,3,4,5].map(s => `<span class="rate-star${pre>=s?' on':''}" data-s="${s}" onclick="window.setRate('${r.uid}',${s})">★</span>`).join('')}
         </div>
@@ -8332,10 +8286,12 @@ window.submitRatings = async function(matchId) {
   try {
     await updateDoc(ref, { [`ratings.${uid}`]: ratings });
     for (const [rated, stars] of Object.entries(ratings)) {
-      await updateDoc(doc(db, 'users', rated), { noteSum: increment(stars), noteCount: increment(1) });
+      // `noteSum` / `noteCount` sont écrits par la Cloud Function à partir
+      // de la fiche `ratings.{uid}` : un joueur ne note plus le document
+      // d'un autre. On vide seulement le cache local.
       delete usersCache[rated];
     }
-    await addXP(uid, 10);
+    annonceXP(uid, 10);
     showToast('Notes enregistrées ! +10 XP ⭐', 'success');
     window.closeModal();
   } catch (e) {
@@ -8392,7 +8348,7 @@ window.selectMotmVote = async function(matchId, votedUid) {
   const updates = { ['motmVotes.' + votedUid]: arrayUnion(uid) };
   if (oldUid) updates['motmVotes.' + oldUid] = arrayRemove(uid);
   await updateDoc(ref, updates);
-  await addXP(uid, 15);
+  annonceXP(uid, 15);
   showToast('+15 XP pour ton vote MOTM !', 'success');
   window.closeModal();
 };

@@ -283,10 +283,15 @@ notifications s'éteignent silencieusement au bout de quelques semaines.
 Les règles (`firestore.rules`) reposent sur un principe : **le client ne
 peut écrire que ce qui le concerne**.
 
-- **`users/{uid}`** — chacun ne modifie que son propre document.
+- **`users/{uid}`** — chacun ne modifie que son propre profil, **et pas
+  son score**. `xp`, `badges`, `stats`, `noteSum`, `noteCount`,
+  `presences`, `lapins` et `streak` sont refusés à **tous** les clients,
+  propriétaire du compte compris, exactement comme `equipes/{id}.stats`.
+  Seuls le social (`friends`, `friendRequestsSent`,
+  `friendRequestsReceived`) et le profil restent écrits côté client.
 - **`matchs/{matchId}`** — création uniquement en son propre nom et au
   statut `sondage` ; le `message` est validé (chaîne ≤ 200 caractères ou
-  `null`).
+  `null`) ; au plus dix créneaux proposés.
 - **Modification d'un match** — deux cas seulement :
   - **le créateur** peut tout faire (confirmer, composer, terminer,
     annuler) ;
@@ -294,6 +299,14 @@ peut écrire que ce qui le concerne**.
     inscription, note, vote MOTM). Il ne peut ni changer le score, ni
     confirmer, ni annuler.
 - **`messages`** — un message appartient à son auteur.
+
+**Injection.** Toute chaîne venue d'un utilisateur *ou d'une API tierce*
+passe par `escapeHtml()` avant d'atteindre un `innerHTML`. Le cas le
+moins évident est le nom d'un terrain : il vient du géocodeur
+`photon.komoot.io`, c'est de la donnée OpenStreetMap libre, stockée telle
+quelle puis affichée à tous les participants du match. Les règles bornent
+la **longueur** d'un pseudo (24 caractères) mais pas son **contenu**, et
+`<svg onload=…>` tient dans 24 caractères.
 
 > ⚠️ Les règles ne s'appliquent **qu'une fois déployées**
 > (`firebase deploy --only firestore:rules`). Le fichier dans le dépôt
@@ -303,7 +316,16 @@ peut écrire que ce qui le concerne**.
 
 ## Gamification
 
-**XP** — gains et malus (constante `XP`, `index.html`) :
+> **L'XP est attribuée par le serveur, et nulle part ailleurs.**
+> Barème dans `functions/index.js` (constante `XP`). Le document match
+> est la seule source : voter, créer, noter, élire l'homme du match et
+> terminer sont tous des écritures dessus, et `onMatchEcrit` en déduit
+> les gains en comparant l'avant et l'après — donc de façon idempotente.
+> Le client se contente d'**annoncer** le gain (`annonceXP`) pour que
+> l'écran réponde sans attendre l'aller-retour ; le chiffre affiché est
+> une prévision, le prochain chargement du profil porte la valeur réelle.
+
+**XP** — gains :
 
 | Action | XP |
 |---|---|
@@ -327,7 +349,9 @@ peut écrire que ce qui le concerne**.
 Le passage d'un palier déclenche un toast « Level up ! ».
 
 **Badges** — six paliers : 1er match, 5 matchs, 10 matchs, homme du
-match, organisateur, assidu.
+match, organisateur, assidu. Attribués par `majBadges()` dans la Cloud
+Function, à partir des statistiques qu'elle vient d'écrire. Le client ne
+fait que les afficher.
 
 **Notes entre joueurs** — après un match, chacun note les autres ; les
 notes font évoluer les `atouts`, donc l'overall, donc le rang de la

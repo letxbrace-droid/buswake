@@ -57,8 +57,14 @@ for (const d of ['m', 'marketing']) {
   if (!fs.existsSync(dir)) continue;
   for (const f of fs.readdirSync(dir)) texte += fs.readFileSync(path.join(dir, f), 'utf8');
 }
+// Certains noms sont CONSTRUITS : `sport-${id}.jpg` référence les cinq
+// fichiers d'un coup. Sans ça, le contrôle signale éternellement des
+// orphelins qui n'en sont pas — et on apprend à ignorer ses alertes.
+const motifs = [...texte.matchAll(/`([a-z0-9\-\/]*)\$\{[^}]+\}([a-z0-9\-.]*)`/gi)]
+  .map(m => [m[1], m[2]]).filter(([a, b]) => a.length + b.length >= 5);
+const construit = f => motifs.some(([a, b]) => f.startsWith(a) && f.endsWith(b));
 const surDisque = fs.readdirSync(RACINE).filter(f => /\.(jpg|png|woff2)$/.test(f));
-const orphelins = surDisque.filter(f => !liste.includes(f) && !texte.includes(f));
+const orphelins = surDisque.filter(f => !liste.includes(f) && !texte.includes(f) && !construit(f));
 if (orphelins.length) console.log('! présents dans le dépôt, référencés nulle part : ' + orphelins.join(', '));
 else console.log('✓ aucun asset orphelin');
 
