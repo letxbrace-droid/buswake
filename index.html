@@ -1338,6 +1338,12 @@
       justify-content:center; }
     .y-rond svg { width:17px; height:17px; }
 
+    .cm-aucun { font-size:12.5px; color:var(--text-sec); line-height:1.55;
+      border:1px dashed var(--border-light); border-radius:var(--r-md);
+      padding:11px 12px; margin-top:4px; }
+    .cm-aucun b { color:var(--text); }
+    .cm-aucun .ic { width:13px; height:13px; vertical-align:-2px; }
+
     /* ===== Y ALLER ===== */
     .y-aller { display:inline-flex; align-items:center; gap:5px; cursor:pointer;
       border:1px solid rgba(93,214,44,.34); border-radius:var(--r-pill);
@@ -3804,34 +3810,33 @@ function typeTerrainMatch(m) {
   return typeTerrain(v);
 }
 
-// Catalogue de secours. IMPORTANT : ces dix-sept entrées ont été SAISIES À
-// LA MAIN (commit 0b85d17), pas relevées sur une source officielle. Les noms
-// sont plausibles — Le Five et UrbanSoccer sont de vraies enseignes — mais ni
-// l'orthographe exacte, ni la commune, ni surtout les coordonnées à trois
-// décimales (~110 m) ne sont vérifiées, et aucune n'a d'adresse postale.
+// Catalogue vérifié. VIDE, et c'est un choix.
 //
-// Conséquence assumée dans le produit : elles portent `verif: false`, elles
-// passent APRÈS les terrains OpenStreetMap dans les suggestions, et
-// l'itinéraire proposé pour elles est annoncé comme approximatif. Envoyer un
-// joueur à la mauvaise adresse coûte plus cher que ne rien proposer.
+// Dix-sept terrains y figuraient. Ils avaient été SAISIS À LA MAIN par une
+// session précédente (commit 0b85d17, qui retirait justement OpenStreetMap),
+// sans source. Deux constats les ont condamnés :
+//
+//   - onze sur dix-sept suivaient le motif « mot générique + nom de la
+//     commune » — Futsal Palaiseau, Five Saclay, Indoor Foot Les Ulis,
+//     Five Arpajon… C'est exactement la forme que prend une donnée inventée
+//     plutôt que relevée ;
+//   - l'un d'eux, « Indoor Foot Les Ulis », a été signalé comme inexistant
+//     par quelqu'un qui connaît le secteur.
+//
+// Une suggestion fausse ne fait pas perdre du temps : elle envoie une
+// équipe entière à une adresse qui n'existe pas. Elle coûte donc plus cher
+// que l'absence de suggestion. Les terrains viennent désormais
+// d'OpenStreetMap — vérifiable et corrigeable par n'importe qui — et de la
+// recherche libre.
+//
+// POUR REPEUPLER CETTE LISTE : n'y mettre qu'un terrain dont on a
+// l'adresse postale complète et les coordonnées relevées sur une carte,
+// avec `verif: true`. Format :
+//   { n:'Nom exact', v:'Commune', cp:'91000',
+//     adr:'12 rue des Sports, 91000 Commune',
+//     lat:48.1234, lon:2.1234, t:'indoor', verif:true },
+// `t` vaut 'indoor' (salle couverte), 'urban' (cage) ou '' (plein air).
 const VENUES_91 = [
-  { n:'UrbanSoccer Saint-Michel', v:'Saint-Michel-sur-Orge', cp:'91240', lat:48.638, lon:2.305, t:'urban', verif:false },
-  { n:'Urban Soccer Nation',      v:'Évry-Courcouronnes',     cp:'91000', lat:48.625, lon:2.428, t:'urban', verif:false },
-  { n:'Soccer Park Évry',         v:'Évry-Courcouronnes',     cp:'91000', lat:48.623, lon:2.441, t:'urban', verif:false },
-  { n:'Le Five Morangis',         v:'Morangis',               cp:'91420', lat:48.698, lon:2.337, t:'indoor', verif:false },
-  { n:'Le Five Bièvres',          v:'Bièvres',                cp:'91570', lat:48.758, lon:2.230, t:'indoor', verif:false },
-  { n:'Five Massy',               v:'Massy',                  cp:'91300', lat:48.726, lon:2.283, t:'indoor', verif:false },
-  { n:'Futsal Palaiseau',         v:'Palaiseau',              cp:'91120', lat:48.715, lon:2.245, t:'indoor', verif:false },
-  { n:'Five Saclay',              v:'Saclay',                 cp:'91400', lat:48.731, lon:2.172, t:'indoor', verif:false },
-  { n:'Indoor Foot Les Ulis',     v:'Les Ulis',               cp:'91940', lat:48.681, lon:2.168, t:'indoor', verif:false },
-  { n:'Five Longjumeau',          v:'Longjumeau',             cp:'91160', lat:48.694, lon:2.295, t:'indoor', verif:false },
-  { n:'Soccer Palace Brétigny',   v:'Brétigny-sur-Orge',      cp:'91220', lat:48.610, lon:2.310, t:'indoor', verif:false },
-  { n:'Soccer Savigny',           v:'Savigny-sur-Orge',       cp:'91600', lat:48.677, lon:2.345, t:'urban', verif:false },
-  { n:'Urban Foot Viry',          v:'Viry-Châtillon',         cp:'91170', lat:48.672, lon:2.378, t:'urban', verif:false },
-  { n:'UrbanSoccer Wissous',      v:'Wissous',                cp:'91320', lat:48.731, lon:2.328, t:'urban', verif:false },
-  { n:'Five Soccer Corbeil',      v:'Corbeil-Essonnes',       cp:'91100', lat:48.604, lon:2.482, t:'indoor', verif:false },
-  { n:'City Five Grigny',         v:'Grigny',                 cp:'91350', lat:48.655, lon:2.385, t:'indoor', verif:false },
-  { n:'Five Arpajon',             v:'Arpajon',                cp:'91290', lat:48.590, lon:2.247, t:'indoor', verif:false },
 ];
 
 function _venueHome() {
@@ -7011,10 +7016,17 @@ function hydraterTerrainsAccueil() {
   if (!el || !_venueHome()) return;
   terrainsPourJoueur(25, 60).then(l => {
     const cible = document.getElementById('tr-c-sous');
-    if (!cible || !l.length) return;
+    if (!cible) return;
+    // Zéro se dit. La carte annonçait « terrains couverts et cages à moins
+    // de 25 km » même quand il n'y en avait aucun : une promesse sans rien
+    // derrière, et le joueur la découvre en ouvrant.
+    if (!l.length) {
+      cible.textContent = "Aucun terrain répertorié dans 25 km — tu peux quand même en saisir un";
+      return;
+    }
     const couverts = l.filter(x => x.t === 'indoor').length;
     cible.textContent = couverts
-      ? `${l.length} terrains à moins de 25 km, dont ${couverts} couvert${couverts > 1 ? 's' : ''}`
+      ? `${l.length} terrain${l.length > 1 ? 's' : ''} à moins de 25 km, dont ${couverts} couvert${couverts > 1 ? 's' : ''}`
       : `${l.length} terrain${l.length > 1 ? 's' : ''} à moins de 25 km`;
   }).catch(() => {});
 }
@@ -7352,8 +7364,11 @@ function renderCmModal() {
     <div class="cm-sports">${sportsHtml}</div>`}
     <div class="section-sub"${MONO_SPORT ? '' : ' style="margin-top:18px"'}>${ICON.pin} On joue où ?</div>
     <div id="cm-venues">${venuesHtml}</div>
-    <div class="cm-search-toggle" onclick="cmToggleSearch()">${ICON.pin} Un autre terrain…</div>
-    <div class="cm-search-box" id="cm-search-box">
+    ${cards.length
+      ? `<div class="cm-search-toggle" onclick="cmToggleSearch()">${ICON.pin} Un autre terrain…</div>`
+      : `<div class="cm-aucun">${ICON.pin} Aucun terrain répertorié autour de toi.
+           <b>Cherche-le par son nom</b> — il sera enregistré avec le match.</div>`}
+    <div class="cm-search-box${cards.length ? '' : ' open'}" id="cm-search-box">
       <input class="input-field" id="cm-search-input" placeholder="Salle, ville ou adresse…" autocomplete="off" oninput="cmVenueSearch()" style="margin-top:8px">
       <div class="cm-search-dd" id="cm-search-dd"></div>
     </div>
@@ -7492,7 +7507,7 @@ window.cmVenueSearch = function() {
 };
 window.cmPickSearch = function(x) { _cmExtra = x; _cmVenue = x; renderCmModal(); };
 window.cmSubmit = function() {
-  if (!_cmVenue) { showToast('Choisis un terrain.', 'error'); return; }
+  if (!_cmVenue) { showToast('Choisis un terrain, ou cherche-le par son nom.', 'error'); return; }
   if (!_cmSlots.length) { showToast('Coche au moins un créneau.', 'error'); return; }
   const lieu = _cmVenue.v ? `${_cmVenue.n} — ${_cmVenue.v}` : _cmVenue.n;
   // L'adresse voyage avec le créneau : sans elle, celui qui rejoint n'a
