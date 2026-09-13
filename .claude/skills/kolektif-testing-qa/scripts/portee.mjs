@@ -25,49 +25,76 @@ import { ouvrir, fixturesParDefaut, RACINE } from './lib/harnais.mjs';
 //     pas depuis le texte.
 
 // Efface commentaires et littéraux, en gardant le code des `${...}`.
-// Le comptage d'accolades ignore ce qui est entre guillemets : sans ça, un
-// `${ x === '}' ? a : b }` désynchronise le scanner et recrache du
-// commentaire en clair — c'est ainsi que « la vie (…) » devenait vie().
+//
+// Première version : un scanner à plat, avec un comptage d'accolades. Il
+// cédait dès qu'un gabarit contenait un gabarit — `${x ? `<div>` : ''}` —
+// et recrachait du commentaire en clair : « la vie (…) » devenait vie(),
+// et le contrôle criait au loup. Un test qui crie au loup est pire que pas
+// de test. Descente récursive, donc : une fonction pour le code, une pour
+// le gabarit, elles s'appellent l'une l'autre, l'imbrication est gratuite.
 function sansCommentairesNiChaines(src) {
   let out = '', i = 0;
   const n = src.length;
-  while (i < n) {
-    const c = src[i], d = src[i + 1];
-    if (c === '/' && d === '/') { while (i < n && src[i] !== '\n') i++; continue; }
-    if (c === '/' && d === '*') { i += 2; while (i < n && !(src[i] === '*' && src[i + 1] === '/')) i++; i += 2; continue; }
-    if (c === "'" || c === '"') {
-      const q = c; i++;
-      while (i < n && src[i] !== q) { if (src[i] === '\\') i++; i++; }
-      i++; out += ' '; continue;
+
+  function litGabarit() {            // i pointe APRÈS le backtick ouvrant
+    while (i < n) {
+      const c = src[i];
+      if (c === '\\') { i += 2; continue; }
+      if (c === '`') { i++; return; }
+      if (c === '$' && src[i + 1] === '{') { i += 2; out += ' '; litCode(true); out += ' '; continue; }
+      i++;                            // texte du gabarit : jeté
     }
-    if (c === '`') {
-      i++;
-      while (i < n) {
-        if (src[i] === '\\') { i += 2; continue; }
-        if (src[i] === '`') { i++; break; }
-        if (src[i] === '$' && src[i + 1] === '{') {
-          i += 2;
-          let prof = 1, bout = '';
-          while (i < n && prof > 0) {
-            const k = src[i];
-            if (k === "'" || k === '"' || k === '`') {          // on saute la chaîne entière
-              const q = k; bout += ' '; i++;
-              while (i < n && src[i] !== q) { if (src[i] === '\\') i++; i++; }
-              i++; continue;
-            }
-            if (k === '{') prof++;
-            else if (k === '}') { prof--; if (!prof) { i++; break; } }
-            bout += k; i++;
-          }
-          out += ' ' + sansCommentairesNiChaines(bout) + ' ';
-          continue;
-        }
-        i++;
-      }
-      out += ' '; continue;
-    }
-    out += c; i++;
   }
+
+  // Une barre oblique est soit une division, soit le début d'une expression
+  // régulière. La distinguer n'est pas cosmétique : le `/[&<>"']/g` de
+  // `escapeHtml` contient une apostrophe, prise pour l'ouverture d'une
+  // chaîne — et tout le reste du fichier partait de travers, jusqu'à perdre
+  // des déclarations et faire passer `var(--orange)` pour un appel.
+  // Heuristique classique : après un opérateur ou une ouverture, c'est une
+  // expression régulière ; après une valeur, c'est une division.
+  const AVANT_REGEX = new Set(['(', ',', '=', ':', '[', '!', '&', '|', '?',
+                               '{', '}', ';', '+', '-', '*', '%', '~', '^', '<', '>', null]);
+  let dernier = null;
+
+  function litCode(dansGabarit) {     // s'arrête sur le `}` qui ferme le ${}
+    let prof = 0;
+    while (i < n) {
+      const c = src[i], d = src[i + 1];
+      if (c === '/' && d === '/') { while (i < n && src[i] !== '\n') i++; continue; }
+      if (c === '/' && d === '*') { i += 2; while (i < n && !(src[i] === '*' && src[i + 1] === '/')) i++; i += 2; continue; }
+      if (c === '/' && AVANT_REGEX.has(dernier)) {
+        i++;                                    // on entre dans /.../
+        let classe = false;
+        while (i < n) {
+          const k = src[i];
+          if (k === '\\') { i += 2; continue; }
+          if (k === '[') classe = true;
+          else if (k === ']') classe = false;
+          else if (k === '/' && !classe) { i++; break; }
+          else if (k === '\n') break;           // pas une expression régulière
+          i++;
+        }
+        while (i < n && /[a-z]/.test(src[i])) i++;   // drapeaux
+        out += ' '; dernier = ')'; continue;
+      }
+      if (c === "'" || c === '"') {
+        const q = c; i++;
+        while (i < n && src[i] !== q) { if (src[i] === '\\') i++; i++; }
+        i++; out += ' '; dernier = ')'; continue;
+      }
+      if (c === '`') { i++; out += ' '; litGabarit(); dernier = ')'; continue; }
+      if (c === '{') { prof++; out += c; i++; dernier = '{'; continue; }
+      if (c === '}') {
+        if (dansGabarit && prof === 0) { i++; return; }
+        prof--; out += c; i++; dernier = '}'; continue;
+      }
+      out += c; i++;
+      if (!/\s/.test(c)) dernier = c;
+    }
+  }
+
+  litCode(false);
   return out;
 }
 
@@ -91,7 +118,12 @@ function nomsDeclares(propre) {
 
 function appelsOrphelins(racine) {
   const doc = fs.readFileSync(path.join(racine, 'index.html'), 'utf8');
-  const js = doc.slice(doc.indexOf('<script type="module">'));
+  // Le module, et RIEN QUE lui : la tranche courait jusqu'à la fin du
+  // fichier, commentaires HTML compris, et leurs phrases françaises
+  // devenaient des appels de fonction.
+  const deb = doc.indexOf('<script type="module">');
+  const fin = doc.indexOf('</script>', deb);
+  const js = doc.slice(deb, fin > 0 ? fin : undefined);
   const propre = sansCommentairesNiChaines(js);
   const declares = nomsDeclares(propre);
   const MOTS = new Set(['if','for','while','switch','catch','return','typeof','await','new',

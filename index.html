@@ -1319,8 +1319,67 @@
     .mlc-bottom { padding:10px 16px; background:var(--surface); display:flex; align-items:center; gap:10px; border-top:1px solid var(--border); }
     .mlc-creator { font-size:12px; color:var(--text-sec); }
 
+    /* ===== ÉCRAN MATCHS =====
+       Tout ce qui pilote l'écran tient sur UNE plaque : le titre, l'état du
+       fil, les trois onglets, le rayon. Avant, ces quatre choses étaient
+       posées à plat sur la photo, chacune dans son coin, et un bouton vert
+       pleine largeur écrasait le reste — alors que le « + » de la barre du
+       bas fait déjà exactement ça. La commande se regroupe, l'action reste
+       au pouce, et le terrain respire entre la plaque et les cartes. */
+    .mx-panel { border-radius:var(--r-lg); padding:14px 14px 12px; margin:0 0 16px; }
+    .mx-top { display:flex; align-items:flex-end; justify-content:space-between; gap:12px; }
+    .mx-title { font-family:'Anton',sans-serif; font-size:clamp(26px,7.4vw,34px); line-height:.95;
+      letter-spacing:.5px; color:var(--text); }
+    /* Télémétrie : deux chiffres, tous deux calculés sur le fil réellement
+       affiché. Un compteur qui ne compte pas ce qu'on voit est un mensonge —
+       « À caler 2 » au-dessus d'une liste vide, c'était exactement ça. */
+    .mx-tel { display:flex; align-items:center; gap:9px; padding-bottom:3px;
+      font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      /* --text-sec, pas --text-muted : la plaque est translucide, donc ce
+         texte est posé sur la photo autant que sur la carte. Mesuré à 3,77
+         pour un seuil de 4,5 en muted. */
+      color:var(--text-sec); white-space:nowrap; }
+    .mx-tel b { color:var(--orange); font-size:14px; letter-spacing:0; }
+    .mx-tel i { width:3px; height:3px; border-radius:50%; background:var(--border-light); display:block; }
+    .mx-tel .live { width:6px; height:6px; border-radius:50%; background:var(--orange);
+      box-shadow:0 0 0 0 var(--orange-glow); animation:mxLive 2.4s var(--ease) infinite; }
+    @keyframes mxLive { 0%{box-shadow:0 0 0 0 rgba(93,214,44,.5)} 70%{box-shadow:0 0 0 7px rgba(93,214,44,0)} 100%{box-shadow:0 0 0 0 rgba(93,214,44,0)} }
+    @media (prefers-reduced-motion:reduce) { .mx-tel .live { animation:none; } }
+
+    /* Rangée de rayon, à l'intérieur de la plaque : elle défile plutôt que
+       de passer à la ligne, sinon la plaque grandit d'un cran sur mobile. */
+    /* Les cinq crans tiennent SUR UNE LIGNE, jusqu'à 320 px. Mesuré : avec
+       l'étiquette « RAYON » et des crans à largeur de contenu, il manquait
+       113 px à 320 et 33 px à 400 — le dernier cran était coupé, et une
+       rangée coupée se lit « cassé », pas « ça défile ». L'icône d'épingle
+       dit déjà de quoi il s'agit ; les crans se partagent le reste. */
+    .mx-rayon { display:flex; align-items:center; gap:7px; margin-top:11px; min-width:0; }
+    .mx-rayon-lbl { flex-shrink:0; display:inline-flex; align-items:center; color:var(--text-sec); }
+    .mx-rayon-lbl .ic { width:14px; height:14px; }
+    .mx-rayon-piste { display:flex; gap:5px; flex:1 1 auto; min-width:0; }
+    .mx-rayon-piste .rayon-chip {
+      flex:1 1 0; min-width:0; min-height:30px; padding:5px 2px; font-size:11.5px;
+      text-align:center; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+    }
+
+    /* ===== ÉTAT VIDE, EN PLAQUE =====
+       Un écran vide n'est pas une erreur : c'est le moment où l'on décide.
+       Il porte donc l'action, au lieu de la laisser en haut de page. */
+    .mx-vide { border-radius:var(--r-lg); padding:26px 20px 22px; text-align:center; }
+    .mx-vide .mxv-ic { width:46px; height:46px; margin:0 auto 12px; display:flex;
+      align-items:center; justify-content:center; border-radius:var(--r-md);
+      background:rgba(93,214,44,.10); color:var(--orange); }
+    .mx-vide .mxv-ic .ic, .mx-vide .mxv-ic svg { width:24px; height:24px; }
+    .mx-vide h3 { font-family:'Anton',sans-serif; font-size:19px; letter-spacing:.4px; color:var(--text); }
+    .mx-vide p { font-size:13px; line-height:1.6; color:var(--text-sec); margin-top:7px; }
+    .mx-vide .btn-primary, .mx-vide .btn-sm { margin-top:16px; }
+    .mx-vide .mxv-art { display:block; margin:0 auto 10px; opacity:.95; }
+
     /* ===== ÉCRAN MATCHS — REDESIGN TECH ===== */
     /* CTA premium "Proposer un match" */
+    /* Ne subsiste que dans la plaque d'état vide : en tête d'écran, ce
+       bouton pleine largeur doublait le « + » de la barre du bas et
+       captait tout le regard avant même qu'on ait lu le fil. */
     .cta-propose { position:relative; width:100%; border:none; border-radius:var(--r-md); padding:15px; cursor:pointer;
       background:linear-gradient(135deg,var(--orange-dark),var(--orange) 55%,var(--orange2)); color:#04130c;
       font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:15px; letter-spacing:.3px; overflow:hidden;
@@ -1336,8 +1395,9 @@
     .cta-propose.locked::after { display:none; }
 
     /* Segmented control */
-    .seg-wrap { position:relative; display:flex; background:var(--surface); border:1px solid var(--border);
-      border-radius:var(--r-md); padding:4px; margin-bottom:16px; gap:2px; box-shadow:inset 0 1px 0 rgba(255,255,255,.03); }
+    .seg-wrap { position:relative; display:flex; background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--r-md); padding:4px; margin:12px 0 0; gap:2px;
+      box-shadow:inset 0 2px 6px rgba(0,0,0,.45); }
     .seg-thumb { position:absolute; top:4px; left:4px; height:calc(100% - 8px); width:calc((100% - 8px)/3);
       background:linear-gradient(135deg,var(--orange-dark),var(--orange)); border-radius:var(--r-sm);
       box-shadow:0 4px 14px var(--orange-glow), 0 1px 0 rgba(255,255,255,.3) inset;
@@ -1679,6 +1739,8 @@
     .screen .home-hero,
     .screen .cold-hero,
     .screen .jours,
+    .screen .mx-panel,
+    .screen .mx-vide,
     .screen .cls-hero,
     .screen .you-hero,
     .screen .friends-search-box {
@@ -1751,8 +1813,8 @@
       .screen .mc, .screen .card, .screen .stat-box, .screen .autour .au-stat,
       .screen .prog-card, .screen .ap-carte, .screen .activity-list,
       .screen .eq-carte, .screen .home-hero, .screen .cold-hero,
-      .screen .jours, .screen .cls-hero, .screen .you-hero,
-      .screen .friends-search-box {
+      .screen .jours, .screen .mx-panel, .screen .mx-vide,
+      .screen .cls-hero, .screen .you-hero, .screen .friends-search-box {
         background:linear-gradient(180deg, rgba(34,39,31,.96), rgba(20,24,18,.96)); }
     }
     @media (prefers-reduced-transparency:reduce) {
@@ -5735,25 +5797,25 @@ function firestoreErrorHtml(err) {
 let matchsFilter = 'sondage';
 async function renderMatchs() {
   const el = document.getElementById('matchs-content');
-  const elig = window._canCreateMatch ?? { can: true };
-  const cta = elig.can
-    ? `<button class="cta-propose" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>`
-    : `<button class="cta-propose locked" title="Tu joues déjà dans un match à venir">${ICON.plus} Proposer un match</button>`;
   el.innerHTML = `
-    <div class="screen-navbar"><h1 class="screen-title">Matchs</h1></div>
-    ${cta}
-    <div class="seg-wrap">
-      <div class="seg-thumb" id="seg-thumb"></div>
-      <button class="seg-btn ${matchsFilter==='sondage'?'active':''}" id="seg-sondage" onclick="setMatchFilter('sondage')">${ICON.poll}À caler<span class="seg-count" id="cnt-sondage"></span></button>
-      <button class="seg-btn ${matchsFilter==='confirme'?'active':''}" id="seg-confirme" onclick="setMatchFilter('confirme')">${ICON.checkCircle}Confirmés<span class="seg-count" id="cnt-confirme"></span></button>
-      <button class="seg-btn ${matchsFilter==='termine'?'active':''}" id="seg-termine" onclick="setMatchFilter('termine')">${ICON.scroll}Histo<span class="seg-count" id="cnt-termine"></span></button>
+    <div class="mx-panel">
+      <div class="mx-top">
+        <h1 class="mx-title">Matchs</h1>
+        <div class="mx-tel" id="mx-tel"><span class="live" aria-hidden="true"></span>Chargement…</div>
+      </div>
+      <div class="seg-wrap">
+        <div class="seg-thumb" id="seg-thumb"></div>
+        <button class="seg-btn ${matchsFilter==='sondage'?'active':''}" id="seg-sondage" onclick="setMatchFilter('sondage')">${ICON.poll}À caler<span class="seg-count" id="cnt-sondage"></span></button>
+        <button class="seg-btn ${matchsFilter==='confirme'?'active':''}" id="seg-confirme" onclick="setMatchFilter('confirme')">${ICON.checkCircle}Confirmés<span class="seg-count" id="cnt-confirme"></span></button>
+        <button class="seg-btn ${matchsFilter==='termine'?'active':''}" id="seg-termine" onclick="setMatchFilter('termine')">${ICON.scroll}Histo<span class="seg-count" id="cnt-termine"></span></button>
+      </div>
+      ${matchsFilter === 'termine' ? '' : `<div class="mx-rayon">
+        <span class="mx-rayon-lbl" title="Rayon de recherche" aria-label="Rayon de recherche">${ICON.pin}</span>
+        <div class="mx-rayon-piste">${RAYONS.map(k =>
+          `<button class="rayon-chip${rayonKm() === k ? ' on' : ''}" onclick="setRayon(${k})">${rayonLabel(k)}</button>`
+        ).join('')}</div>
+      </div>`}
     </div>
-    ${matchsFilter === 'termine' ? '' : `<div class="rayon-bar">
-      <span class="rayon-lbl">${ICON.pin} Autour de moi</span>
-      <div class="rayon-chips">${RAYONS.map(k =>
-        `<button class="rayon-chip${rayonKm() === k ? ' on' : ''}" onclick="setRayon(${k})">${rayonLabel(k)}</button>`
-      ).join('')}</div>
-    </div>`}
     <div id="matchs-list">${matchSkeleton(3)}</div>`;
   requestAnimationFrame(() => positionSegThumb(matchsFilter));
   loadMatchsList(matchsFilter);
@@ -5766,15 +5828,43 @@ function positionSegThumb(filter) {
   thumb.style.width = btn.offsetWidth + 'px';
   thumb.style.transform = `translateX(${btn.offsetLeft - 4}px)`;
 }
+// Les trois chiffres des onglets, et la télémétrie du haut.
+//
+// Ils étaient faux, et faux d'une manière qui abîme la confiance : chacun
+// comptait TOUS les matchs d'un statut dans la base entière, sans borne de
+// date, de visibilité ni de rayon. On lisait « À caler 2 » au-dessus d'une
+// liste vide — les deux matchs comptés étaient hors rayon, expirés, ou
+// privés chez quelqu'un d'autre. Un compteur affiché est une promesse : il
+// se calcule maintenant sur exactement le fil que la liste sait montrer.
+async function compterMatchs() {
+  const uid = currentUser?.uid;
+  const f = await _fetchMatchFeed(uid);
+  const enRayon = docs => docs.filter(d => dansLeRayon(d.data(), uid));
+  const sondages = enRayon(f.S.docs), confirmes = enRayon(f.C.docs);
+  // Places réellement à prendre sur les matchs confirmés du fil.
+  const places = confirmes.reduce((n, d) => {
+    const m = d.data();
+    return n + Math.max(0, maxJoueurs(m) - (m.joueursInscrits || []).length);
+  }, 0);
+  return { sondage: sondages.length, confirme: confirmes.length,
+           termine: f.T.docs.length, places };
+}
+
 async function loadMatchCounts() {
-  const map = { sondage: 'sondage', confirme: 'confirmé', termine: 'terminé' };
-  for (const [k, st] of Object.entries(map)) {
-    try {
-      const snap = await getDocs(query(collection(db, 'matchs'), where('statut', '==', st)));
-      const c = document.getElementById('cnt-' + k);
-      if (c) c.textContent = snap.size;
-    } catch (_) {}
+  let c;
+  try { c = await compterMatchs(); } catch (_) { return; }
+  for (const k of ['sondage', 'confirme', 'termine']) {
+    const el = document.getElementById('cnt-' + k);
+    if (el) el.textContent = c[k];
   }
+  const tel = document.getElementById('mx-tel');
+  if (!tel) return;
+  const ouverts = c.sondage + c.confirme;
+  // Rien à annoncer plutôt qu'un zéro claironné : l'état vide le dit déjà.
+  tel.innerHTML = ouverts === 0
+    ? `<span class="live" aria-hidden="true" style="background:var(--text-muted);animation:none"></span>Rien d'ouvert`
+    : `<span class="live" aria-hidden="true"></span><b>${ouverts}</b> ouvert${ouverts > 1 ? 's' : ''}`
+      + (c.places > 0 ? `<i aria-hidden="true"></i><b>${c.places}</b> place${c.places > 1 ? 's' : ''}` : '');
 }
 window.setMatchFilter = function(f) {
   matchsFilter = f;
@@ -6133,13 +6223,13 @@ function loadMatchsList(filter) {
       horsRayon = avant - docs.length;
     }
     const snap = { docs, empty: docs.length === 0 };
-    const emptyHTML = `<div class="empty-state">${filter === 'termine' ? '<img src="./art-empty-histo.png" class="es-art" alt="">' : `<div class="icon">${ICON.calendar}</div>`}<p>${filter === 'termine' ? 'Aucun match joué pour le moment.' : filter === 'confirme' ? 'Aucun match confirmé pour le moment.' : 'Aucun match proposé pour le moment.<br>Lance le premier.'}</p></div>`;
     if (snap.empty) {
-      // Ne jamais dire « aucun match » quand il y en a, mais plus loin :
-      // l'utilisateur croirait le produit mort.
-      el.innerHTML = horsRayon > 0
-        ? `<div class="empty-state"><div class="icon">${ICON.pin}</div><p>${horsRayon} match${horsRayon > 1 ? 's' : ''} au-delà de ${rayonLabel(rayonKm())}.<br>Élargis le rayon pour ${horsRayon > 1 ? 'les' : 'le'} voir.</p></div>`
-        : emptyHTML;
+      // Un écran vide n'est pas une panne : c'est le moment où l'on décide.
+      // Il porte donc l'action, au lieu de la laisser en haut de page —
+      // et il ne dit JAMAIS « aucun match » quand il y en a, mais plus
+      // loin : l'utilisateur croirait le produit mort.
+      el.innerHTML = videMatchsHTML(filter, horsRayon);
+      jouerEntree(el);
       return;
     }
     const fills = [];   // avatars empilés à charger : {id, uids}
@@ -6167,6 +6257,51 @@ function loadMatchsList(filter) {
   });
   window._matchsListenerUnsubscribe = unsub;
   activeListeners.push(unsub);
+}
+
+// L'état vide, en plaque, avec sa sortie.
+function videMatchsHTML(filter, horsRayon) {
+  const peutCreer = window._canCreateMatch?.can ?? true;
+  const creer = peutCreer
+    ? `<button class="btn-primary" onclick="openCreateMatch()">${ICON.plus} Proposer un match</button>`
+    : '';
+
+  // Des matchs existent, mais plus loin. On propose le geste qui les montre,
+  // pas un message qui constate.
+  if (horsRayon > 0) {
+    const suivant = RAYONS.filter(k => k === 0 || k > rayonKm())[0] ?? 0;
+    return `<div class="mx-vide">
+      <div class="mxv-ic">${ICON.pin}</div>
+      <h3>${horsRayon} match${horsRayon > 1 ? 's' : ''} plus loin</h3>
+      <p>Rien dans ${rayonLabel(rayonKm())}, mais ${horsRayon > 1 ? 'ils jouent' : 'il se joue'}
+         juste à côté.</p>
+      <button class="btn-primary" onclick="setRayon(${suivant})">
+        Élargir à ${rayonLabel(suivant).toLowerCase()}</button>
+    </div>`;
+  }
+  if (filter === 'termine') {
+    return `<div class="mx-vide">
+      <img src="./art-empty-histo.png" class="mxv-art" width="120" height="120" alt="">
+      <h3>Pas encore d'histoire</h3>
+      <p>Tes matchs joués s'empileront ici, avec les scores et les hommes du match.</p>
+    </div>`;
+  }
+  if (filter === 'confirme') {
+    return `<div class="mx-vide">
+      <div class="mxv-ic">${ICON.checkCircle}</div>
+      <h3>Rien de calé</h3>
+      <p>Aucun match n'a encore de date verrouillée dans ${rayonLabel(rayonKm()).toLowerCase()}.
+         Va voter dans l'onglet <b>À caler</b> pour en débloquer un.</p>
+      <button class="btn-sm btn-outline" onclick="setMatchFilter('sondage')">Voir les sondages</button>
+    </div>`;
+  }
+  return `<div class="mx-vide">
+    <div class="mxv-ic">${ICON.calendar}</div>
+    <h3>Personne n'a encore lancé</h3>
+    <p>Le premier qui propose un créneau fait jouer les autres.
+       Trente secondes, et c'est calé.</p>
+    ${creer}
+  </div>`;
 }
 
 // ===== DÉTAIL MATCH =====
@@ -8618,8 +8753,10 @@ ou copier le contenu de firestore.rules dans la console Firebase →
 Firestore → Règles → Publier.
 
 En résumé :
-- users : le propriétaire modifie tout (pseudo validé) ; les autres ne
-  touchent que gamification/social (xp, badges, stats, notes, amis).
+- users : le propriétaire modifie son PROFIL (pseudo validé) ; les autres
+  ne touchent que le social (amis et demandes d'amis). Les champs de jeu
+  — xp, badges, stats, noteSum, noteCount, presences, lapins, streak —
+  sont refusés à TOUS les clients et n'existent que par onMatchEcrit.
 - matchs : le CRÉATEUR gère le cycle de vie (confirmer, équipes, scores,
   présence, ajout/retrait de joueurs) ; les AUTRES joueurs n'écrivent que
   la participation (votes, s'inscrire/se désister, ratings, motmVotes).
@@ -8627,7 +8764,8 @@ En résumé :
   joueur lambda. Matchs hérités sans createurUid : gérables par tous.
 - messages : création par son auteur (≤ 500 caractères), pas d'édition.
 - lieux : lecture seule (écriture via Admin SDK).
-- _notifs (marqueurs anti-spam) : écrits par les Cloud Functions (Admin
+- _notifs (anti-doublon de notification) et _xp (qui a déjà été payé pour
+  ce match) : écrits par les Cloud Functions, interdits à tout client (Admin
   SDK, hors règles).
 
 ===== DÉPLOIEMENT GITHUB PAGES =====

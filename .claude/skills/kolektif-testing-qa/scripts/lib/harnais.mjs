@@ -28,7 +28,7 @@ const _EQ = ${JSON.stringify(fixtures.equipes || [])}.map(x => ({ id: x.id, data
 const _US = ${JSON.stringify(fixtures.users || [])}.map(x => ({ id: x.id, data: () => x.d }));
 const initializeApp=()=>({}), getAuth=()=>({}), getFirestore=()=>({}), getMessaging=()=>({});
 const doc=()=>({}), setDoc=async()=>{}, updateDoc=async()=>{}, addDoc=async()=>({id:'x'}),
- collection=(db,nom)=>({_col:nom}), where=(f,o,v)=>({f,o,v}), orderBy=(f,d)=>({_ord:f,_dir:d||'asc'}), onSnapshot=()=>()=>{},
+ collection=(db,nom)=>({_col:nom}), where=(f,o,v)=>({f,o,v}), orderBy=(f,d)=>({_ord:f,_dir:d||'asc'}),
  serverTimestamp=()=>({}), increment=n=>n, arrayUnion=()=>[], arrayRemove=()=>[],
  deleteField=()=>({}), deleteDoc=async()=>{}, limit=()=>({}), onAuthStateChanged=()=>{},
  createUserWithEmailAndPassword=async()=>{}, signInWithEmailAndPassword=async()=>{},
@@ -54,6 +54,14 @@ const getDocs=async(q)=>{
   return {docs:_trier(_FIX,q)};
 };
 const getDocsFromServer=getDocs;
+// onSnapshot RAPPELLE. Tant qu'il ne faisait rien, l'écran Matchs restait
+// sur ses squelettes : sa liste passe par une écoute temps réel, donc elle
+// n'était jamais exercée — ni son état vide, ni ses cartes.
+const onSnapshot=(q,cb)=>{
+  const suite = typeof cb === 'function' ? cb : (cb && cb.next);
+  if (suite) Promise.resolve(getDocs(q)).then(s => { try { suite(s); } catch (_) {} });
+  return () => {};
+};
 `;
 }
 
