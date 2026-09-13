@@ -1602,6 +1602,60 @@
     .eq-vide-t { font-family:Anton,sans-serif; font-size:21px; color:#fff; }
     .eq-vide-s { font-size:13px; color:var(--text-sec); margin:8px auto 18px; max-width:290px; line-height:1.5; }
     .eq-note { text-align:center; color:var(--text-muted); font-size:12.5px; padding:16px 8px; }
+    /* ===== CRÉER UNE ÉQUIPE =====
+       Cet écran ne remplit pas un formulaire : il fabrique une identité.
+       L'aperçu passe donc EN TÊTE et devient le sujet — on voit ce qu'on
+       crée pendant qu'on le crée, au lieu de découvrir son blason après
+       coup. Tout le reste du panneau est une commande de cet aperçu. */
+    .ce-hero { position:relative; overflow:hidden; border-radius:var(--r-lg);
+      padding:18px 16px 16px; margin:2px 0 20px; text-align:center;
+      border:1px solid rgba(255,255,255,.08); border-top-color:rgba(255,255,255,.18);
+      background:linear-gradient(180deg, rgba(64,72,57,.5) 0%, rgba(24,28,22,.72) 100%);
+      box-shadow:0 1px 0 rgba(255,255,255,.08) inset, 0 3px 0 rgba(9,11,8,.9),
+                 0 16px 30px -12px rgba(0,0,0,.7); }
+    /* Une lueur à la couleur de l'équipe : c'est le seul endroit de l'app
+       où la couleur choisie éclaire vraiment quelque chose. */
+    .ce-hero::before { content:''; position:absolute; left:50%; top:-46%;
+      width:300px; height:300px; transform:translateX(-50%); pointer-events:none;
+      background:radial-gradient(circle, var(--bc, var(--orange)) 0%, transparent 62%);
+      opacity:.20; }
+    .ce-hero > * { position:relative; }
+    .ce-h-blason { display:flex; justify-content:center; margin-bottom:12px;
+      filter:drop-shadow(0 10px 20px rgba(0,0,0,.55)); }
+    .ce-h-nom { font-family:'Anton',sans-serif; font-size:clamp(20px,6vw,26px);
+      letter-spacing:.6px; color:var(--text); line-height:1.05;
+      overflow-wrap:anywhere; }
+    .ce-h-nom.vide { color:var(--text-muted); }
+    .ce-h-meta { display:flex; flex-wrap:wrap; justify-content:center; gap:6px; margin-top:10px; }
+    .ce-h-chip { font-size:11px; font-weight:700; letter-spacing:.05em; text-transform:uppercase;
+      color:var(--text-sec); background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08); border-radius:var(--r-pill); padding:4px 10px; }
+    .ce-h-chip.accent { color:var(--bc, var(--orange)); border-color:color-mix(in srgb, var(--bc, var(--orange)) 38%, transparent);
+      background:color-mix(in srgb, var(--bc, var(--orange)) 12%, transparent); }
+
+    /* Le niveau en contrôle segmenté, comme les onglets de l'écran Matchs :
+       même geste, même grammaire. */
+    .ce-seg { position:relative; display:grid; grid-template-columns:repeat(3,1fr); gap:2px;
+      background:rgba(0,0,0,.34); border:1px solid rgba(255,255,255,.06);
+      border-radius:var(--r-md); padding:4px; margin-top:8px;
+      box-shadow:inset 0 2px 6px rgba(0,0,0,.45); }
+
+    /* La pastille de couleur porte sa propre sélection : un anneau, une
+       ombre à sa teinte, et une coche. Un simple bord blanc ne disait pas
+       laquelle était prise sur un écran sombre. */
+    .ce-coul { position:relative; width:44px; height:44px; border-radius:50%;
+      background:radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--bc) 82%, #fff), var(--bc) 62%);
+      cursor:pointer; border:2px solid transparent; padding:0;
+      box-shadow:0 3px 8px rgba(0,0,0,.5), inset 0 -6px 10px -6px rgba(0,0,0,.5);
+      transition:transform var(--t-fast) var(--ease), box-shadow var(--t-base) var(--ease); }
+    .ce-coul::after { content:''; position:absolute; inset:0; border-radius:50%;
+      background:no-repeat center/14px 14px
+        url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E");
+      opacity:0; transition:opacity var(--t-base) var(--ease); }
+    .ce-coul.on { transform:scale(1.06); box-shadow:0 0 0 2px var(--bg), 0 0 0 4px var(--bc),
+      0 6px 18px color-mix(in srgb, var(--bc) 45%, transparent); }
+    .ce-coul.on::after { opacity:.72; }
+
     .ce-niveaux { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-top:8px; }
     .ce-niv { min-height:44px; padding:11px 6px; border-radius:var(--r-sm); font-family:inherit;
       background:var(--card); border:1.5px solid var(--border); color:var(--text-sec);
@@ -1628,7 +1682,18 @@
     .ce-emb:active { transform:scale(.92); }
     .ce-emb svg { width:22px; height:22px; }
     .ce-emb b { font-size:13px; letter-spacing:.5px; }
-    .ce-emb.on { border-color:var(--orange); color:var(--orange); background:rgba(93,214,44,.08); }
+    /* Toute la grille prend la teinte de l'équipe : choisir une couleur
+       repeint les quinze emblèmes d'un coup. C'est le moment où l'écran
+       cesse d'être un formulaire. */
+    .ce-emb.on { border-color:var(--bc, var(--orange)); color:var(--bc, var(--orange));
+      background:color-mix(in srgb, var(--bc, var(--orange)) 14%, transparent);
+      box-shadow:0 0 0 1px color-mix(in srgb, var(--bc, var(--orange)) 30%, transparent),
+                 0 6px 16px -8px color-mix(in srgb, var(--bc, var(--orange)) 60%, transparent); }
+    .ce-emb:not(.on):hover { color:var(--text-sec); }
+    .ce-niv.on { border-color:var(--bc, var(--orange)); color:var(--bc, var(--orange));
+      background:color-mix(in srgb, var(--bc, var(--orange)) 12%, transparent); }
+    .ce-club.on { border-color:var(--bc, var(--orange)); color:var(--bc, var(--orange));
+      background:color-mix(in srgb, var(--bc, var(--orange)) 12%, transparent); }
     .blason-ec b { font-family:Anton,sans-serif; letter-spacing:.5px; }
     .ce-note { font-size:12px; color:var(--text-muted); margin-top:6px; line-height:1.45; }
     .ce-clubs { display:grid; grid-template-columns:repeat(2,1fr); gap:8px; margin-top:10px; }
@@ -1639,7 +1704,10 @@
       transition:border-color var(--t-base) var(--ease), color var(--t-base) var(--ease),
                  background var(--t-base) var(--ease), transform var(--t-fast) var(--ease); }
     .ce-club:active { transform:scale(.96); }
-    .ce-club.on { border-color:var(--orange); color:var(--orange); background:rgba(93,214,44,.08); }
+    /* Redéfini plus haut avec la teinte de l'équipe — cette version fixe
+       gagnait par sa position et ramenait le vert. */
+    .ce-club.on { border-color:var(--bc, var(--orange)); color:var(--bc, var(--orange));
+      background:color-mix(in srgb, var(--bc, var(--orange)) 12%, transparent); }
     .ce-cl-pastille { width:26px; height:26px; border-radius:50%; flex-shrink:0;
       background:linear-gradient(135deg, var(--a) 0%, var(--a) 48%, var(--b) 52%, var(--b) 100%);
       box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.22); }
@@ -5529,7 +5597,7 @@ window.lancerAppel = async function(id) {
     <div class="ap-rappel">${blasonHTML(e, 40)}
       <div><b>${escapeHtml(e.nom)}</b><span>${et.label} · ${escapeHtml(SPORTS[e.sport]?.nom || '')}</span></div></div>
     <div class="section-sub" style="margin-top:16px">${ICON.edit} Un mot (facultatif)</div>
-    <input id="ap-msg" class="input" maxlength="120" autocomplete="off"
+    <input id="ap-msg" class="input-field" maxlength="120" autocomplete="off"
       placeholder="Vendredi 20:30 à Massy, niveau tranquille" value="${escapeHtml(e.appel || '')}">
     <div class="ap-note">Ton appel apparaîtra sur l'accueil des joueurs de ton rayon,
       tant que l'équipe n'est pas complète.</div>
@@ -5587,9 +5655,10 @@ let _ceSport = SPORT_DEFAUT, _ceNiveau = 'intermediaire', _ceCouleur = COULEURS_
 window.openCreerEquipe = function() {
   _ceSport = SPORT_DEFAUT; _ceNiveau = 'intermediaire'; _ceCouleur = COULEURS_EQUIPE[0]; _ceEmbleme = ''; _ceClub = ''; _ceEcusson = false;
   const d = currentUserData || {};
-  const body = `<div class="create-form">
+  const body = `<div class="create-form" id="ce-form" style="--bc:${_ceCouleur}">
+    <div class="ce-hero" id="ce-hero"></div>
     <div class="section-sub">${ICON.edit} Le nom de ton équipe</div>
-    <input id="ce-nom" class="input" maxlength="28" placeholder="Kolektif Massy" autocomplete="off">
+    <input id="ce-nom" class="input-field" maxlength="28" placeholder="Kolektif Massy" autocomplete="off">
     ${MONO_SPORT ? '' : `<div class="section-sub" style="margin-top:18px">${ICON.ball} Quel sport ?</div>
     <div class="cm-sports" id="ce-sports">${sportsOfferts().map(([id, sp]) => `
       <div class="cm-sport${id === _ceSport ? ' on' : ''}" onclick="ceSetSport('${id}')">
@@ -5597,15 +5666,14 @@ window.openCreerEquipe = function() {
         <b>${escapeHtml(sp.nom)}</b><small>${Math.max(1, Math.round(sp.joueursMax / 2))} joueurs par équipe</small>
       </div>`).join('')}</div>`}
     <div class="section-sub" style="margin-top:18px">${ICON.zap} Niveau</div>
-    <div class="ce-niveaux" id="ce-niveaux">${Object.entries(NIVEAUX).map(([id, lbl]) => `
+    <div class="ce-seg" id="ce-niveaux">${Object.entries(NIVEAUX).map(([id, lbl]) => `
       <button class="ce-niv${id === _ceNiveau ? ' on' : ''}" onclick="ceSetNiveau('${id}')">${lbl}</button>`).join('')}</div>
     <div class="section-sub" style="margin-top:18px">${ICON.pin} Ville</div>
-    <input id="ce-ville" class="input" maxlength="40" placeholder="Massy" value="${escapeHtml(d.ville || '')}" autocomplete="off">
+    <input id="ce-ville" class="input-field" maxlength="40" placeholder="Massy" value="${escapeHtml(d.ville || '')}" autocomplete="off">
     <div class="section-sub" style="margin-top:18px">Couleur</div>
     <div class="ce-couleurs" id="ce-couleurs">${COULEURS_EQUIPE.map(c => `
       <button class="ce-coul${c === _ceCouleur ? ' on' : ''}" style="--bc:${c}" onclick="ceSetCouleur('${c}')" aria-label="Couleur"></button>`).join('')}</div>
     <div class="section-sub" style="margin-top:18px">Emblème</div>
-    <div class="ce-apercu" id="ce-apercu"></div>
     <div class="ce-emblemes" id="ce-emblemes">${EMBLEME_ORDRE.map(id => `
       <button class="ce-emb${(id === _ceEmbleme && !_ceClub) ? ' on' : ''}" data-id="${id}" onclick="ceSetEmbleme('${id}')" aria-label="${id || 'initiales'}">
         ${id ? `<svg viewBox="0 0 24 24" fill="currentColor"><path d="${EMBLEMES[id]}"/></svg>` : '<b>AB</b>'}
@@ -5626,15 +5694,18 @@ window.openCreerEquipe = function() {
   </div>`;
   openModal('Créer une équipe', body);
   ceApercu();
-  const champNom = document.getElementById('ce-nom');
-  if (champNom) champNom.addEventListener('input', ceApercu);
+  // Le nom ET la ville alimentent l'aperçu : les deux s'y affichent.
+  for (const id of ['ce-nom', 'ce-ville']) {
+    document.getElementById(id)?.addEventListener('input', ceApercu);
+  }
 };
 window.ceSetSport = function(id) { _ceSport = id;
   document.querySelectorAll('#ce-sports .cm-sport').forEach((el, i) =>
     el.classList.toggle('on', Object.keys(SPORTS)[i] === id)); };
 window.ceSetNiveau = function(id) { _ceNiveau = id;
   document.querySelectorAll('#ce-niveaux .ce-niv').forEach((el, i) =>
-    el.classList.toggle('on', Object.keys(NIVEAUX)[i] === id)); };
+    el.classList.toggle('on', Object.keys(NIVEAUX)[i] === id));
+  ceApercu(); };
 window.ceSetCouleur = function(c) { _ceCouleur = c;
   document.querySelectorAll('#ce-couleurs .ce-coul').forEach((el, i) =>
     el.classList.toggle('on', COULEURS_EQUIPE[i] === c));
@@ -5657,14 +5728,34 @@ window.ceSetClub = function(id) {
     el.classList.toggle('on', el.dataset.id === _ceEmbleme));
   ceApercu(); };
 window.ceSetEcusson = function(v) { _ceEcusson = !!v; ceApercu(); };
-// L'aperçu se met à jour au moindre changement — nom, couleur, emblème.
-// Sans lui, on choisit à l'aveugle et on découvre son blason après coup.
+// L'aperçu se met à jour au moindre changement — nom, ville, niveau,
+// couleur, emblème, club. Il montre l'équipe TELLE QU'ELLE APPARAÎTRA dans
+// la liste : sans lui, on choisit à l'aveugle et on découvre son blason
+// après coup.
+//
+// Il pose aussi `--bc` sur le formulaire entier : la couleur retenue
+// repeint la grille d'emblèmes, les niveaux et les clubs. Une couleur
+// d'équipe qui ne colore que l'équipe ne se voit pas au moment du choix.
 function ceApercu() {
-  const el = document.getElementById('ce-apercu');
+  const form = document.getElementById('ce-form');
+  if (form) form.style.setProperty('--bc', _ceCouleur);
+  const el = document.getElementById('ce-hero');
   if (!el) return;
-  const nom = (document.getElementById('ce-nom')?.value || '').trim() || 'Ton équipe';
-  el.innerHTML = blasonHTML({ nom, couleur: _ceCouleur, embleme: _ceEmbleme, club: _ceClub, clubEcusson: _ceEcusson }, 60)
-    + `<span class="ce-ap-nom">${escapeHtml(nom)}</span>`;
+  el.style.setProperty('--bc', _ceCouleur);
+
+  const saisi = (document.getElementById('ce-nom')?.value || '').trim();
+  const nom = saisi || 'Ton équipe';
+  const ville = (document.getElementById('ce-ville')?.value || '').trim();
+  const eq = { nom, couleur: _ceCouleur, embleme: _ceEmbleme, club: _ceClub, clubEcusson: _ceEcusson };
+  const chips = [
+    `<span class="ce-h-chip accent">${escapeHtml(NIVEAUX[_ceNiveau] || '')}</span>`,
+    ville ? `<span class="ce-h-chip">${escapeHtml(ville)}</span>` : '',
+    `<span class="ce-h-chip">${escapeHtml(SPORTS[_ceSport]?.format || '')}</span>`,
+  ].filter(Boolean).join('');
+
+  el.innerHTML = `<div class="ce-h-blason">${blasonHTML(eq, 76)}</div>
+    <div class="ce-h-nom${saisi ? '' : ' vide'}">${escapeHtml(nom)}</div>
+    <div class="ce-h-meta">${chips}</div>`;
 }
 
 window.creerEquipe = async function() {
@@ -5760,13 +5851,13 @@ window.openDefier = async function(equipeId) {
       </button>`).join('')}</div>
     <div class="section-sub" style="margin-top:18px">${ICON.calendar} Quand ?</div>
     <div class="df-quand">
-      <input id="df-date" class="input" type="date" value="${jour}" min="${new Date().toISOString().slice(0, 10)}">
-      <input id="df-heure" class="input" type="time" value="20:30">
+      <input id="df-date" class="input-field" type="date" value="${jour}" min="${new Date().toISOString().slice(0, 10)}">
+      <input id="df-heure" class="input-field" type="time" value="20:30">
     </div>
     <div class="section-sub" style="margin-top:18px">${ICON.pin} Où ?</div>
-    <input id="df-lieu" class="input" maxlength="80" placeholder="Urban Soccer, Massy" autocomplete="off">
+    <input id="df-lieu" class="input-field" maxlength="80" placeholder="Urban Soccer, Massy" autocomplete="off">
     <div class="section-sub" style="margin-top:18px">${ICON.edit} Un mot (facultatif)</div>
-    <input id="df-msg" class="input" maxlength="140" placeholder="On vous attend." autocomplete="off">
+    <input id="df-msg" class="input-field" maxlength="140" placeholder="On vous attend." autocomplete="off">
     <button class="btn-primary" style="width:100%;margin-top:20px" onclick="envoyerDefi('${equipeId}')">${ICON.zap} Envoyer le défi</button>
   </div>`;
   window._dfCible = cibles[0].id;

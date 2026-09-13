@@ -87,20 +87,34 @@ Trois autres pièges, tous rencontrés :
 La barre du haut et la nav du bas recouvrent le contenu : y mesurer un
 texte revient à mesurer la barre. `contraste.mjs` les exclut.
 
-### 5. Un bouchon qui ment produit un faux bug
+### 5. Une propriété en transition ne se lit pas tout de suite
+
+`getComputedStyle` pendant une transition CSS renvoie la valeur
+**interpolée**, donc au premier instant celle d'AVANT. Mesurée
+synchroniquement après un changement de classe, une couleur qui transite
+paraît ne pas avoir changé.
+
+Ça m'a fait chercher pendant six manipulations un `!important` fantôme :
+même un `style="color:red"` posé en ligne semblait perdre. Le CSS était
+juste depuis le début — la capture d'écran, elle, montrait la bonne
+couleur. **Quand la mesure contredit la capture, suspecter la mesure.**
+Attendre la fin de la transition (`waitForTimeout` au-delà de `--t-base`)
+avant de lire.
+
+### 6. Un bouchon qui ment produit un faux bug
 
 Tant que le bouchon `getDocs` ignorait `orderBy`, le podium du classement
 sortait dans le désordre et ressemblait à un bug de tri. Ce n'en était
 pas un. **Avant de déclarer un bug trouvé par le harnais, vérifier que le
 bouchon ne l'a pas fabriqué.**
 
-### 6. Le jeu d'essai doit peupler les cinq écrans
+### 7. Le jeu d'essai doit peupler les cinq écrans
 
 `fixturesParDefaut()` fournit des matchs, des équipes et des joueurs.
 Sans joueurs, le classement rend son état vide et la sonde de contraste
 ne voit rien — elle passe pour de mauvaises raisons.
 
-### 7. Un échec se lit, il ne se contourne pas
+### 8. Un échec se lit, il ne se contourne pas
 
 Chaque ligne `✗` nomme l'élément et le ratio obtenu. Corriger la cause,
 pas le seuil.
