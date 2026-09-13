@@ -8094,6 +8094,14 @@ window.confirmAnnulerMatch = async function(matchId) {
   }
   window.closeModal();
   window._canCreateMatch = { can: true };
+  // La suppression rend l'XP que ce match avait distribuée : le bandeau du
+  // haut afficherait sinon un solde d'avant remboursement jusqu'au prochain
+  // chargement. On relit plutôt que de deviner le montant repris.
+  try {
+    delete usersCache[currentUser.uid];
+    const snap = await getDoc(doc(db, 'users', currentUser.uid));
+    if (snap.exists()) { currentUserData = snap.data(); majBandeau(currentUserData); }
+  } catch (_) {}
   showToast('Match supprimé.', '');
   navigateTo('home');
 };

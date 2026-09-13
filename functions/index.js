@@ -161,6 +161,50 @@ async function appliquer(acc) {
     await db.doc('users/' + uid).update(maj).catch(() => {});
   });
   await Promise.all(ecritures);
+  return acc;
+}
+
+// ---------- Le grand livre : ce que ce match a payé, à qui ----------
+// Sans lui, supprimer un match laissait l'XO qu'il avait distribuée. Créer,
+// encaisser les 50 XP, supprimer, recommencer : de l'XP à volonté. Et pire
+// que le cas signalé — terminer un match à dix joueurs distribue 1000 XP,
+// que la suppression laissait aussi sur place.
+//
+// `_xp.du` note donc le montant versé à chaque joueur, et `_xp.stats` les
+// compteurs incrémentés. À la suppression du match, on repasse le tout en
+// négatif : le match n'a pas eu lieu, ses points non plus.
+async function noterLivre(ref, acc, majSupplementaire) {
+  if (!ref || !acc.size) return;
+  const maj = { ...(majSupplementaire || {}) };
+  for (const [uid, champs] of acc.entries()) {
+    for (const [champ, v] of Object.entries(champs)) {
+      if (typeof v !== 'number' || !v) continue;
+      // `streak` est un compteur courant, pas un solde : il ne se rembobine
+      // pas. Il se recale tout seul au match suivant.
+      if (champ === 'streak') continue;
+      const cle = champ === 'xp' ? `_xp.du.${uid}` : `_xp.stats.${uid}.${champ.replace(/\./g, '_')}`;
+      maj[cle] = FieldValue.increment(v);
+    }
+  }
+  if (Object.keys(maj).length) await ref.update(maj).catch(() => {});
+}
+
+// Remboursement intégral à la suppression du match.
+async function rembourser(m) {
+  const livre = (m && m._xp) || {};
+  const acc = new Map();
+  for (const [uid, montant] of Object.entries(livre.du || {})) {
+    if (typeof montant === 'number' && montant) ajout(acc, uid, { xp: -montant });
+  }
+  for (const [uid, champs] of Object.entries(livre.stats || {})) {
+    for (const [champ, v] of Object.entries(champs || {})) {
+      if (typeof v !== 'number' || !v) continue;
+      ajout(acc, uid, { [champ.replace(/_/g, '.')]: -v });
+    }
+  }
+  if (!acc.size) return 0;
+  await appliquer(acc);
+  return acc.size;
 }
 
 // Badges : déduits des statistiques, jamais annoncés par le client.
@@ -192,13 +236,14 @@ async function majBadges(uids) {
 async function gainsCourants(before, after, ref) {
   const acc = new Map();
   const paye = after._xp || {};
-  const nouveaux = { votes: [], motm: [], notes: [] };
+  const nouveaux = { votes: [], motm: [], notes: [], creation: [] };
   const dejaPaye = (cle, uid) => (paye[cle] || []).includes(uid)
     || nouveaux[cle].includes(uid);
 
   // Création : +50 au créateur, et le badge organisateur.
-  if (!before && after.createurUid) {
+  if (!before && after.createurUid && !(paye.creation || []).includes(after.createurUid)) {
     ajout(acc, after.createurUid, { xp: XP.creer });
+    nouveaux.creation.push(after.createurUid);
     await db.doc('users/' + after.createurUid)
       .update({ badges: FieldValue.arrayUnion('organisateur') }).catch(() => {});
   }
@@ -233,17 +278,18 @@ async function gainsCourants(before, after, ref) {
   }
   if (!acc.size) return;
   await appliquer(acc);
-  // On note qui vient d'être payé, pour ne pas le repayer.
-  const maj = {};
+  // Qui a été payé (pour ne pas le repayer), et combien (pour pouvoir le
+  // reprendre si le match disparaît).
+  const marques = {};
   for (const [cle, uids] of Object.entries(nouveaux)) {
-    if (uids.length) maj['_xp.' + cle] = FieldValue.arrayUnion(...uids);
+    if (uids.length) marques['_xp.' + cle] = FieldValue.arrayUnion(...uids);
   }
-  if (Object.keys(maj).length && ref) await ref.update(maj).catch(() => {});
+  await noterLivre(ref, acc, marques);
 }
 
 // Fin de match : présents, absents, homme du match. Protégé par le marqueur
 // `termine`, donc compté une seule fois même si le document est réécrit.
-async function gainsFinDeMatch(m) {
+async function gainsFinDeMatch(m, ref) {
   const acc = new Map();
   const inscrits = m.joueursInscrits || [];
   const att = m.attendance || {};
@@ -259,6 +305,7 @@ async function gainsFinDeMatch(m) {
   if (m.hommeDuMatchUid) ajout(acc, m.hommeDuMatchUid, { xp: XP.hdm, 'stats.hommeDuMatch': 1 });
 
   await appliquer(acc);
+  await noterLivre(ref, acc);
   await majBadges([...acc.keys()]);
 }
 
@@ -270,7 +317,14 @@ const stripNotifs = (o) => { if (!o) return o; const { _notifs, _xp, ...rest } =
 exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   const before = event.data.before.exists ? event.data.before.data() : null;
   const after = event.data.after.exists ? event.data.after.data() : null;
-  if (!after) return; // suppression
+  // SUPPRESSION : on reprend ce que ce match avait payé. C'était le trou —
+  // créer un match encaissait 50 XP, le supprimer les laissait, et la
+  // boucle pouvait tourner indéfiniment.
+  if (!after) {
+    const n = await rembourser(before).catch(() => 0);
+    if (n) console.log('match supprimé : XP reprise à ' + n + ' joueur(s)');
+    return;
+  }
   // Écriture purement technique (marqueurs _notifs) : on ignore.
   if (before && JSON.stringify(stripNotifs(before)) === JSON.stringify(stripNotifs(after))) return;
 
@@ -348,7 +402,7 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
     // garantit aussi qu'on ne compte le match qu'UNE fois, même si le
     // document est réécrit ensuite.
     await majBilanEquipes(after);
-    await gainsFinDeMatch(after);
+    await gainsFinDeMatch(after, ref);
     const map = await collectTokens(after.joueursInscrits || []);
     await send(map, {
       title: 'Match terminé 🏁',

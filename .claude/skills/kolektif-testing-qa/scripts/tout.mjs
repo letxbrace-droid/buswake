@@ -10,6 +10,7 @@ const ETAPES = [
   ['surfaces translucides', 'plaques.mjs'],
   ['contraste WCAG AA', 'contraste.mjs'],
   ['précache du service worker', 'precache.mjs'],
+  ['XP côté serveur', 'functions.mjs'],
 ];
 let ko = 0;
 for (const [nom, script] of ETAPES) {

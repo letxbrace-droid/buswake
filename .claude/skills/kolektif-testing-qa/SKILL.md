@@ -39,9 +39,15 @@ plantage, le supprimer à la main ; ne jamais le committer.
 | `plaques.mjs` | une carte translucide qui laisse passer la photo sans être déclarée |
 | `contraste.mjs` | un texte sous le seuil WCAG AA sur l'un des cinq écrans |
 | `precache.mjs` | un fichier listé absent, un cache non versionné, un asset orphelin |
+| `functions.mjs` | l'XP serveur : montants, versement unique, remboursement |
 | `captures.mjs` | tout le reste — il faut regarder |
 
-`tout.mjs` enchaîne les quatre premiers et renvoie un code de sortie unique.
+`tout.mjs` enchaîne les cinq premiers et renvoie un code de sortie unique.
+
+`functions.mjs` tourne **sans Firebase** : il recopie `functions/index.js`
+en remplaçant les `require` par des bouchons, exactement comme le harnais
+du navigateur remplace les imports. Les fonctions serveur n'avaient aucun
+test — et c'est là que vit l'XP.
 
 ## Règles métier
 
@@ -157,6 +163,7 @@ node .claude/skills/kolektif-testing-qa/scripts/portee.mjs      # portée + rend
 node .claude/skills/kolektif-testing-qa/scripts/plaques.mjs     # surfaces translucides
 node .claude/skills/kolektif-testing-qa/scripts/contraste.mjs   # WCAG AA mesuré
 node .claude/skills/kolektif-testing-qa/scripts/precache.mjs    # intégrité + poids du cache
+node .claude/skills/kolektif-testing-qa/scripts/functions.mjs   # XP serveur, Firebase bouchonné
 node .claude/skills/kolektif-testing-qa/scripts/captures.mjs    # captures dans ./captures
 
 # Serveur local pour un essai à la main
