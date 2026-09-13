@@ -1319,6 +1319,55 @@
     .mlc-bottom { padding:10px 16px; background:var(--surface); display:flex; align-items:center; gap:10px; border-top:1px solid var(--border); }
     .mlc-creator { font-size:12px; color:var(--text-sec); }
 
+    /* Carte d'accueil vers les terrains */
+    .tr-carte { display:flex; align-items:center; gap:12px; padding:11px 12px;
+      cursor:pointer; margin-bottom:14px; }
+    .tr-c-body { flex:1; min-width:0; }
+    .tr-c-eyebrow { display:flex; align-items:center; gap:5px; font-size:10px; font-weight:800;
+      letter-spacing:.09em; text-transform:uppercase; color:var(--orange); }
+    .tr-c-eyebrow .ic { width:12px; height:12px; }
+    .tr-c-titre { font-family:'Anton',sans-serif; font-size:17px; letter-spacing:.3px;
+      color:var(--text); margin-top:3px; }
+    .tr-c-sous { font-size:11.5px; color:var(--text-sec); margin-top:3px; line-height:1.4; }
+    .tr-c-chev { flex-shrink:0; color:var(--text-muted); font-size:22px; line-height:1; }
+
+    /* ===== TERRAINS AUTOUR DE TOI ===== */
+    .tr-tel { display:flex; align-items:center; gap:8px; margin-bottom:12px;
+      font-size:11px; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+      color:var(--text-sec); }
+    .tr-tel b { color:var(--orange); font-size:14px; letter-spacing:0; }
+    .tr-tel i { width:3px; height:3px; border-radius:50%; background:var(--border-light); display:block; }
+    .tr-liste { display:flex; flex-direction:column; gap:8px; }
+    .tr-item { display:flex; align-items:center; gap:11px; padding:9px 10px;
+      border:1px solid var(--border); border-radius:var(--r-md); background:var(--card);
+      border-top-color:rgba(255,255,255,.10); }
+    /* La vignette porte la DISTANCE, pas un pictogramme : c'est le chiffre
+       qui fait choisir, et un chiffre reste lisible à toute taille. La
+       couleur, elle, porte le type — vert pour le couvert, feu pour la
+       cage, gris pour le plein air — et le mot est écrit à côté. */
+    .tr-dist { width:46px; height:46px; flex-shrink:0; border-radius:var(--r-sm);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0;
+      border:1px solid rgba(255,255,255,.07); border-top-color:rgba(255,255,255,.14); }
+    .tr-dist b { font-family:'Anton',sans-serif; font-size:17px; line-height:1; letter-spacing:.3px; }
+    .tr-dist span { font-size:8.5px; font-weight:700; letter-spacing:.08em;
+      text-transform:uppercase; opacity:.7; margin-top:1px; }
+    .tr-dist.t-indoor { color:var(--orange);   background:rgba(93,214,44,.13); }
+    .tr-dist.t-urban  { color:var(--feu);      background:rgba(255,138,61,.12); }
+    .tr-dist.t-air    { color:var(--text-sec); background:rgba(255,255,255,.05); }
+    .tr-meta { flex:1; min-width:0; }
+    .tr-nom { font-size:14px; font-weight:700; color:var(--text);
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tr-sous { font-size:11.5px; color:var(--text-sec); margin-top:2px;
+      white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .tr-go { flex-shrink:0; width:38px; height:38px; border-radius:50%; cursor:pointer;
+      border:1px solid rgba(93,214,44,.38); background:rgba(93,214,44,.12); color:var(--orange);
+      display:flex; align-items:center; justify-content:center;
+      transition:background .16s, transform .12s; -webkit-tap-highlight-color:transparent; }
+    .tr-go .ic, .tr-go svg { width:18px; height:18px; }
+    .tr-go:active { transform:scale(.92); background:rgba(93,214,44,.22); }
+    .tr-note { font-size:11px; color:var(--text-muted); line-height:1.5; margin-top:14px; text-align:center; }
+    .pos-err { font-size:12px; color:var(--red); margin-top:8px; min-height:15px; }
+
     /* ===== ÉCRAN MATCHS =====
        Tout ce qui pilote l'écran tient sur UNE plaque : le titre, l'état du
        fil, les trois onglets, le rayon. Avant, ces quatre choses étaient
@@ -3699,6 +3748,19 @@ const TERRAINS = {
   urban:  { label: 'Five en cage',   img: 'terrain-urban.jpg' },
   '':     { label: 'Plein air',      img: 'terrain-plein-air.jpg' },
 };
+// Pas de pictogramme de type dans les listes. Trois ont été dessinés et
+// rendus à 46, 26 et 20 px : la salle couverte se lisait « maison », la cage
+// se lisait « calendrier » — l'icône déjà utilisée par l'onglet Matchs — et
+// le plein air se lisait « pousse de plante ». Une icône qui ment coûte plus
+// qu'une icône absente.
+//
+// Ce qui tient en vignette, c'est un CHIFFRE : la distance. C'est aussi la
+// donnée qui fait choisir. La couleur porte le type, et le mot est écrit en
+// toutes lettres juste à côté.
+function terrainCouleurClasse(v) {
+  const t = (v && v.t) || '';
+  return t === 'indoor' ? 't-indoor' : t === 'urban' ? 't-urban' : 't-air';
+}
 function typeTerrain(v) {
   const t = (v && v.t) || '';
   return TERRAINS[t] || TERRAINS[''];
@@ -3736,6 +3798,118 @@ const VENUES_91 = [
 function _venueHome() {
   return (currentUserData && currentUserData.domicileLat)
     ? { lat: currentUserData.domicileLat, lon: currentUserData.domicileLon } : null;
+}
+
+// ===== TERRAINS AUTOUR DU JOUEUR =====
+// Le catalogue ci-dessus est vérifié à la main — et entièrement en Essonne.
+// Tant que les suggestions en sortaient, un joueur de Lille se voyait
+// proposer Massy à 200 km, trié par distance comme si c'était pertinent.
+// Un catalogue national tenu à la main n'existera jamais : la source, c'est
+// OpenStreetMap, interrogé par rayon autour du domicile du joueur.
+//
+// Trois précautions, parce qu'une dépendance réseau de plus est une panne
+// de plus :
+//   1. le résultat est mis en cache (les terrains ne déménagent pas) ;
+//   2. l'échec est silencieux et retombe sur le catalogue vérifié ;
+//   3. rien n'attend la réponse : l'écran s'affiche, la liste s'enrichit.
+const OVERPASS = 'https://overpass-api.de/api/interpreter';
+const TERRAINS_TTL = 30 * 24 * 3600 * 1000;   // un mois
+
+function _cleTerrains(lat, lon, km) {
+  return `cs5_terrains_${lat.toFixed(2)}_${lon.toFixed(2)}_${km}`;
+}
+function _lireCacheTerrains(cle) {
+  try {
+    const o = JSON.parse(localStorage.getItem(cle) || 'null');
+    if (o && Date.now() - o.t < TERRAINS_TTL && Array.isArray(o.v)) return o.v;
+  } catch (_) {}
+  return null;
+}
+
+// OSM ne dit pas toujours si un terrain est couvert. On tranche sur ce qui
+// est réellement présent dans les tags, et on retombe sur « plein air » —
+// c'est le cas le plus probable dehors, et le moins trompeur.
+function _typeOSM(tags) {
+  const t = tags || {};
+  const nom = (t.name || '').toLowerCase();
+  if (t.indoor === 'yes' || t.covered === 'yes' || t.building
+      || (t.sport || '').includes('futsal')
+      || /\bfive\b|indoor|futsal|urban ?soccer|soccer ?park/.test(nom)) return 'indoor';
+  if (t.barrier === 'fence' || /city ?stade|cage|playground/.test(nom)) return 'urban';
+  return '';
+}
+
+// Un terrain sans nom n'est pas proposable : « Pitch » ne dit rien à
+// personne, et on ne peut pas le retrouver dans un message de groupe.
+function _normaliseOSM(el) {
+  const t = el.tags || {};
+  const nom = (t.name || '').trim();
+  if (!nom || nom.length > 60) return null;
+  const lat = el.lat ?? el.center?.lat, lon = el.lon ?? el.center?.lon;
+  if (typeof lat !== 'number' || typeof lon !== 'number') return null;
+  const ville = (t['addr:city'] || t['addr:suburb'] || '').trim();
+  return { n: nom, v: ville, cp: (t['addr:postcode'] || '').trim(),
+           lat, lon, t: _typeOSM(t), src: 'osm' };
+}
+
+// Deux sources pour un même lieu : on garde la version vérifiée.
+function _fusionneTerrains(cures, osm) {
+  const out = cures.slice();
+  const clef = x => x.n.toLowerCase().replace(/[^a-z0-9]/g, '');
+  const vus = new Set(out.map(clef));
+  for (const x of osm) {
+    if (vus.has(clef(x))) continue;
+    // Même nom à 300 m près = même terrain, orthographié autrement.
+    if (out.some(y => haversine(y.lat, y.lon, x.lat, x.lon) < 0.3)) continue;
+    vus.add(clef(x));
+    out.push(x);
+  }
+  return out;
+}
+
+// Terrains autour d'un point. Renvoie TOUJOURS quelque chose : le cache,
+// puis le réseau, et à défaut le catalogue vérifié.
+async function terrainsAutour(lat, lon, km = 25) {
+  const cure = VENUES_91.map(x => ({ ...x, src: 'cure' }));
+  if (typeof lat !== 'number' || typeof lon !== 'number') return cure;
+
+  const cle = _cleTerrains(lat, lon, km);
+  const cache = _lireCacheTerrains(cle);
+  if (cache) return _fusionneTerrains(cure.filter(x => haversine(lat, lon, x.lat, x.lon) <= km), cache);
+
+  const r = Math.round(km * 1000);
+  const req = `[out:json][timeout:25];(`
+    + `nwr["leisure"="pitch"]["sport"~"soccer|futsal"](around:${r},${lat},${lon});`
+    + `nwr["leisure"="sports_centre"]["sport"~"soccer|futsal"](around:${r},${lat},${lon});`
+    + `);out center tags 80;`;
+  let trouves = [];
+  try {
+    const rep = await fetch(OVERPASS, { method: 'POST', body: 'data=' + encodeURIComponent(req),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' } });
+    if (rep.ok) {
+      const j = await rep.json();
+      trouves = (j.elements || []).map(_normaliseOSM).filter(Boolean);
+      try { localStorage.setItem(cle, JSON.stringify({ t: Date.now(), v: trouves })); } catch (_) {}
+    }
+  } catch (_) { /* hors-ligne ou service muet : on garde le catalogue */ }
+
+  return _fusionneTerrains(cure.filter(x => haversine(lat, lon, x.lat, x.lon) <= km), trouves);
+}
+
+// La liste prête à afficher : distance calculée, couverts d'abord (c'est ce
+// qu'on cherche pour du five), puis par distance.
+async function terrainsPourJoueur(km = 25, max = 40) {
+  const home = _venueHome();
+  if (!home) return [];
+  const liste = await terrainsAutour(home.lat, home.lon, km);
+  return liste
+    .map(x => ({ ...x, dist: Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) }))
+    .filter(x => x.dist <= km)
+    .sort((a, b) => {
+      const rang = t => (t === 'indoor' ? 0 : t === 'urban' ? 1 : 2);
+      return rang(a.t) - rang(b.t) || a.dist - b.dist;
+    })
+    .slice(0, max);
 }
 
 // ===== THÈMES DE COULEUR =====
@@ -3992,6 +4166,8 @@ function menuHTML() {
   ${peutInstaller ? item('', 'menuInstall()', icDl, "Installer l'app", "Plein écran, hors-ligne, sur ton écran d'accueil") : ''}
   ${item('', 'menuFaire("copyInviteLink")', icLink, 'Inviter des joueurs', 'Copier mon lien d\'invitation')}
   ${item('', 'menuFaire("exportFutCard")', icImg, 'Partager ma carte', 'Une image prête à poster')}
+  ${item('', 'menuFaire("openTerrains")', icPin, 'Terrains autour de moi',
+        currentUserData?.codePostal ? `Les five à moins de 25 km de ${escapeHtml(currentUserData.codePostal)}` : 'Indique ta ville pour les voir')}
   ${item('', 'menuAller("profil")', icUser, 'Ma carte joueur', 'Photo, poste, atouts, badges')}
   ${item('', 'menuFaire("openChangePassword")', icLock, 'Changer mon mot de passe')}
   ${admin ? item('danger', 'menuFaire("cleanupAllMatchs")', icTrash, 'Nettoyer tous les matchs', 'Administration') : ''}
@@ -4985,6 +5161,11 @@ async function renderHome() {
   // ===== ELLES CHERCHENT DES JOUEURS =====
   html += appelsHTML(_appels);
 
+  // ===== TERRAINS =====
+  // Placée avant « Autour de toi » : quand rien ne se passe, la question
+  // suivante n'est pas « combien sont là » mais « où je peux jouer ».
+  html += terrainsAccueilHTML();
+
   // ===== AUTOUR DE TOI =====
   html += autourDeToiHTML([snapC, snapS, snapT], currentUser?.uid, _appels.length);
 
@@ -5051,6 +5232,7 @@ async function renderHome() {
   if (_pisteOn) _pisteOn.scrollIntoView({ block: 'nearest', inline: 'center' });
   jouerEntree(el);
   hydrateMatchCards(fills, motms);
+  hydraterTerrainsAccueil();
   if (coldActiveUids && coldActiveUids.length && document.getElementById('ch-proof-avs')) {
     renderStackAvatars(coldActiveUids, 'ch-proof-avs', 5);
   }
@@ -6737,6 +6919,166 @@ function refusCreation(check) {
   }
 }
 
+// La carte d'accueil. Elle ne promet pas un chiffre qu'elle n'a pas : tant
+// que la liste n'est pas chargée, elle invite ; une fois chargée, elle dit
+// combien il y en a vraiment. Le décompte est hydraté après coup, comme les
+// avatars des cartes de match.
+function terrainsAccueilHTML() {
+  const cp = currentUserData?.codePostal;
+  return `<div class="mc tr-carte" onclick="openTerrains()">
+    <div class="tr-dist t-indoor" style="width:52px;height:52px"><b>25</b><span>km</span></div>
+    <div class="tr-c-body">
+      <div class="tr-c-eyebrow">${ICON.pin} Où jouer</div>
+      <div class="tr-c-titre">Les five autour de toi</div>
+      <div class="tr-c-sous" id="tr-c-sous">${cp
+        ? `Terrains couverts et cages à moins de 25 km de ${escapeHtml(cp)}`
+        : 'Indique ta ville ou ton code postal pour les découvrir'}</div>
+    </div>
+    <span class="tr-c-chev">›</span>
+  </div>`;
+}
+// Compte réel, écrit seulement quand il est connu.
+function hydraterTerrainsAccueil() {
+  const el = document.getElementById('tr-c-sous');
+  if (!el || !_venueHome()) return;
+  terrainsPourJoueur(25, 60).then(l => {
+    const cible = document.getElementById('tr-c-sous');
+    if (!cible || !l.length) return;
+    const couverts = l.filter(x => x.t === 'indoor').length;
+    cible.textContent = couverts
+      ? `${l.length} terrains à moins de 25 km, dont ${couverts} couvert${couverts > 1 ? 's' : ''}`
+      : `${l.length} terrain${l.length > 1 ? 's' : ''} à moins de 25 km`;
+  }).catch(() => {});
+}
+
+// ===== TERRAINS AUTOUR DE TOI =====
+// Un joueur ne cherche pas un match d'abord : il cherche un endroit où
+// jouer. Cette vue répond à « où je peux taper le ballon près de chez
+// moi », et chaque ligne mène à la seule action qui compte — y proposer
+// un match. Sans position, elle demande la ville ou le code postal ; c'est
+// la seule chose qu'on ne peut pas deviner.
+
+window.openTerrains = async function() {
+  const home = _venueHome();
+  if (!home) return openPositionDemandee();
+
+  openModal(`${ICON.pin} Terrains autour de toi`,
+    `<div class="loader"><div class="spinner"></div></div>`);
+  let liste = [];
+  try { liste = await terrainsPourJoueur(25, 40); } catch (_) {}
+
+  const corps = document.getElementById('modal-body');
+  if (!corps) return;
+  if (!liste.length) {
+    corps.innerHTML = `<div class="mx-vide" style="box-shadow:none;background:none;border:none">
+      <div class="mxv-ic">${ICON.pin}</div>
+      <h3>Rien de répertorié ici</h3>
+      <p>Aucun terrain n'est cartographié dans les 25 km autour de
+         ${escapeHtml(currentUserData?.codePostal || 'chez toi')}.
+         Tu peux quand même proposer un match et saisir le lieu à la main.</p>
+      <button class="btn-primary" onclick="closeModal();openCreateMatch()">${ICON.plus} Proposer un match</button>
+    </div>`;
+    return;
+  }
+
+  const couverts = liste.filter(x => x.t === 'indoor').length;
+  corps.innerHTML = `
+    <div class="tr-tel">
+      <b>${liste.length}</b> terrain${liste.length > 1 ? 's' : ''} dans 25 km
+      ${couverts ? `<i aria-hidden="true"></i><b>${couverts}</b> couvert${couverts > 1 ? 's' : ''}` : ''}
+    </div>
+    <div class="tr-liste">${liste.map(x => {
+      const tt = typeTerrain(x);
+      const sous = [tt.label, x.v].filter(Boolean).join(' · ');
+      return `<div class="tr-item">
+        <div class="tr-dist ${terrainCouleurClasse(x)}"><b>${x.dist < 1 ? '&lt;1' : x.dist}</b><span>km</span></div>
+        <div class="tr-meta">
+          <div class="tr-nom">${escapeHtml(x.n)}</div>
+          <div class="tr-sous">${escapeHtml(sous)}</div>
+        </div>
+        <button class="tr-go" title="Proposer un match ici" aria-label="Proposer un match à ${escapeHtml(x.n)}"
+          onclick='terrainProposer(${JSON.stringify({ n: x.n, v: x.v, lat: x.lat, lon: x.lon, t: x.t }).replace(/'/g, "&#39;")})'>${ICON.plus}</button>
+      </div>`;
+    }).join('')}</div>
+    <p class="tr-note">Terrains issus d'OpenStreetMap et de notre catalogue vérifié.
+      Il en manque un ? Tu peux le saisir à la main en créant ton match.</p>`;
+};
+
+// Depuis un terrain, on va droit à la création avec le lieu déjà choisi.
+window.terrainProposer = function(v) {
+  closeModal();
+  if (!(window._canCreateMatch?.can ?? true)) return refusCreation(window._canCreateMatch);
+  try { localStorage.setItem('cs5_lastVenue', JSON.stringify(v)); } catch (_) {}
+  openCreateMatch(v);
+};
+
+// Ville OU code postal : le joueur tape ce qu'il connaît, pas ce que la
+// base attend. Cinq chiffres partent en recherche de code postal, le reste
+// en recherche de commune — les deux sur le même service.
+window.openPositionDemandee = function() {
+  openModal(`${ICON.pin} Où joues-tu ?`, `
+    <p style="font-size:14px;color:var(--text-sec);line-height:1.55;margin-bottom:14px">
+      Ta ville ou ton code postal, et on te montre les five autour de toi.
+      Rien d'autre n'est demandé, et ça sert aussi à te proposer les bons
+      matchs.</p>
+    <input class="input-field" id="pos-input" autocomplete="postal-code"
+      placeholder="Ex : Massy, ou 91300" maxlength="40" style="font-size:16px">
+    <div class="pos-err" id="pos-err"></div>
+    <button class="btn-primary" style="margin-top:14px" onclick="enregistrerPosition()">
+      Valider</button>`);
+  setTimeout(() => document.getElementById('pos-input')?.focus(), 180);
+};
+
+// Géocode une saisie libre (ville ou code postal) en coordonnées.
+async function geocoder(saisie) {
+  const q = (saisie || '').trim();
+  if (!q) return null;
+  const url = /^\d{5}$/.test(q)
+    ? `https://nominatim.openstreetmap.org/search?postalcode=${encodeURIComponent(q)}&country=fr&format=json&limit=1`
+    : `https://nominatim.openstreetmap.org/search?city=${encodeURIComponent(q)}&country=fr&format=json&limit=1&addressdetails=1`;
+  try {
+    const j = await fetch(url).then(r => r.json());
+    if (!j || !j[0]) return null;
+    const a = j[0].address || {};
+    return { lat: +j[0].lat, lon: +j[0].lon,
+             cp: /^\d{5}$/.test(q) ? q : (a.postcode || ''),
+             ville: a.city || a.town || a.village || (/^\d{5}$/.test(q) ? '' : q) };
+  } catch (_) { return null; }
+}
+
+window.enregistrerPosition = async function() {
+  const champ = document.getElementById('pos-input');
+  const err = document.getElementById('pos-err');
+  const saisie = champ?.value.trim() || '';
+  if (!saisie) { if (err) err.textContent = 'Saisis une ville ou un code postal.'; return; }
+  if (err) err.textContent = '';
+  const btn = document.querySelector('#modal-body .btn-primary');
+  if (btn) { btn.disabled = true; btn.textContent = 'Recherche…'; }
+
+  const pos = await geocoder(saisie);
+  if (!pos) {
+    if (err) err.textContent = "Introuvable. Essaie le code postal à cinq chiffres.";
+    if (btn) { btn.disabled = false; btn.textContent = 'Valider'; }
+    return;
+  }
+  try {
+    await updateDoc(doc(db, 'users', currentUser.uid), {
+      codePostal: pos.cp || saisie.slice(0, 12),
+      domicileLat: pos.lat, domicileLon: pos.lon,
+    });
+    currentUserData = { ...(currentUserData || {}), codePostal: pos.cp || saisie.slice(0, 12),
+                        domicileLat: pos.lat, domicileLon: pos.lon };
+    delete usersCache[currentUser.uid];
+  } catch (e) {
+    if (err) err.textContent = 'Enregistrement impossible : ' + (e.code || e.message);
+    if (btn) { btn.disabled = false; btn.textContent = 'Valider'; }
+    return;
+  }
+  closeModal();
+  showToast(`Position enregistrée${pos.ville ? ' · ' + pos.ville : ''}`, 'success');
+  openTerrains();
+};
+
 // ===== CRÉER MATCH =====
 let creneauxBuilt = [];
 function genId() { return Math.random().toString(36).substr(2, 9); }
@@ -6770,16 +7112,33 @@ function _cmBuildSuggest() {
     return { id: genId(), date: _ymd(d), heure: _pad(h) + ':' + _pad(m), dateObj: d };
   }).sort((a, b) => a.dateObj - b.dateObj).slice(0, 5);
 }
+// Les terrains proposés à la création. Ils viennent de `_cmTerrains`, que
+// `openCreateMatch` remplit en arrière-plan avec les vrais terrains autour
+// du joueur ; tant que la réponse n'est pas là, le catalogue vérifié tient
+// la place. Rien n'attend le réseau : la modale s'ouvre tout de suite.
+let _cmTerrains = null;
 function _cmVenueCards() {
   const home = _venueHome();
-  let list = VENUES_91.slice();
+  let list = (_cmTerrains && _cmTerrains.length)
+    ? _cmTerrains.slice()
+    : VENUES_91.map(x => ({ ...x, dist: home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null }));
   if (home) list.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
-  list = list.slice(0, 3).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon,
-    dist: home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null }));
+  list = list.slice(0, 3).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon, t: x.t || '',
+    dist: x.dist ?? (home ? Math.round(haversine(home.lat, home.lon, x.lat, x.lon)) : null) }));
   // épingler le terrain recherché / le dernier utilisé en tête s'il n'y est pas
   const extra = _cmExtra || (function(){ try { return JSON.parse(localStorage.getItem('cs5_lastVenue') || 'null'); } catch (_) { return null; } })();
   if (extra && !list.some(x => x.n === extra.n)) list.unshift({ ...extra });
   return list;
+}
+// Charge les terrains réels et redessine la modale si elle est encore
+// ouverte. Appelé sans `await` : l'écran ne dépend pas du réseau.
+function _cmChargerTerrains() {
+  terrainsPourJoueur(25, 12).then(l => {
+    if (!l.length) return;
+    _cmTerrains = l;
+    if (!document.getElementById('main-modal').classList.contains('hidden')
+        && document.getElementById('cm-venues')) renderCmModal();
+  }).catch(() => {});
 }
 function renderCmModal() {
   const cards = _cmVenueCards();
@@ -6847,17 +7206,22 @@ function renderCmModal() {
   if (mb && !document.getElementById('main-modal').classList.contains('hidden')) mb.innerHTML = body;
   else openModal('Proposer un match', body);
 }
-function openCreateMatch() {
+// `terrain` : on arrive depuis « Terrains autour de toi », le lieu est déjà
+// choisi. Il passe en paramètre plutôt qu'en variable posée avant l'appel —
+// cette fonction remet `_cmExtra` et `_cmVenue` à zéro, et écrasait donc
+// silencieusement le terrain qu'on venait de désigner.
+function openCreateMatch(terrain) {
   const check = window._canCreateMatch ?? { can: true };
   if (!check.can) return refusCreation(check);
+  _cmChargerTerrains();
   _cmSuggest = _cmBuildSuggest();
   _cmSlots = _cmSuggest.length ? [_cmSuggest[0]] : []; // pré-coche le 1er créneau
-  _cmExtra = null;
+  _cmExtra = terrain || null;
   _cmMsg = '';
   _cmVisib = 'public';
   _cmSport = SPORT_DEFAUT;
   const cards = _cmVenueCards();
-  _cmVenue = cards[0] || null; // pré-sélectionne le terrain le plus probable
+  _cmVenue = terrain || cards[0] || null; // pré-sélectionne le terrain le plus probable
   renderCmModal();
 }
 window.openCreateMatch = openCreateMatch;
@@ -6923,7 +7287,8 @@ window.cmVenueSearch = function() {
     dd.innerHTML = list.map(x => `<div class="cm-dd-opt" onmousedown='cmPickSearch(${JSON.stringify(x).replace(/'/g, "&#39;")})'>
       <div class="o-n">${escapeHtml(x.n)}</div><div class="o-s">${escapeHtml(x.v || '')}</div></div>`).join('');
   };
-  let stat = VENUES_91.filter(x => (x.n + ' ' + x.v + ' ' + x.cp).toLowerCase().includes(q));
+  const base = (_cmTerrains && _cmTerrains.length) ? _cmTerrains : VENUES_91;
+  let stat = base.filter(x => ((x.n || '') + ' ' + (x.v || '') + ' ' + (x.cp || '')).toLowerCase().includes(q));
   if (home) stat.sort((a, b) => haversine(home.lat, home.lon, a.lat, a.lon) - haversine(home.lat, home.lon, b.lat, b.lon));
   renderList(stat.slice(0, 5).map(x => ({ n: x.n, v: x.v, lat: x.lat, lon: x.lon })));
   clearTimeout(_cmSearchT);
