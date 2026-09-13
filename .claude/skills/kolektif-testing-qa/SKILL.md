@@ -35,7 +35,7 @@ plantage, le supprimer à la main ; ne jamais le committer.
 
 | Script | Ce qu'il attrape |
 |---|---|
-| `portee.mjs` | une fonction d'écran déclarée par accident dans une autre |
+| `portee.mjs` | une fonction d'écran déclarée par accident dans une autre, **et un nom appelé mais jamais défini** |
 | `plaques.mjs` | une carte translucide qui laisse passer la photo sans être déclarée |
 | `contraste.mjs` | un texte sous le seuil WCAG AA sur l'un des cinq écrans |
 | `precache.mjs` | un fichier listé absent, un cache non versionné, un asset orphelin |
@@ -53,7 +53,25 @@ il n'a jamais exercé la portée des fonctions, et l'onglet Équipes est
 parti mort en production. Un harnais qui reconstruit la page ne teste pas
 la page.
 
-### 2. Mesurer le contraste sans l'encre
+### 2. Une fonction supprimée ne casse pas le rendu
+
+Elle casse le **clic**, en production, et seulement là. `annonceXP` a été
+poussée appelée cinq fois et définie zéro : les cinq écrans rendaient,
+aucune erreur page, la suite était verte. Le rendu n'exerce pas les
+gestionnaires d'événements.
+
+`portee.mjs` lit donc aussi le source : tout `nom(` doit correspondre à
+quelque chose. Deux étapes, parce qu'une seule ne suffit pas — on relève
+les noms appelés **commentaires et chaînes effacés** (sinon « la vie (…) »
+et `var(--orange)` deviennent des appels, et le test crie au loup cent
+fois), puis on demande à la page si chaque nom existe **dans la portée du
+module**. La portée d'un module ne se devine pas depuis le texte.
+
+Limite assumée : le scanner ne démêle pas complètement un gabarit imbriqué
+dans un `${...}`. Un garde sur les caractères accentués rattrape le dernier
+résidu connu.
+
+### 3. Mesurer le contraste sans l'encre
 
 Capturer avec le texte visible fait que le pixel le plus clair de la
 boîte **est le texte** : on mesure le texte contre lui-même et tout passe
@@ -64,25 +82,25 @@ Trois autres pièges, tous rencontrés :
 - compter un enfant décoratif (pastille, lueur) comme fond ;
 - compter la **bordure** de l'élément, où aucun glyphe ne se pose.
 
-### 3. Un élément passé sous le châssis n'est pas mesurable
+### 4. Un élément passé sous le châssis n'est pas mesurable
 
 La barre du haut et la nav du bas recouvrent le contenu : y mesurer un
 texte revient à mesurer la barre. `contraste.mjs` les exclut.
 
-### 4. Un bouchon qui ment produit un faux bug
+### 5. Un bouchon qui ment produit un faux bug
 
 Tant que le bouchon `getDocs` ignorait `orderBy`, le podium du classement
 sortait dans le désordre et ressemblait à un bug de tri. Ce n'en était
 pas un. **Avant de déclarer un bug trouvé par le harnais, vérifier que le
 bouchon ne l'a pas fabriqué.**
 
-### 5. Le jeu d'essai doit peupler les cinq écrans
+### 6. Le jeu d'essai doit peupler les cinq écrans
 
 `fixturesParDefaut()` fournit des matchs, des équipes et des joueurs.
 Sans joueurs, le classement rend son état vide et la sonde de contraste
 ne voit rien — elle passe pour de mauvaises raisons.
 
-### 6. Un échec se lit, il ne se contourne pas
+### 7. Un échec se lit, il ne se contourne pas
 
 Chaque ligne `✗` nomme l'élément et le ratio obtenu. Corriger la cause,
 pas le seuil.
