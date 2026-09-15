@@ -93,3 +93,9 @@ export const TERMINER_DEMO = {
     { nom: 'Verts', couleur: '#5DD62C', joueurs: ['i', 'l', 'a', 'm', 'z'] },
   ],
 };
+
+export const APRES_DEMO = {
+  inscrits: ['u1', 'k', 'n', 't', 'y', 'i'],
+  pseudos: { u1: 'Sam', k: 'Karim', n: 'Naïm', t: 'Théo', y: 'Yanis', i: 'Ibrahim' } as Record<string, string>,
+  votes: { k: ['n', 't', 'y'], t: ['k'], n: ['i'] } as Record<string, string[]>,
+};

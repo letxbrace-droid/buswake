@@ -18,6 +18,7 @@ const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
 const Terrains = lazy(() => import('./ecrans/Terrains').then((m) => ({ default: m.Terrains })));
+const ApresMatch = lazy(() => import('./ecrans/ApresMatch').then((m) => ({ default: m.ApresMatch })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -37,6 +38,7 @@ let joueursDemo: Demo['JOUEURS_DEMO'] = [];
 let profilDemo: Demo['PROFIL_DEMO'] | null = null;
 let detailDemo: Demo['DETAIL_DEMO'] | null = null;
 let terminerDemo: Demo['TERMINER_DEMO'] | null = null;
+let apresDemo: Demo['APRES_DEMO'] | null = null;
 if (import.meta.env.DEV) {
   const d = await import('./demo');
   client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
@@ -45,6 +47,7 @@ if (import.meta.env.DEV) {
   profilDemo = d.PROFIL_DEMO;
   detailDemo = d.DETAIL_DEMO;
   terminerDemo = d.TERMINER_DEMO;
+  apresDemo = d.APRES_DEMO;
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -196,6 +199,23 @@ function Coque() {
                           : MASSY
                       }
                     />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/match/:id/apres"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    {apresDemo && (
+                      <ApresMatch
+                        inscrits={apresDemo.inscrits}
+                        pseudos={apresDemo.pseudos}
+                        monUid="u1"
+                        votesInitiaux={apresDemo.votes}
+                        onNoter={() => {}}
+                        onVoterMotm={() => {}}
+                      />
+                    )}
                   </Suspense>
                 }
               />
