@@ -1,0 +1,41 @@
+/* ===== UN TERRAIN PAR ÉCRAN =====
+   Chaque section a sa photo. Par-dessus, un dégradé de lisibilité qui
+   s'assombrit vers le bas — c'est lui qui garantit le contraste AA du texte,
+   pas la chance. Les photos vivent à la racine du dépôt, partagées avec la v1. */
+
+@layer ecrans {
+  .terrain {
+    position: relative;
+    isolation: isolate;
+  }
+
+  .terrain::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background:
+      linear-gradient(
+        180deg,
+        rgb(15 15 15 / 0.46) 0%,
+        rgb(15 15 15 / 0.56) 38%,
+        rgb(15 15 15 / 0.64) 72%,
+        rgb(15 15 15 / 0.72) 100%
+      ),
+      radial-gradient(120% 55% at 50% 28%, rgb(93 214 44 / 0.1), transparent 60%),
+      var(--fond, none) center 34% / cover no-repeat,
+      var(--color-fond);
+  }
+
+  .terrain > * {
+    position: relative;
+    z-index: 1;
+  }
+
+  .terrain-accueil    { --fond: url('../../../art-hero-jouer.jpg'); }
+  .terrain-matchs     { --fond: url('../../../fond-matchs.jpg'); }
+  .terrain-equipes    { --fond: url('../../../fond-equipes.jpg'); }
+  .terrain-classement { --fond: url('../../../fond-classement.jpg'); }
+  .terrain-profil     { --fond: url('../../../fond-profil.jpg'); }
+}

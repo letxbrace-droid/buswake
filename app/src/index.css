@@ -1,0 +1,34 @@
+/* L'ORDRE DE LA CASCADE, DÉCLARÉ UNE FOIS POUR TOUTES.
+   C'est la colonne vertébrale de l'architecture CSS : une règle de `etats`
+   bat une règle de `composants` quel que soit l'ordre de chargement des
+   fichiers et quelle que soit la spécificité. La v1 payait l'absence de
+   couches en !important — 19 des 23 !important du fichier étaient des
+   combats de cascade, pas des intentions.
+   `utilities` passe avant `etats` : une classe Tailwind peut ajuster un
+   composant, mais ne peut pas casser un état sélectionné. */
+@layer theme, base, composants, ecrans, utilities, etats;
+
+@import 'tailwindcss';
+@import './styles/socle.css';
+@import './styles/plaques.css';
+@import './styles/ecrans.css';
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    margin: 0;
+    background: var(--color-fond);
+    color: var(--color-encre);
+    font-family: var(--font-texte);
+    overscroll-behavior-y: none;
+  }
+}

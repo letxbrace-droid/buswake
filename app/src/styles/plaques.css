@@ -1,0 +1,86 @@
+/* ===== LES PLAQUES — la signature visuelle de KOLEKTIF =====
+   Une plaque est un objet physique posé sur la photo du terrain : une face
+   éclairée d'en haut, quatre bords traités différemment, une tranche, et une
+   ombre portée qui la détache du fond.
+
+   Ceci reste du CSS écrit à la main, volontairement. En utilitaires Tailwind,
+   l'empilement de cinq ombres s'écrirait shadow-[0_1px_0_...,0_-10px_14px...]
+   — c'est-à-dire ce même CSS, dans un attribut class, en illisible. Tailwind
+   sert la mise en page ; la matière se décrit ici. */
+
+@layer composants {
+  .plaque {
+    background: linear-gradient(
+      180deg,
+      rgb(64 72 57 / 0.74) 0%,
+      rgb(40 46 35 / 0.68) 44%,
+      rgb(21 25 19 / 0.72) 100%
+    );
+    -webkit-backdrop-filter: blur(16px) saturate(1.15);
+    backdrop-filter: blur(16px) saturate(1.15);
+
+    /* Quatre bords, quatre traitements. Une bordure uniforme éclaire la
+       plaque par tous les côtés à la fois : elle cesse d'être un objet. */
+    border: 1px solid rgb(255 255 255 / 0.075);
+    border-top-color: rgb(255 255 255 / 0.22);
+    border-bottom-color: rgb(0 0 0 / 0.62);
+    border-radius: var(--radius-lg);
+
+    box-shadow:
+      /* la face, éclairée d'en haut */
+      0 1px 0 rgb(255 255 255 / 0.1) inset,
+      0 -10px 14px -12px rgb(0 0 0 / 0.75) inset,
+      /* la tranche : c'est elle qui donne l'épaisseur */
+      0 3px 0 rgb(9 11 8 / 0.92),
+      /* le détachement du fond */
+      0 12px 22px -8px rgb(0 0 0 / 0.62),
+      0 30px 56px -22px rgb(0 0 0 / 0.78);
+  }
+
+  /* Le héros porte la plus grosse plaque : plus épaisse, plus détachée. */
+  .plaque-heros {
+    border-radius: var(--radius-xl);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.12) inset,
+      0 -12px 18px -14px rgb(0 0 0 / 0.8) inset,
+      0 5px 0 rgb(9 11 8 / 0.94),
+      0 18px 30px -10px rgb(0 0 0 / 0.66),
+      0 44px 72px -26px rgb(0 0 0 / 0.82);
+  }
+
+  /* Une plaque posée SUR une plaque ne flotte pas : elle perd sa tranche. */
+  .plaque .plaque {
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.07) inset,
+      0 6px 14px -10px rgb(0 0 0 / 0.5);
+    border-bottom-color: rgb(0 0 0 / 0.4);
+  }
+
+  /* Sur les appareils qui ne savent pas flouter, on épaissit le fond :
+     sans le flou, une surface à 70 % laisse lire la photo au travers. */
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .plaque {
+      background: var(--color-carte2);
+    }
+  }
+}
+
+@layer etats {
+  /* Ce qu'on peut toucher s'enfonce : la plaque perd sa tranche et son ombre.
+     Cette règle vit dans `etats`, donc elle gagne sur `composants` quel que
+     soit l'ordre des fichiers et quelle que soit la spécificité. C'est
+     précisément la classe de bug qui imposait des !important en v1. */
+  .plaque-action:active {
+    transform: translateY(2px);
+    box-shadow:
+      0 1px 0 rgb(255 255 255 / 0.08) inset,
+      0 1px 0 rgb(9 11 8 / 0.92),
+      0 6px 12px -8px rgb(0 0 0 / 0.55);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .plaque-action:active {
+      transform: none;
+    }
+  }
+}

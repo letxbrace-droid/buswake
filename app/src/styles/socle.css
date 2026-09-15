@@ -1,0 +1,72 @@
+/* ===== SOCLE KOLEKTIF — tokens, reset, fond =====
+   Portage des 61 custom properties de l'app v1. Un seul changement de fond :
+   `--orange` valait LE VERT de la marque, un piège hérité qu'on ne pouvait pas
+   corriger en v1 parce que `.btn-orange` était construit dans des chaînes JS.
+   Ici le nom dit ce qu'il est. Aucun alias trompeur n'est reconduit. */
+
+@theme {
+  /* — L'accent : le vert de la marque — */
+  --color-vert: #5dd62c;
+  --color-vert-clair: #8bf05a;
+  --color-vert-sombre: #337418;
+
+  /* — Le second accent : le feu —
+     Il ne fait pas double emploi avec le vert, il le PROTÈGE. Tant qu'il n'y
+     avait qu'un accent, le vert devait à la fois dire « agis ici » et
+     « regarde ça ». Il ne dit plus que la première.
+       vert → action, réussite, progression
+       feu  → chaleur, rareté, ce qui manque, ce qui brûle
+     Contrastes sur le fond : vert 14,46 · feu 8,95. */
+  --color-feu: #ff8a3d;
+  --color-feu-sombre: #e2661a;
+  --color-chasuble: #ff6a00;
+
+  /* — Les noirs, LÉGÈREMENT olivâtres, jamais neutres —
+     Le noir pur (#000) durcit l'image et fait vibrer un vert saturé.
+     #0F0F0F teinté de vert pose le gazon partout sans qu'on le voie. */
+  --color-fond: #0f0f0f;
+  --color-surface: #161915;
+  --color-carte: #1c201a;
+  --color-carte2: #262b23;
+  --color-bord: #2a2f27;
+  --color-bord-clair: #3a4035;
+
+  /* — Le texte, hiérarchisé par opacité (logique Apple/HIG sombre) —
+     Blanc neutre, pas de teinte décorative : s'adapte au fond et reste AA.
+     0,45 donnait 4,38:1 sur une carte et ~3,9 sur le fond photo de l'accueil,
+     sous le seuil — et ce AVANT le fond de terrain. 0,52 remonte à 5,4 / 5,7. */
+  --color-encre: #f8f8f8;
+  --color-encre-sec: rgb(255 255 255 / 0.62);
+  --color-encre-faible: rgb(255 255 255 / 0.52);
+
+  /* — Signaux — */
+  --color-rouge: #ff1744;
+  --color-bleu: #00b0ff;
+  --color-or: #ffd700;
+  --color-argent: #90a4ae;
+  --color-bronze: #a05000;
+
+  /* — Rayons : grille 4px, six crans, zéro exception — */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 20px;
+  --radius-xl: 24px;
+  --radius-pill: 99px;
+
+  /* — Physique : 2 courbes, 3 durées — doigt / interface / récompense — */
+  --ease-kolektif: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-ressort: cubic-bezier(0.34, 1.45, 0.64, 1);
+  --duration-doigt: 120ms;
+  --duration-interface: 200ms;
+  --duration-recompense: 450ms;
+
+  --font-titre: 'Anton', Impact, sans-serif;
+  --font-texte: 'Space Grotesk', system-ui, sans-serif;
+}
+
+/* Hauteurs de chrome — pas des tokens Tailwind, des mesures de mise en page. */
+:root {
+  --h-nav: 72px;
+  --h-haut: 58px;
+}
