@@ -52,3 +52,13 @@ export const JOUEURS_DEMO = [
   { id: 'u8', pseudo: 'Adam', xp: 415 },
   { id: 'u6', pseudo: 'Mehdi', xp: 260 },
 ];
+
+export const PROFIL_DEMO = {
+  pseudo: 'Sam',
+  poste: 'milieu',
+  club: 'OM',
+  xp: 1240,
+  atouts: { vitesse: 78, dribble: 81, frappe: 72, defense: 64, physique: 70 },
+  badges: ['Régulier', 'Buteur', 'Capitaine'],
+  stats: { matchsJoues: 12, hommeDuMatch: 2, presences: 11, lapins: 1 },
+};

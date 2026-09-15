@@ -28,6 +28,7 @@ const ROUTES = [
   { nom: 'matchs', hash: '#/matchs' },
   { nom: 'equipes', hash: '#/equipes' },
   { nom: 'classement', hash: '#/classement' },
+  { nom: 'profil', hash: '#/profil' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
@@ -111,6 +112,25 @@ async function sondeErreurs(page, route, base) {
  */
 async function sondeContraste(page) {
   const cibles = await page.evaluate(() => {
+    // On ne PARSE PLUS les couleurs CSS : on les fait résoudre par le
+    // navigateur. Tailwind v4 émet `text-white/55` en oklab(...), et une
+    // expression régulière y lisait « 0.999, 0.0000455… » comme du RGB —
+    // elle mesurait donc du quasi-noir et rendait des rapports de 1.05.
+    // fillStyle accepte toute syntaxe de couleur et rend du rgba.
+    // On PEINT la couleur et on lit le pixel. Relire ctx.fillStyle ne suffit
+    // pas : Chrome accepte bien oklab(...) — le pixel peint est juste — mais
+    // il le RESÉRIALISE en oklab, et lire ces nombres comme du RGB donnait du
+    // quasi-noir, donc des rapports de 1.09 sur du blanc à 55 %.
+    // Le pixel, lui, ne ment pas, quelle que soit la syntaxe.
+    const ctx = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+    const rgba = (css) => {
+      ctx.clearRect(0, 0, 1, 1);
+      ctx.fillStyle = css;
+      ctx.fillRect(0, 0, 1, 1);
+      const d = ctx.getImageData(0, 0, 1, 1).data;
+      return [d[0], d[1], d[2], d[3] / 255];
+    };
+
     const out = [];
     for (const el of document.querySelectorAll('p,span,b,i,button,h1,h2,h3,a,li')) {
       const t = (el.textContent ?? '').trim();
@@ -119,52 +139,63 @@ async function sondeContraste(page) {
       if (r.width < 4 || r.height < 4 || r.top < 0 || r.bottom > window.innerHeight) continue;
       const s = getComputedStyle(el);
       if (s.visibility === 'hidden' || s.opacity === '0') continue;
+      const x = Math.round(r.x + r.width / 2);
+      const y = Math.round(r.y + r.height / 2);
       // On ne mesure QUE du texte réellement au-dessus à son propre centre.
       // Un bouton flottant qui passe par-dessus une liste qui défile n'est
       // pas un défaut de contraste : le texte sort de dessous au scroll.
-      // Sans cette borne, la sonde mesure l'encre sur le fond du bouton.
-      const dessus = document.elementFromPoint(
-        Math.round(r.x + r.width / 2),
-        Math.round(r.y + r.height / 2),
-      );
+      const dessus = document.elementFromPoint(x, y);
       if (dessus !== el && !el.contains(dessus) && !dessus?.contains(el)) continue;
       out.push({
-        t: t.slice(0, 30), couleur: s.color,
-        px: parseFloat(s.fontSize), gras: Number(s.fontWeight) >= 700,
-        x: Math.round(r.x + r.width / 2), y: Math.round(r.y + r.height / 2),
+        t: t.slice(0, 30), encre: rgba(s.color),
+        px: parseFloat(s.fontSize), gras: Number(s.fontWeight) >= 700, x, y,
       });
     }
     return out;
   });
 
-  // Le fond réellement peint : le premier ancêtre dont le fond est opaque.
+  if (!cibles.length) return { nombre: 0, echecs: [], pire: null };
+
+  // Le fond RÉELLEMENT PEINT, lu au pixel. La remontée vers le premier
+  // ancêtre opaque se trompait sur tout ce qui n'a pas de backgroundColor :
+  // un dégradé rend `rgba(0,0,0,0)`, donc la carte FUT était mesurée contre
+  // le fond de la page au lieu du sien. Une capture ne ment pas.
+  await page.evaluate(() => {
+    for (const e of document.querySelectorAll('*')) e.style.color = 'transparent';
+  });
+  // ON LAISSE LE RENDU SE POSER AVANT DE CAPTURER.
+  // Effacer l'encre force un repaint complet. Capturer dans la foulée rend
+  // une frame non stabilisée : le backdrop-filter des plaques n'est pas
+  // encore réappliqué, donc la photo du terrain transparaît sous les
+  // surfaces translucides et le fond est lu bien plus clair qu'il n'est.
+  // Mesuré : un chip noir à 55 % ressortait à rgb(158,158,156) sans cette
+  // attente, et à sa vraie valeur sombre avec.
+  await page.waitForTimeout(450);
+  const png = (await page.screenshot()).toString('base64');
+
   const fonds = await page.evaluate(
-    (pts) => {
-      const opaque = (el) => {
-        let n = el;
-        while (n && n !== document.documentElement) {
-          const m = getComputedStyle(n).backgroundColor.match(/[\d.]+/g);
-          if (m && (m.length < 4 || parseFloat(m[3]) > 0.85)) return [+m[0], +m[1], +m[2]];
-          n = n.parentElement;
-        }
-        return [15, 15, 15];
-      };
+    async ({ b64, pts }) => {
+      const img = await createImageBitmap(
+        await (await fetch(`data:image/png;base64,${b64}`)).blob(),
+      );
+      const c = new OffscreenCanvas(img.width, img.height);
+      const ctx = c.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const ech = img.width / window.innerWidth;
       return pts.map((p) => {
-        const el = document.elementFromPoint(p.x, p.y);
-        return el ? opaque(el) : [15, 15, 15];
+        const d = ctx.getImageData(Math.round(p.x * ech), Math.round(p.y * ech), 1, 1).data;
+        return [d[0], d[1], d[2]];
       });
     },
-    cibles,
+    { b64: png, pts: cibles },
   );
 
   const echecs = [];
   let pire = null;
   cibles.forEach((c, i) => {
-    const m = c.couleur.match(/[\d.]+/g);
-    if (!m) return;
-    const a = m.length > 3 ? parseFloat(m[3]) : 1;
+    const [r, g, b, a] = c.encre;
     const bg = fonds[i];
-    const fg = [0, 1, 2].map((k) => parseFloat(m[k]) * a + bg[k] * (1 - a));
+    const fg = [r, g, b].map((v, k) => v * a + bg[k] * (1 - a));
     const L1 = lum(...fg);
     const L2 = lum(...bg);
     const ratio = (Math.max(L1, L2) + 0.05) / (Math.min(L1, L2) + 0.05);

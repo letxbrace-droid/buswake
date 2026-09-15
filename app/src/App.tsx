@@ -9,6 +9,7 @@ import { Accueil } from './ecrans/Accueil';
 const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Matchs })));
 const Equipes = lazy(() => import('./ecrans/Equipes').then((m) => ({ default: m.Equipes })));
 const Classement = lazy(() => import('./ecrans/Classement').then((m) => ({ default: m.Classement })));
+const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -25,11 +26,13 @@ const client = new QueryClient({
 type Demo = Awaited<typeof import('./demo')>;
 let equipesDemo: Demo['EQUIPES_DEMO'] = [];
 let joueursDemo: Demo['JOUEURS_DEMO'] = [];
+let profilDemo: Demo['PROFIL_DEMO'] | null = null;
 if (import.meta.env.DEV) {
   const d = await import('./demo');
   client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
   equipesDemo = d.EQUIPES_DEMO;
   joueursDemo = d.JOUEURS_DEMO;
+  profilDemo = d.PROFIL_DEMO;
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -63,6 +66,14 @@ export default function App() {
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
                     <Classement uid="u1" joueurs={joueursDemo} equipes={equipesDemo} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/profil"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    {profilDemo && <Profil j={profilDemo} />}
                   </Suspense>
                 }
               />
