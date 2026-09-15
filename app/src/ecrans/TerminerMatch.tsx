@@ -176,7 +176,7 @@ function ChampScore({
         value={valeur}
         onChange={(e) => onChange(e.target.value)}
         aria-label={`Score ${label}`}
-        className="w-full rounded-(--radius-sm) border border-white/12 bg-black/35 py-3 text-center font-[family-name:var(--font-titre)] text-2xl text-(--color-encre)"
+        className="w-full rounded-(--radius-sm) border border-white/12 bg-(--color-carte) py-3 text-center font-[family-name:var(--font-titre)] text-2xl text-(--color-encre)"
         style={couleur ? { borderBottomColor: couleur, borderBottomWidth: 2 } : undefined}
       />
     </div>

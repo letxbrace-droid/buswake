@@ -35,10 +35,18 @@ export default defineConfig({
       output: {
         // Firebase et React changent bien moins souvent que l'app : les
         // isoler garde leur cache valide entre deux déploiements.
+        // On regroupe sur des FRONTIÈRES DE PAQUET, pas sur un bout de nom.
+        // `id.includes('/react')` attrapait aussi @tanstack/react-query,
+        // react-hook-form et motion/react : tous se retrouvaient dans le
+        // chunk de première peinture alors qu'ils ne servent qu'à des écrans
+        // chargés à la demande. Mesuré : 147 Ko au lieu de 136.
         manualChunks(id: string) {
-          if (id.includes('/node_modules/')) {
-            if (id.includes('firebase') || id.includes('@firebase')) return 'firebase';
-            if (id.includes('/react') || id.includes('scheduler')) return 'react';
+          const m = id.match(/\/node_modules\/(@[^/]+\/[^/]+|[^/]+)\//);
+          if (!m) return undefined;
+          const paquet = m[1];
+          if (paquet === 'firebase' || paquet.startsWith('@firebase')) return 'firebase';
+          if (['react', 'react-dom', 'scheduler', 'react-router', 'react-router-dom'].includes(paquet)) {
+            return 'react';
           }
           return undefined;
         },

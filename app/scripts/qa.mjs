@@ -22,8 +22,16 @@ const PORT_DEV = 8162;
 const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 
 /** Les routes de l'app. Toute nouvelle route s'ajoute ICI, sinon elle n'est
- *  jamais mesurée — c'est la seule façon qu'une régression passe. */
+ *  jamais mesurée — c'est la seule façon qu'une régression passe.
+ *
+ *  `sansPlaque` est une EXCEPTION DÉCLARÉE, pas une dérogation silencieuse :
+ *  un écran qui n'a délibérément aucune plaque doit le dire ici, en une ligne
+ *  qu'on relit. Sinon la sonde échoue — et c'est ce qu'on veut, parce que
+ *  perdre les plaques par accident ne doit jamais passer inaperçu. */
 const ROUTES = [
+  // L'écran d'entrée n'a pas de boîte : le contenu respire, la photo du
+  // terrain fait le décor. Une plaque y ferait un guichet.
+  { nom: 'connexion', hash: '#/connexion', sansPlaque: true },
   { nom: 'accueil', hash: '#/' },
   { nom: 'matchs', hash: '#/matchs' },
   { nom: 'equipes', hash: '#/equipes' },
@@ -35,7 +43,7 @@ const ROUTES = [
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
  *  dérive se voie au commit qui la cause et pas trois mois plus tard. */
-const BUDGET_PREMIERE_PEINTURE = 150;
+const BUDGET_PREMIERE_PEINTURE = 110;
 const BUDGET_TOTAL = 400;
 
 /** Hôtes qu'on ne peut PAS joindre depuis un conteneur d'intégration.
@@ -233,6 +241,37 @@ async function sondePlaques(page) {
   });
 }
 
+/** Sonde 5 — les champs de saisie sont-ils opaques ?
+ *
+ *  La sonde de contraste ne mesure que du TEXTE, donc un champ vide lui est
+ *  invisible : elle n'avait rien à mesurer et laissait passer un champ
+ *  translucide posé sur la photo du terrain, à travers lequel on voyait les
+ *  projecteurs. Ce n'est pas un problème de contraste, c'est un problème de
+ *  surface — et il lui fallait sa propre sonde.
+ *
+ *  Un contrôle de saisie doit poser sa propre surface : soit un fond opaque,
+ *  soit un ancêtre opaque ET pas de fond à lui. */
+async function sondeChamps(page) {
+  return page.evaluate(() => {
+    const alpha = (css) => {
+      const m = css.match(/[\d.]+/g);
+      if (!m) return 0;
+      return m.length > 3 ? parseFloat(m[3]) : 1;
+    };
+    const fautifs = [];
+    for (const el of document.querySelectorAll('input, textarea, select')) {
+      if (el.type === 'hidden' || el.type === 'checkbox' || el.type === 'radio') continue;
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4) continue;
+      const a = alpha(getComputedStyle(el).backgroundColor);
+      if (a < 0.85) {
+        fautifs.push(`${el.getAttribute('aria-label') || el.id || el.type} — fond à ${Math.round(a * 100)} %`);
+      }
+    }
+    return fautifs;
+  });
+}
+
 /** Sonde 4 — le poids, par chunk, gzippé.
  *
  *  La première peinture se lit dans le MANIFESTE de Vite, pas dans les noms
@@ -351,9 +390,29 @@ try {
       await pb.waitForTimeout(1400);
 
       if (!seulement || seulement === 'plaques') {
-        const pl = await sondePlaques(pb);
-        console.log(`  ${pl.ok ? '✓' : '✗'} plaque — ${pl.pourquoi}`);
-        if (!pl.ok) echecs++;
+        if (route.sansPlaque) {
+          const pl = await sondePlaques(pb);
+          // L'exception fonctionne dans les deux sens : si une plaque
+          // apparaît sur un écran déclaré sans plaque, on le signale aussi.
+          console.log(
+            pl.ok
+              ? '  ✗ plaque — écran déclaré sans plaque, mais il en porte une'
+              : '  · plaque — sans objet (exception déclarée)',
+          );
+          if (pl.ok) echecs++;
+        } else {
+          const pl = await sondePlaques(pb);
+          console.log(`  ${pl.ok ? '✓' : '✗'} plaque — ${pl.pourquoi}`);
+          if (!pl.ok) echecs++;
+        }
+      }
+
+      if (!seulement || seulement === 'champs') {
+        const f = await sondeChamps(pb);
+        if (f.length) {
+          echecs++;
+          for (const x of f) console.log(`  ✗ champ translucide — ${x}`);
+        }
       }
 
       if (!seulement || seulement === 'contraste') {

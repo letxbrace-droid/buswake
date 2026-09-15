@@ -1,7 +1,9 @@
 import { lazy, Suspense } from 'react';
-import { HashRouter, Routes, Route, Navigate, NavLink } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
+import { useSession } from './services/session';
+import type { Connexion, Inscription } from './domaine/auth';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
@@ -12,6 +14,7 @@ const Classement = lazy(() => import('./ecrans/Classement').then((m) => ({ defau
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 const DetailMatch = lazy(() => import('./ecrans/DetailMatch').then((m) => ({ default: m.DetailMatch })));
 const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
+const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -43,10 +46,43 @@ if (import.meta.env.DEV) {
 
 const MASSY = { lat: 48.726, lon: 2.283 };
 
+// Même raison que dans session.ts : ces trois fonctions vivent dans un module
+// qui importe Firebase. Les appeler par import dynamique garde Firebase hors
+// du chunk d'entrée — il ne se charge qu'au moment où on s'en sert.
+const actionsAuth = {
+  connecter: (v: Connexion) => import('./services/auth').then((m) => m.connecter(v)),
+  inscrire: (v: Inscription) => import('./services/auth').then((m) => m.inscrire(v)),
+  avecGoogle: () => import('./services/auth').then((m) => m.connecterAvecGoogle()),
+};
+
 export default function App() {
   return (
     <QueryClientProvider client={client}>
       <HashRouter>
+        <Coque />
+      </HashRouter>
+    </QueryClientProvider>
+  );
+}
+
+function Coque() {
+  const chemin = useLocation().pathname;
+  const { uid, enAttente } = useSession();
+  const surEcranAuth = chemin === '/connexion';
+
+  // Tant qu'on ne SAIT pas, on ne montre rien plutôt que de faire clignoter
+  // l'écran de connexion devant quelqu'un qui est déjà connecté.
+  if (enAttente) return <div className="h-full bg-(--color-fond)" aria-busy="true" />;
+
+  // Un visiteur déconnecté n'a rien à faire ailleurs qu'à l'entrée.
+  if (!uid && !surEcranAuth) return <Navigate to="/connexion" replace />;
+  // En production, quelqu'un de connecté n'a pas à voir l'écran d'entrée.
+  // En développement on l'y laisse aller : la session y est simulée comme
+  // connectée, et sans cette exception l'écran deviendrait inatteignable —
+  // ni pour le travail visuel, ni pour le harnais qui le mesure.
+  if (uid && surEcranAuth && !import.meta.env.DEV) return <Navigate to="/" replace />;
+
+  return (
         <div className="flex h-full flex-col">
           <main className="min-h-0 flex-1">
             <Routes>
@@ -116,13 +152,21 @@ export default function App() {
                   </Suspense>
                 }
               />
+              <Route
+                path="/connexion"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <Auth actions={actionsAuth} />
+                  </Suspense>
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
-          <BarreBasse />
+          {/* Pas de navigation tant qu'on n'est pas entré : proposer Matchs
+              ou Classement à quelqu'un de déconnecté ne mène nulle part. */}
+          {!surEcranAuth && <BarreBasse />}
         </div>
-      </HashRouter>
-    </QueryClientProvider>
   );
 }
 
