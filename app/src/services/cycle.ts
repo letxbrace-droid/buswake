@@ -5,6 +5,8 @@ import { db } from '../firebase/client';
 import { lireMatch, CreerMatchSchema, type CreerMatch, type Match } from '../domaine/schemas';
 import { basculerVote, finVisibleApres, peutConfirmer, quitter, rejoindre, type Votes } from '../domaine/cycle';
 import { versDate } from '../domaine/match';
+import { peutTerminer, validerResultat, type Resultat } from '../domaine/fin';
+import type { Camp } from '../domaine/composition';
 
 /** Écritures du cycle de vie. Cette couche fait TROIS choses et rien d'autre :
  *  relire l'état frais, appeler le domaine, envoyer le résultat.
@@ -122,4 +124,30 @@ export async function creer(saisie: CreerMatch, uid: string): Promise<string> {
     creeLe: serverTimestamp(),
   });
   return ref.id;
+}
+
+// ===== FIN DE MATCH =====
+/** Écrit le résultat. Le client pose le score, l'homme du match et les
+ *  présences — RIEN D'AUTRE. L'XP, les séries, les badges et les statistiques
+ *  sont calculés par la Cloud Function `gainsFinDeMatch` à partir de ces deux
+ *  champs, et refusés au client par les règles. C'est ce qui a retiré au
+ *  créateur le pouvoir de distribuer l'XP des autres. */
+export async function terminer(matchId: string, r: Resultat): Promise<void> {
+  const m = await relire(matchId);
+  if (!peutTerminer(m)) throw new Error('Seul un match confirmé peut être terminé.');
+
+  const v = validerResultat(m.joueursInscrits ?? [], r);
+  if (!v.ok) throw new Error(v.probleme);
+
+  await updateDoc(doc(db, 'matchs', matchId), {
+    statut: 'terminé',
+    scoreA: r.scoreA,
+    scoreB: r.scoreB,
+    hommeDuMatchUid: r.hommeDuMatchUid,
+    attendance: r.attendance,
+  });
+}
+
+export async function enregistrerComposition(matchId: string, camps: readonly Camp[]): Promise<void> {
+  await updateDoc(doc(db, 'matchs', matchId), { equipes: camps });
 }

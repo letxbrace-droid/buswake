@@ -26,6 +26,11 @@ export default defineConfig({
     }),
   ],
   build: {
+    // Le manifeste dit QUELS chunks l'entrée importe statiquement. Sans lui,
+    // le budget de poids se calcule au nom de fichier — et un filtre sur
+    // « Matchs » ne reconnaît ni DetailMatch ni TerminerMatch, donc des
+    // chunks chargés à la demande étaient comptés dans la première peinture.
+    manifest: true,
     rollupOptions: {
       output: {
         // Firebase et React changent bien moins souvent que l'app : les

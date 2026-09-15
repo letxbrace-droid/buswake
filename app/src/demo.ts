@@ -77,3 +77,15 @@ export const DETAIL_DEMO = {
   },
   votes: { '0': ['u1', 'Karim', 'Naïm'], '1': ['Théo'], '2': ['Yanis', 'Lucas'] } as Record<string, string[]>,
 };
+
+export const TERMINER_DEMO = {
+  inscrits: ['u1', 'k', 'n', 't', 'y', 'i', 'l', 'a', 'm', 'z'],
+  pseudos: {
+    u1: 'Sam', k: 'Karim', n: 'Naïm', t: 'Théo', y: 'Yanis',
+    i: 'Ibrahim', l: 'Lucas', a: 'Adam', m: 'Mehdi', z: 'Zied',
+  } as Record<string, string>,
+  camps: [
+    { nom: 'Chasubles', couleur: '#FF6A00', joueurs: ['u1', 'k', 'n', 't', 'y'] },
+    { nom: 'Verts', couleur: '#5DD62C', joueurs: ['i', 'l', 'a', 'm', 'z'] },
+  ],
+};

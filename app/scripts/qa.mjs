@@ -30,6 +30,7 @@ const ROUTES = [
   { nom: 'classement', hash: '#/classement' },
   { nom: 'profil', hash: '#/profil' },
   { nom: 'detail-match', hash: '#/match/d2' },
+  { nom: 'terminer', hash: '#/match/d2/terminer' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
@@ -232,25 +233,44 @@ async function sondePlaques(page) {
   });
 }
 
-/** Sonde 4 — le poids, par chunk, gzippé. */
+/** Sonde 4 — le poids, par chunk, gzippé.
+ *
+ *  La première peinture se lit dans le MANIFESTE de Vite, pas dans les noms
+ *  de fichiers. Le filtre par nom qui précédait attrapait « Matchs » mais ni
+ *  « DetailMatch » ni « TerminerMatch » : des chunks chargés à la demande
+ *  étaient comptés dans la première peinture, qui ressortait à 143 Ko au lieu
+ *  de 136. Un budget calculé sur une heuristique finit par alerter à tort. */
 async function sondePoids() {
   const dir = join(DIST, 'assets');
   const fichiers = await readdir(dir);
   const ko = async (f) => Math.round(gzipSync(await readFile(join(dir, f))).length / 1024);
-  const js = fichiers.filter((f) => f.endsWith('.js'));
-  const css = fichiers.filter((f) => f.endsWith('.css'));
 
   const tailles = {};
-  for (const f of [...js, ...css]) tailles[f] = await ko(f);
+  for (const f of fichiers.filter((f) => /\.(js|css)$/.test(f))) tailles[f] = await ko(f);
 
-  // La première peinture charge l'entrée, le socle React et le CSS ; les
-  // chunks chargés à la demande (firebase, écrans) n'en font pas partie.
-  const differe = (f) => /firebase|Matchs|Equipes|Classement|Profil/i.test(f);
-  const premiere = Object.entries(tailles)
-    .filter(([f]) => !differe(f))
-    .reduce((n, [, v]) => n + v, 0);
+  const manifeste = JSON.parse(await readFile(join(DIST, '.vite', 'manifest.json'), 'utf8'));
+  const entree = Object.values(manifeste).find((e) => e.isEntry);
+
+  // On suit les imports STATIQUES depuis l'entrée. Les dynamicImports sont
+  // par définition ce qui ne se charge pas à l'ouverture.
+  const bloquants = new Set();
+  const suivre = (cle) => {
+    const e = manifeste[cle];
+    if (!e || bloquants.has(cle)) return;
+    bloquants.add(cle);
+    for (const f of e.css ?? []) bloquants.add(f);
+    for (const i of e.imports ?? []) suivre(i);
+  };
+  for (const [cle, e] of Object.entries(manifeste)) if (e.isEntry) suivre(cle);
+
+  const nom = (chemin) => chemin.split('/').pop();
+  const premiereListe = [...bloquants]
+    .map((c) => (manifeste[c]?.file ? nom(manifeste[c].file) : nom(c)))
+    .filter((f) => tailles[f] !== undefined);
+
+  const premiere = [...new Set(premiereListe)].reduce((n, f) => n + tailles[f], 0);
   const total = Object.values(tailles).reduce((n, v) => n + v, 0);
-  return { tailles, premiere, total };
+  return { tailles, premiere, total, premiereListe: [...new Set(premiereListe)], entree: entree?.file };
 }
 
 // ===== EXÉCUTION =====
@@ -295,7 +315,9 @@ try {
     }
     const okP = p.premiere <= BUDGET_PREMIERE_PEINTURE;
     const okT = p.total <= BUDGET_TOTAL;
-    console.log(`${okP ? '✓' : '✗'} première peinture ${p.premiere} Ko (budget ${BUDGET_PREMIERE_PEINTURE})`);
+    console.log(
+      `${okP ? '✓' : '✗'} première peinture ${p.premiere} Ko (budget ${BUDGET_PREMIERE_PEINTURE}) — ${p.premiereListe.join(', ')}`,
+    );
     console.log(`${okT ? '✓' : '✗'} total ${p.total} Ko (budget ${BUDGET_TOTAL})`);
     if (!okP || !okT) echecs++;
   }

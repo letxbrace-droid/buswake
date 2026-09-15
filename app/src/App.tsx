@@ -11,6 +11,7 @@ const Equipes = lazy(() => import('./ecrans/Equipes').then((m) => ({ default: m.
 const Classement = lazy(() => import('./ecrans/Classement').then((m) => ({ default: m.Classement })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 const DetailMatch = lazy(() => import('./ecrans/DetailMatch').then((m) => ({ default: m.DetailMatch })));
+const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -29,6 +30,7 @@ let equipesDemo: Demo['EQUIPES_DEMO'] = [];
 let joueursDemo: Demo['JOUEURS_DEMO'] = [];
 let profilDemo: Demo['PROFIL_DEMO'] | null = null;
 let detailDemo: Demo['DETAIL_DEMO'] | null = null;
+let terminerDemo: Demo['TERMINER_DEMO'] | null = null;
 if (import.meta.env.DEV) {
   const d = await import('./demo');
   client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
@@ -36,6 +38,7 @@ if (import.meta.env.DEV) {
   joueursDemo = d.JOUEURS_DEMO;
   profilDemo = d.PROFIL_DEMO;
   detailDemo = d.DETAIL_DEMO;
+  terminerDemo = d.TERMINER_DEMO;
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -93,6 +96,21 @@ export default function App() {
                           onVoter: () => {}, onRejoindre: () => {}, onQuitter: () => {},
                           onConfirmer: () => {}, onAnnuler: () => {},
                         }}
+                      />
+                    )}
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/match/:id/terminer"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    {terminerDemo && (
+                      <TerminerMatch
+                        inscrits={terminerDemo.inscrits}
+                        pseudos={terminerDemo.pseudos}
+                        camps={terminerDemo.camps}
+                        onValider={() => {}}
                       />
                     )}
                   </Suspense>
