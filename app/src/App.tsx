@@ -1,4 +1,4 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
@@ -15,6 +15,7 @@ const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Pr
 const DetailMatch = lazy(() => import('./ecrans/DetailMatch').then((m) => ({ default: m.DetailMatch })));
 const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
+const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -66,6 +67,7 @@ export default function App() {
 }
 
 function Coque() {
+  const [reglages, setReglages] = useState(false);
   const chemin = useLocation().pathname;
   const { uid, enAttente } = useSession();
   const surEcranAuth = chemin === '/connexion';
@@ -165,7 +167,33 @@ function Coque() {
           </main>
           {/* Pas de navigation tant qu'on n'est pas entré : proposer Matchs
               ou Classement à quelqu'un de déconnecté ne mène nulle part. */}
-          {!surEcranAuth && <BarreBasse />}
+          {!surEcranAuth && (
+            <>
+              <button
+                onClick={() => setReglages(true)}
+                aria-label="Réglages"
+                className="fixed top-3 right-3 z-30 grid size-10 place-items-center rounded-full bg-black/45 text-(--color-encre-sec) backdrop-blur-md"
+                style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
+              >
+                <span aria-hidden className="text-lg leading-none">⋯</span>
+              </button>
+              <Suspense fallback={null}>
+                <Reglages
+                  ouvert={reglages}
+                  onFermer={() => setReglages(false)}
+                  pseudo="Sam"
+                  fournisseurs={['password']}
+                  actions={{
+                    onDeconnexion: () => import('./services/auth').then((m) => m.deconnecter()),
+                    onMotDePasse: () => {},
+                    onSupprimerCompte: () => {},
+                    onInviter: () => {},
+                  }}
+                />
+              </Suspense>
+              <BarreBasse />
+            </>
+          )}
         </div>
   );
 }

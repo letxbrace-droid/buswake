@@ -39,6 +39,9 @@ const ROUTES = [
   { nom: 'profil', hash: '#/profil' },
   { nom: 'detail-match', hash: '#/match/d2' },
   { nom: 'terminer', hash: '#/match/d2/terminer' },
+  // Un panneau qui ne s'ouvre qu'au clic n'est jamais mesuré si le harnais
+  // ne sait que naviguer. `ouvrir` lui dit quoi cliquer avant de mesurer.
+  { nom: 'reglages', hash: '#/', ouvrir: '[aria-label="Réglages"]' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
@@ -388,6 +391,10 @@ try {
       const pb = await nav.newPage({ viewport: { width: 400, height: 880 } });
       await pb.goto(`${DEV}/${route.hash}`, { waitUntil: 'networkidle' }).catch(() => {});
       await pb.waitForTimeout(1400);
+      if (route.ouvrir) {
+        await pb.click(route.ouvrir).catch(() => {});
+        await pb.waitForTimeout(700);   // le temps que le ressort se pose
+      }
 
       if (!seulement || seulement === 'plaques') {
         if (route.sansPlaque) {
