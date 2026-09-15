@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { Logo } from '../composants/Logo';
 import { zodResolver } from '@hookform/resolvers/zod';
 import {
   ConnexionSchema, InscriptionSchema, messageErreur,
@@ -24,7 +25,7 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
           du terrain fait le décor. L'écran d'entrée doit donner envie de
           jouer, pas ressembler à un guichet. */}
       <header className="mb-8 text-center">
-        <h1 className="font-[family-name:var(--font-titre)] text-5xl tracking-wide">KOLEKTIF</h1>
+        <Logo taille={52} />
         <p className="mt-2 text-sm text-(--color-encre-sec)">
           Trouve des joueurs, crée ton match, réunis les 10.
         </p>

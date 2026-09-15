@@ -9,6 +9,11 @@ import { motion } from 'motion/react';
  *
  *  Ce qui s'apprend ici ne s'apprend pas en lisant : la vraie explication,
  *  c'est le premier match qu'on propose.
+ *
+ *  PAS DE LOGO ICI. Il y a été posé puis retiré : au-dessus du titre, deux
+ *  blocs Anton se concurrencent et le plus petit se perd. La promesse porte
+ *  déjà la marque ; le logo identifie l'app sur l'écran de connexion, juste
+ *  après.
  */
 export function Accueillir({ onCommencer }: { onCommencer(): void }) {
   return (
