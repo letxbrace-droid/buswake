@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
 import { useSession } from './services/session';
 import { useProfil } from './services/useProfil';
+import { dejaAccueilli, marquerAccueilli } from './services/premierLancement';
 import type { Connexion, Inscription } from './domaine/auth';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
@@ -16,6 +17,7 @@ const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Pr
 const DetailMatch = lazy(() => import('./ecrans/DetailMatch').then((m) => ({ default: m.DetailMatch })));
 const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
+const Accueillir = lazy(() => import('./ecrans/Accueillir').then((m) => ({ default: m.Accueillir })));
 const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
 const Terrains = lazy(() => import('./ecrans/Terrains').then((m) => ({ default: m.Terrains })));
 const ApresMatch = lazy(() => import('./ecrans/ApresMatch').then((m) => ({ default: m.ApresMatch })));
@@ -88,14 +90,20 @@ function Coque() {
   const chemin = useLocation().pathname;
   const { uid, enAttente } = useSession();
   const { profil } = useProfil(uid, profilDemo ?? undefined);
-  const surEcranAuth = chemin === '/connexion';
+  const [accueilli, setAccueilli] = useState(dejaAccueilli);
+  const surBienvenue = chemin === '/bienvenue';
+  const surEcranAuth = chemin === '/connexion' || chemin === '/bienvenue';
 
   // Tant qu'on ne SAIT pas, on ne montre rien plutôt que de faire clignoter
   // l'écran de connexion devant quelqu'un qui est déjà connecté.
   if (enAttente) return <div className="h-full bg-(--color-fond)" aria-busy="true" />;
 
-  // Un visiteur déconnecté n'a rien à faire ailleurs qu'à l'entrée.
-  if (!uid && !surEcranAuth) return <Navigate to="/connexion" replace />;
+  // Un visiteur déconnecté n'a rien à faire ailleurs qu'à l'entrée — et au
+  // tout premier lancement, l'entrée c'est la promesse, pas un formulaire.
+  if (!uid && !surEcranAuth) {
+    return <Navigate to={accueilli ? '/connexion' : '/bienvenue'} replace />;
+  }
+  if (!uid && surBienvenue && accueilli) return <Navigate to="/connexion" replace />;
   // En production, quelqu'un de connecté n'a pas à voir l'écran d'entrée.
   // En développement on l'y laisse aller : la session y est simulée comme
   // connectée, et sans cette exception l'écran deviendrait inatteignable —
@@ -184,6 +192,19 @@ function Coque() {
                         onValider={() => {}}
                       />
                     )}
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/bienvenue"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <Accueillir
+                      onCommencer={() => {
+                        marquerAccueilli();
+                        setAccueilli(true);
+                      }}
+                    />
                   </Suspense>
                 }
               />

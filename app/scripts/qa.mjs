@@ -36,6 +36,8 @@ const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const ROUTES = [
   // L'écran d'entrée n'a pas de boîte : le contenu respire, la photo du
   // terrain fait le décor. Une plaque y ferait un guichet.
+  // Le premier lancement : la marque et une promesse, rien d'autre.
+  { nom: 'bienvenue', hash: '#/bienvenue', sansPlaque: true },
   { nom: 'connexion', hash: '#/connexion', sansPlaque: true },
   { nom: 'accueil', hash: '#/' },
   { nom: 'matchs', hash: '#/matchs' },
