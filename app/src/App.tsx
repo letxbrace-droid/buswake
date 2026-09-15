@@ -17,6 +17,7 @@ const DetailMatch = lazy(() => import('./ecrans/DetailMatch').then((m) => ({ def
 const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
+const Terrains = lazy(() => import('./ecrans/Terrains').then((m) => ({ default: m.Terrains })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -181,6 +182,20 @@ function Coque() {
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
                     <Auth actions={actionsAuth} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/terrains"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <Terrains
+                      domicile={
+                        profil?.domicileLat != null && profil?.domicileLon != null
+                          ? { lat: profil.domicileLat, lon: profil.domicileLon }
+                          : MASSY
+                      }
+                    />
                   </Suspense>
                 }
               />

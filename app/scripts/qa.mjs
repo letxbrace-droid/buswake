@@ -41,6 +41,7 @@ const ROUTES = [
   { nom: 'terminer', hash: '#/match/d2/terminer' },
   // Un panneau qui ne s'ouvre qu'au clic n'est jamais mesuré si le harnais
   // ne sait que naviguer. `ouvrir` lui dit quoi cliquer avant de mesurer.
+  { nom: 'terrains', hash: '#/terrains' },
   { nom: 'reglages', hash: '#/', ouvrir: '[aria-label="Réglages"]' },
 ];
 
