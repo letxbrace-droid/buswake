@@ -7,6 +7,7 @@ import { Accueil } from './ecrans/Accueil';
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
 // première peinture pour rien. Ici il part avec l'écran qui en a besoin.
 const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Matchs })));
+const Equipes = lazy(() => import('./ecrans/Equipes').then((m) => ({ default: m.Equipes })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -20,9 +21,11 @@ const client = new QueryClient({
 
 // Rendu travaillé sans réseau. `import.meta.env.DEV` est une constante à la
 // compilation : ce bloc n'existe pas dans le bundle de production.
+let equipesDemo: Awaited<typeof import('./demo')>['EQUIPES_DEMO'] = [];
 if (import.meta.env.DEV) {
-  const { MATCHS_DEMO } = await import('./demo');
-  client.setQueryData(['fil', 'u1'], MATCHS_DEMO);
+  const d = await import('./demo');
+  client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
+  equipesDemo = d.EQUIPES_DEMO;
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -40,6 +43,14 @@ export default function App() {
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
                     <Matchs uid="u1" domicile={MASSY} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/equipes"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <Equipes equipes={equipesDemo} />
                   </Suspense>
                 }
               />

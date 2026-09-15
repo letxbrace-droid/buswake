@@ -26,6 +26,7 @@ const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
 const ROUTES = [
   { nom: 'accueil', hash: '#/' },
   { nom: 'matchs', hash: '#/matchs' },
+  { nom: 'equipes', hash: '#/equipes' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
