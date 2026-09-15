@@ -27,6 +27,7 @@ const ROUTES = [
   { nom: 'accueil', hash: '#/' },
   { nom: 'matchs', hash: '#/matchs' },
   { nom: 'equipes', hash: '#/equipes' },
+  { nom: 'classement', hash: '#/classement' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
@@ -118,6 +119,15 @@ async function sondeContraste(page) {
       if (r.width < 4 || r.height < 4 || r.top < 0 || r.bottom > window.innerHeight) continue;
       const s = getComputedStyle(el);
       if (s.visibility === 'hidden' || s.opacity === '0') continue;
+      // On ne mesure QUE du texte réellement au-dessus à son propre centre.
+      // Un bouton flottant qui passe par-dessus une liste qui défile n'est
+      // pas un défaut de contraste : le texte sort de dessous au scroll.
+      // Sans cette borne, la sonde mesure l'encre sur le fond du bouton.
+      const dessus = document.elementFromPoint(
+        Math.round(r.x + r.width / 2),
+        Math.round(r.y + r.height / 2),
+      );
+      if (dessus !== el && !el.contains(dessus) && !dessus?.contains(el)) continue;
       out.push({
         t: t.slice(0, 30), couleur: s.color,
         px: parseFloat(s.fontSize), gras: Number(s.fontWeight) >= 700,

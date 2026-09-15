@@ -40,3 +40,15 @@ export const EQUIPES_DEMO = [
     embleme: 'couronne', niveau: 'intermediaire' as const, membres: ['a', 'b', 'c'],
     stats: { victoires: 5, nuls: 3, defaites: 5, serie: 0 } },
 ];
+
+export const JOUEURS_DEMO = [
+  { id: 'u7', pseudo: 'Karim', xp: 3120, streak: 4, stats: { hommeDuMatch: 6 } },
+  { id: 'u3', pseudo: 'Naïm', xp: 2480, stats: { hommeDuMatch: 3 } },
+  { id: 'u9', pseudo: 'Théo', xp: 1890 },
+  { id: 'u1', pseudo: 'Sam', xp: 1240, streak: 3, stats: { hommeDuMatch: 2 } },
+  { id: 'u2', pseudo: 'Yanis', xp: 1105 },
+  { id: 'u5', pseudo: 'Ibrahim', xp: 860 },
+  { id: 'u4', pseudo: 'Lucas', xp: 640 },
+  { id: 'u8', pseudo: 'Adam', xp: 415 },
+  { id: 'u6', pseudo: 'Mehdi', xp: 260 },
+];

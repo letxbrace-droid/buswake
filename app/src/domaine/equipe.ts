@@ -44,7 +44,16 @@ export interface Equipe {
   readonly embleme?: string;
   readonly niveau?: Niveau;
   readonly membres?: readonly string[];
-  readonly stats?: { victoires?: number; nuls?: number; defaites?: number; serie?: number };
+  readonly stats?: {
+    victoires?: number;
+    nuls?: number;
+    defaites?: number;
+    serie?: number;
+    /** Utilisés pour départager au classement : la différence de buts rend
+     *  un match serré différent d'une correction. */
+    butsPour?: number;
+    butsContre?: number;
+  };
 }
 
 const EFFECTIFS: Record<string, number> = { foot5: 5, foot7: 7, basket3: 3, padel: 2 };
