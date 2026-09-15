@@ -49,3 +49,25 @@
     border: 0;
   }
 }
+
+@layer composants {
+  /* Entrée et sortie du toast, en CSS : voir composants/Toasts.tsx — ce
+     composant vit à la racine, et y charger un moteur d'animation coûterait
+     39 Ko à la première peinture. */
+  @keyframes toast-entre {
+    from { opacity: 0; transform: translateY(12px) scale(0.97); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .toast {
+    animation: toast-entre var(--duration-interface) var(--ease-ressort) both;
+  }
+
+  .toast[data-sortant] {
+    animation: toast-entre 220ms var(--ease-kolektif) reverse both;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .toast, .toast[data-sortant] { animation: none; }
+  }
+}

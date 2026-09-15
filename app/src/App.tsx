@@ -4,6 +4,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
 import { useSession } from './services/session';
 import { useProfil } from './services/useProfil';
+import { FournisseurToasts } from './composants/Toasts';
 import { dejaAccueilli, marquerAccueilli } from './services/premierLancement';
 import type { Connexion, Inscription } from './domaine/auth';
 
@@ -14,16 +15,16 @@ const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Ma
 const Equipes = lazy(() => import('./ecrans/Equipes').then((m) => ({ default: m.Equipes })));
 const Classement = lazy(() => import('./ecrans/Classement').then((m) => ({ default: m.Classement })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
-const DetailMatch = lazy(() => import('./ecrans/DetailMatch').then((m) => ({ default: m.DetailMatch })));
+const DetailMatch = lazy(() => import('./conteneurs/DetailMatchBranche').then((m) => ({ default: m.DetailMatchBranche })));
 const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 const Accueillir = lazy(() => import('./ecrans/Accueillir').then((m) => ({ default: m.Accueillir })));
 const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
 const Terrains = lazy(() => import('./ecrans/Terrains').then((m) => ({ default: m.Terrains })));
-const ApresMatch = lazy(() => import('./ecrans/ApresMatch').then((m) => ({ default: m.ApresMatch })));
-const CreerMatch = lazy(() => import('./ecrans/CreerMatch').then((m) => ({ default: m.CreerMatch })));
-const Amis = lazy(() => import('./ecrans/Amis').then((m) => ({ default: m.Amis })));
-const Chat = lazy(() => import('./ecrans/Chat').then((m) => ({ default: m.Chat })));
+const ApresMatch = lazy(() => import('./conteneurs/ApresMatchBranche').then((m) => ({ default: m.ApresMatchBranche })));
+const CreerMatch = lazy(() => import('./conteneurs/CreerMatchBranche').then((m) => ({ default: m.CreerMatchBranche })));
+const Amis = lazy(() => import('./conteneurs/AmisBranche').then((m) => ({ default: m.AmisBranche })));
+const Chat = lazy(() => import('./conteneurs/ChatBranche').then((m) => ({ default: m.ChatBranche })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -41,7 +42,6 @@ type Demo = Awaited<typeof import('./demo')>;
 let equipesDemo: Demo['EQUIPES_DEMO'] = [];
 let joueursDemo: Demo['JOUEURS_DEMO'] = [];
 let profilDemo: Demo['PROFIL_DEMO'] | null = null;
-let detailDemo: Demo['DETAIL_DEMO'] | null = null;
 let terminerDemo: Demo['TERMINER_DEMO'] | null = null;
 let apresDemo: Demo['APRES_DEMO'] | null = null;
 let amisDemo: Demo['AMIS_DEMO'] | null = null;
@@ -52,11 +52,16 @@ if (import.meta.env.DEV) {
   equipesDemo = d.EQUIPES_DEMO;
   joueursDemo = d.JOUEURS_DEMO;
   profilDemo = d.PROFIL_DEMO;
-  detailDemo = d.DETAIL_DEMO;
   terminerDemo = d.TERMINER_DEMO;
   apresDemo = d.APRES_DEMO;
   amisDemo = d.AMIS_DEMO;
   chatDemo = d.CHAT_DEMO;
+  // On amorce le cache des conteneurs plutôt que de rendre un arbre
+  // parallèle : le harnais mesure ainsi l'écran RÉELLEMENT branché.
+  client.setQueryData(['match', 'd2'], { m: d.DETAIL_DEMO.m, votes: d.DETAIL_DEMO.votes });
+  client.setQueryData(['apres', 'd2'], {
+    inscrits: d.APRES_DEMO.inscrits, ratings: {}, votes: d.APRES_DEMO.votes,
+  });
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -78,9 +83,11 @@ const actionsAuth = {
 export default function App() {
   return (
     <QueryClientProvider client={client}>
-      <HashRouter>
-        <Coque />
-      </HashRouter>
+      <FournisseurToasts>
+        <HashRouter>
+          <Coque />
+        </HashRouter>
+      </FournisseurToasts>
     </QueryClientProvider>
   );
 }
@@ -166,17 +173,7 @@ function Coque() {
                 path="/match/:id"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {detailDemo && (
-                      <DetailMatch
-                        m={detailDemo.m}
-                        votes={detailDemo.votes}
-                        uid="u1"
-                        actions={{
-                          onVoter: () => {}, onRejoindre: () => {}, onQuitter: () => {},
-                          onConfirmer: () => {}, onAnnuler: () => {},
-                        }}
-                      />
-                    )}
+                    <DetailMatch uid="u1" />
                   </Suspense>
                 }
               />
@@ -234,16 +231,7 @@ function Coque() {
                 path="/match/:id/apres"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {apresDemo && (
-                      <ApresMatch
-                        inscrits={apresDemo.inscrits}
-                        pseudos={apresDemo.pseudos}
-                        monUid="u1"
-                        votesInitiaux={apresDemo.votes}
-                        onNoter={() => {}}
-                        onVoterMotm={() => {}}
-                      />
-                    )}
+                    {apresDemo && <ApresMatch uid="u1" pseudos={apresDemo.pseudos} />}
                   </Suspense>
                 }
               />
@@ -251,7 +239,7 @@ function Coque() {
                 path="/creer"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <CreerMatch domicile={MASSY} onCreer={() => {}} />
+                    <CreerMatch uid="u1" domicile={MASSY} />
                   </Suspense>
                 }
               />
@@ -260,16 +248,7 @@ function Coque() {
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
                     {amisDemo && (
-                      <Amis
-                        monUid="u1"
-                        relations={amisDemo.relations}
-                        annuaire={amisDemo.annuaire}
-                        resultats={[]}
-                        actions={{
-                          onChercher: () => {}, onAjouter: () => {},
-                          onAccepter: () => {}, onRetirer: () => {},
-                        }}
-                      />
+                      <Amis uid="u1" relations={amisDemo.relations} annuaire={amisDemo.annuaire} />
                     )}
                   </Suspense>
                 }
@@ -278,15 +257,7 @@ function Coque() {
                 path="/match/:id/chat"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {chatDemo && (
-                      <Chat
-                        messages={chatDemo.messages}
-                        pseudos={chatDemo.pseudos}
-                        monUid="u1"
-                        ouvert
-                        onEnvoyer={() => {}}
-                      />
-                    )}
+                    {chatDemo && <Chat uid="u1" pseudos={chatDemo.pseudos} />}
                   </Suspense>
                 }
               />
