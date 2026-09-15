@@ -27,7 +27,12 @@ const CHROME = '/opt/pw-browsers/chromium-1194/chrome-linux/chrome';
  *  `sansPlaque` est une EXCEPTION DÉCLARÉE, pas une dérogation silencieuse :
  *  un écran qui n'a délibérément aucune plaque doit le dire ici, en une ligne
  *  qu'on relit. Sinon la sonde échoue — et c'est ce qu'on veut, parce que
- *  perdre les plaques par accident ne doit jamais passer inaperçu. */
+ *  perdre les plaques par accident ne doit jamais passer inaperçu.
+ *
+ *  Elle dit « cet écran ne nous doit pas de plaque », pas « il ne doit jamais
+ *  en porter ». Le chat n'en a aucune quand le fil est rempli, mais son état
+ *  vide en utilise une : exiger l'absence produisait une fausse alerte sur un
+ *  choix parfaitement légitime. */
 const ROUTES = [
   // L'écran d'entrée n'a pas de boîte : le contenu respire, la photo du
   // terrain fait le décor. Une plaque y ferait un guichet.
@@ -43,6 +48,11 @@ const ROUTES = [
   // ne sait que naviguer. `ouvrir` lui dit quoi cliquer avant de mesurer.
   { nom: 'terrains', hash: '#/terrains' },
   { nom: 'apres-match', hash: '#/match/d2/apres' },
+  { nom: 'creer', hash: '#/creer' },
+  { nom: 'joueurs', hash: '#/joueurs' },
+  // Le fil est fait de bulles, pas de plaques : une plaque par message
+  // ferait dix objets flottants là où il faut une conversation.
+  { nom: 'chat', hash: '#/match/d2/chat', sansPlaque: true },
   { nom: 'reglages', hash: '#/', ouvrir: '[aria-label="Réglages"]' },
 ];
 
@@ -401,14 +411,7 @@ try {
       if (!seulement || seulement === 'plaques') {
         if (route.sansPlaque) {
           const pl = await sondePlaques(pb);
-          // L'exception fonctionne dans les deux sens : si une plaque
-          // apparaît sur un écran déclaré sans plaque, on le signale aussi.
-          console.log(
-            pl.ok
-              ? '  ✗ plaque — écran déclaré sans plaque, mais il en porte une'
-              : '  · plaque — sans objet (exception déclarée)',
-          );
-          if (pl.ok) echecs++;
+          console.log(`  · plaque — facultative ici (${pl.ok ? 'présente' : 'absente'})`);
         } else {
           const pl = await sondePlaques(pb);
           console.log(`  ${pl.ok ? '✓' : '✗'} plaque — ${pl.pourquoi}`);

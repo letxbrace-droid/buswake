@@ -19,6 +19,9 @@ const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth }
 const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
 const Terrains = lazy(() => import('./ecrans/Terrains').then((m) => ({ default: m.Terrains })));
 const ApresMatch = lazy(() => import('./ecrans/ApresMatch').then((m) => ({ default: m.ApresMatch })));
+const CreerMatch = lazy(() => import('./ecrans/CreerMatch').then((m) => ({ default: m.CreerMatch })));
+const Amis = lazy(() => import('./ecrans/Amis').then((m) => ({ default: m.Amis })));
+const Chat = lazy(() => import('./ecrans/Chat').then((m) => ({ default: m.Chat })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -39,6 +42,8 @@ let profilDemo: Demo['PROFIL_DEMO'] | null = null;
 let detailDemo: Demo['DETAIL_DEMO'] | null = null;
 let terminerDemo: Demo['TERMINER_DEMO'] | null = null;
 let apresDemo: Demo['APRES_DEMO'] | null = null;
+let amisDemo: Demo['AMIS_DEMO'] | null = null;
+let chatDemo: Demo['CHAT_DEMO'] | null = null;
 if (import.meta.env.DEV) {
   const d = await import('./demo');
   client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
@@ -48,6 +53,8 @@ if (import.meta.env.DEV) {
   detailDemo = d.DETAIL_DEMO;
   terminerDemo = d.TERMINER_DEMO;
   apresDemo = d.APRES_DEMO;
+  amisDemo = d.AMIS_DEMO;
+  chatDemo = d.CHAT_DEMO;
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -219,6 +226,49 @@ function Coque() {
                   </Suspense>
                 }
               />
+              <Route
+                path="/creer"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <CreerMatch domicile={MASSY} onCreer={() => {}} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/joueurs"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    {amisDemo && (
+                      <Amis
+                        monUid="u1"
+                        relations={amisDemo.relations}
+                        annuaire={amisDemo.annuaire}
+                        resultats={[]}
+                        actions={{
+                          onChercher: () => {}, onAjouter: () => {},
+                          onAccepter: () => {}, onRetirer: () => {},
+                        }}
+                      />
+                    )}
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/match/:id/chat"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    {chatDemo && (
+                      <Chat
+                        messages={chatDemo.messages}
+                        pseudos={chatDemo.pseudos}
+                        monUid="u1"
+                        ouvert
+                        onEnvoyer={() => {}}
+                      />
+                    )}
+                  </Suspense>
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
@@ -275,20 +325,21 @@ function BarreBasse() {
         Matchs
       </NavLink>
 
-      <div className="flex-1 min-w-0">
-        <button
+      <div className="min-w-0 flex-1">
+        <NavLink
+          to="/creer"
           aria-label="Proposer un match"
-          className="mx-auto -mt-6 block size-14 rounded-full bg-(--color-vert) text-3xl leading-none font-light text-(--color-fond) shadow-[0_8px_20px_-6px_rgba(93,214,44,.55)] transition-transform duration-(--duration-doigt) active:scale-95"
+          className="mx-auto -mt-6 grid size-14 place-items-center rounded-full bg-(--color-vert) text-3xl leading-none font-light text-(--color-fond) shadow-[0_8px_20px_-6px_rgba(93,214,44,.55)] transition-transform duration-(--duration-doigt) active:scale-95"
         >
           +
-        </button>
+        </NavLink>
       </div>
 
       <NavLink to="/equipes" className={onglet}>
         Équipes
       </NavLink>
-      <NavLink to="/classement" className={onglet}>
-        Classement
+      <NavLink to="/joueurs" className={onglet}>
+        Joueurs
       </NavLink>
     </nav>
   );

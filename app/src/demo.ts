@@ -99,3 +99,27 @@ export const APRES_DEMO = {
   pseudos: { u1: 'Sam', k: 'Karim', n: 'Naïm', t: 'Théo', y: 'Yanis', i: 'Ibrahim' } as Record<string, string>,
   votes: { k: ['n', 't', 'y'], t: ['k'], n: ['i'] } as Record<string, string[]>,
 };
+
+export const AMIS_DEMO = {
+  relations: {
+    friends: ['k', 'n'],
+    friendRequestsSent: ['t'],
+    friendRequestsReceived: ['y'],
+  },
+  annuaire: {
+    k: { uid: 'k', pseudo: 'Karim', xp: 3120 },
+    n: { uid: 'n', pseudo: 'Naïm', xp: 2480 },
+    t: { uid: 't', pseudo: 'Théo', xp: 1890 },
+    y: { uid: 'y', pseudo: 'Yanis', xp: 1105 },
+  } as Record<string, { uid: string; pseudo: string; xp: number }>,
+};
+
+export const CHAT_DEMO = {
+  messages: [
+    { id: '1', auteur: 'k', texte: 'On est combien pour vendredi ?', quand: h(-2) },
+    { id: '2', auteur: 'u1', texte: 'Sept pour l’instant, il en manque trois.', quand: h(-1.5) },
+    { id: '3', auteur: 'n', texte: 'J’amène un pote, ça fera huit.', quand: h(-1) },
+    { id: '4', auteur: 'k', texte: 'Nickel. Quelqu’un prend les chasubles ?', quand: h(-0.5) },
+  ],
+  pseudos: { u1: 'Sam', k: 'Karim', n: 'Naïm' } as Record<string, string>,
+};
