@@ -39,14 +39,41 @@ export const MatchSchema = z.object({
 });
 export type Match = z.infer<typeof MatchSchema>;
 
+export const AtoutsSchema = z.object({
+  vitesse: z.number().catch(70),
+  dribble: z.number().catch(70),
+  frappe: z.number().catch(70),
+  defense: z.number().catch(70),
+  physique: z.number().catch(70),
+});
+
 export const UtilisateurSchema = z.object({
   uid: z.string(),
   pseudo: z.string().default('Joueur'),
   xp: z.number().catch(0),
   badges: z.array(z.string()).default([]),
-  codePostal: z.string().default(''),
+  codePostal: z.string().nullish().transform((v) => v ?? ''),
   domicileLat: z.number().nullish(),
   domicileLon: z.number().nullish(),
+  // Carte joueur. Tous facultatifs : le profil se complète APRÈS
+  // l'inscription, depuis l'écran Profil, et un document créé hier peut ne
+  // rien en porter.
+  posteFavori: z.string().default('milieu'),
+  club: z.string().optional(),
+  atouts: AtoutsSchema.partial().default({}),
+  profilComplet: z.boolean().default(false),
+  // Écrites par les Cloud Functions, jamais par le client.
+  stats: z
+    .object({
+      matchsJoues: z.number().catch(0),
+      victoires: z.number().catch(0),
+      hommeDuMatch: z.number().catch(0),
+      presences: z.number().catch(0),
+      lapins: z.number().catch(0),
+    })
+    .partial()
+    .default({}),
+  streak: z.number().catch(0),
 });
 export type Utilisateur = z.infer<typeof UtilisateurSchema>;
 
@@ -71,6 +98,12 @@ export type CreerMatch = z.infer<typeof CreerMatchSchema>;
 /** Lit un document Firestore sans jamais jeter : renvoie null s'il est
  *  inexploitable, pour que l'appelant le filtre hors de la liste. */
 export function lireMatch(id: string, data: unknown): Match | null {
-  const r = MatchSchema.safeParse({ ...(data as object), id });
+  // On refuse explicitement ce qui n'est pas un objet. Sans cette borne,
+  // étaler `null` donne {} et le schéma le remplit de valeurs par défaut :
+  // un document vide devenait un match complet, qui apparaissait dans la
+  // liste comme un match fantôme. Idem pour une chaîne, qui s'étale en
+  // {0:'p',1:'a',…}.
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) return null;
+  const r = MatchSchema.safeParse({ ...data, id });
   return r.success ? r.data : null;
 }

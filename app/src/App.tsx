@@ -3,6 +3,7 @@ import { HashRouter, Routes, Route, Navigate, NavLink, useLocation } from 'react
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
 import { useSession } from './services/session';
+import { useProfil } from './services/useProfil';
 import type { Connexion, Inscription } from './domaine/auth';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
@@ -50,6 +51,11 @@ const MASSY = { lat: 48.726, lon: 2.283 };
 // Même raison que dans session.ts : ces trois fonctions vivent dans un module
 // qui importe Firebase. Les appeler par import dynamique garde Firebase hors
 // du chunk d'entrée — il ne se charge qu'au moment où on s'en sert.
+// En développement les fournisseurs sont figés : le conteneur n'atteint pas
+// Firebase, donc auth.currentUser est nul. En production ils viennent du
+// compte réel, et c'est eux qui décident si le mot de passe se gère ici.
+const fournisseursDemo = import.meta.env.DEV ? ['password'] : [];
+
 const actionsAuth = {
   connecter: (v: Connexion) => import('./services/auth').then((m) => m.connecter(v)),
   inscrire: (v: Inscription) => import('./services/auth').then((m) => m.inscrire(v)),
@@ -70,6 +76,7 @@ function Coque() {
   const [reglages, setReglages] = useState(false);
   const chemin = useLocation().pathname;
   const { uid, enAttente } = useSession();
+  const { profil } = useProfil(uid, profilDemo ?? undefined);
   const surEcranAuth = chemin === '/connexion';
 
   // Tant qu'on ne SAIT pas, on ne montre rien plutôt que de faire clignoter
@@ -88,7 +95,10 @@ function Coque() {
         <div className="flex h-full flex-col">
           <main className="min-h-0 flex-1">
             <Routes>
-              <Route path="/" element={<Accueil pseudo="Sam" xp={1240} />} />
+              <Route
+                path="/"
+                element={<Accueil pseudo={profil?.pseudo ?? '…'} xp={profil?.xp ?? 0} />}
+              />
               <Route
                 path="/matchs"
                 element={
@@ -117,7 +127,19 @@ function Coque() {
                 path="/profil"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {profilDemo && <Profil j={profilDemo} />}
+                    {profil && (
+                      <Profil
+                        j={{
+                          pseudo: profil.pseudo,
+                          poste: profil.posteFavori,
+                          club: profil.club,
+                          atouts: profil.atouts,
+                          xp: profil.xp,
+                          badges: profil.badges,
+                          stats: profil.stats,
+                        }}
+                      />
+                    )}
                   </Suspense>
                 }
               />
@@ -181,8 +203,8 @@ function Coque() {
                 <Reglages
                   ouvert={reglages}
                   onFermer={() => setReglages(false)}
-                  pseudo="Sam"
-                  fournisseurs={['password']}
+                  pseudo={profil?.pseudo ?? '…'}
+                  fournisseurs={fournisseursDemo}
                   actions={{
                     onDeconnexion: () => import('./services/auth').then((m) => m.deconnecter()),
                     onMotDePasse: () => {},

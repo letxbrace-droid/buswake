@@ -54,13 +54,17 @@ export const JOUEURS_DEMO = [
 ];
 
 export const PROFIL_DEMO = {
+  uid: 'u1',
   pseudo: 'Sam',
-  poste: 'milieu',
+  posteFavori: 'milieu',
   club: 'OM',
+  codePostal: '91300',
+  profilComplet: true,
+  streak: 3,
   xp: 1240,
   atouts: { vitesse: 78, dribble: 81, frappe: 72, defense: 64, physique: 70 },
   badges: ['Régulier', 'Buteur', 'Capitaine'],
-  stats: { matchsJoues: 12, hommeDuMatch: 2, presences: 11, lapins: 1 },
+  stats: { matchsJoues: 12, victoires: 7, hommeDuMatch: 2, presences: 11, lapins: 1 },
 };
 
 export const DETAIL_DEMO = {
