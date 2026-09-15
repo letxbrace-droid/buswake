@@ -25,6 +25,24 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        // Firebase et React changent bien moins souvent que l'app : les
+        // isoler garde leur cache valide entre deux déploiements.
+        manualChunks(id: string) {
+          if (id.includes('/node_modules/')) {
+            if (id.includes('firebase') || id.includes('@firebase')) return 'firebase';
+            if (id.includes('/react') || id.includes('scheduler')) return 'react';
+          }
+          return undefined;
+        },
+      },
+    },
+  },
+  // Les photos de terrain et les polices vivent à la racine du dépôt,
+  // partagées avec la v1 : le serveur de dev doit avoir le droit de les lire.
+  server: { fs: { allow: ['..'] } },
   test: {
     environment: 'jsdom',
     globals: true,

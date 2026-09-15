@@ -9,6 +9,7 @@
 @layer theme, base, composants, ecrans, utilities, etats;
 
 @import 'tailwindcss';
+@import './styles/polices.css';
 @import './styles/socle.css';
 @import './styles/plaques.css';
 @import './styles/ecrans.css';
