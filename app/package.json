@@ -11,7 +11,9 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "format": "prettier --write src",
-    "check": "tsc -b && oxlint src && vitest run"
+    "check": "tsc -b && oxlint src && vitest run",
+    "qa": "vite build && node scripts/qa.mjs",
+    "check:all": "tsc -b && oxlint src && vitest run && vite build && node scripts/qa.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
