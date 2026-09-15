@@ -33,11 +33,16 @@
 
   /* — Le texte, hiérarchisé par opacité (logique Apple/HIG sombre) —
      Blanc neutre, pas de teinte décorative : s'adapte au fond et reste AA.
-     0,45 donnait 4,38:1 sur une carte et ~3,9 sur le fond photo de l'accueil,
-     sous le seuil — et ce AVANT le fond de terrain. 0,52 remonte à 5,4 / 5,7. */
+     La v1 était montée de 0,45 à 0,52 après mesure. Sur les plaques de la v2,
+     0,52 passait encore — mais à 1 % du seuil sur neuf libellés répartis sur
+     cinq écrans. Une marge de 1 % n'est pas une marge : elle tombe au premier
+     ajustement, et neuf fois le même token ce n'est pas une série d'accidents.
+     0,58 donne de l'air aux libellés ; le niveau intermédiaire monte à 0,70
+     pour que les trois niveaux restent distinguables — sans quoi 0,58 et 0,62
+     se confondent et la hiérarchie s'effondre. */
   --color-encre: #f8f8f8;
-  --color-encre-sec: rgb(255 255 255 / 0.62);
-  --color-encre-faible: rgb(255 255 255 / 0.52);
+  --color-encre-sec: rgb(255 255 255 / 0.7);
+  --color-encre-faible: rgb(255 255 255 / 0.58);
 
   /* — Signaux — */
   --color-rouge: #ff1744;

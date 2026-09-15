@@ -29,6 +29,7 @@ const ROUTES = [
   { nom: 'equipes', hash: '#/equipes' },
   { nom: 'classement', hash: '#/classement' },
   { nom: 'profil', hash: '#/profil' },
+  { nom: 'detail-match', hash: '#/match/d2' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
@@ -191,6 +192,7 @@ async function sondeContraste(page) {
   );
 
   const echecs = [];
+  const justes = [];
   let pire = null;
   cibles.forEach((c, i) => {
     const [r, g, b, a] = c.encre;
@@ -202,9 +204,13 @@ async function sondeContraste(page) {
     const seuil = c.px >= 24 || (c.px >= 18.66 && c.gras) ? 3 : 4.5;
     const marge = ratio / seuil;
     if (marge < 1) echecs.push(`${ratio.toFixed(2)} < ${seuil} — « ${c.t} »`);
+    // Passer à 1 % du seuil, c'est passer aujourd'hui et tomber au prochain
+    // ajustement. On le signale sans faire échouer : c'est un avertissement,
+    // pas un verdict.
+    else if (marge < 1.1) justes.push(`×${marge.toFixed(2)} — « ${c.t} »`);
     if (!pire || marge < pire.marge) pire = { ...c, ratio, seuil, marge };
   });
-  return { nombre: cibles.length, echecs, pire };
+  return { nombre: cibles.length, echecs, justes, pire };
 }
 
 /** Sonde 3 — la plaque est-elle encore une plaque ?
@@ -337,6 +343,7 @@ try {
           console.log(
             `  ✓ contraste — ${c.nombre} textes à nu, marge la plus faible ×${c.pire.marge.toFixed(2)} (« ${c.pire.t} »)`,
           );
+          for (const j of c.justes) console.log(`    ⚠ juste  ${j}`);
         } else {
           console.log('  ✗ contraste — aucun texte mesurable : écran vide ?');
           echecs++;

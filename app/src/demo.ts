@@ -62,3 +62,18 @@ export const PROFIL_DEMO = {
   badges: ['Régulier', 'Buteur', 'Capitaine'],
   stats: { matchsJoues: 12, hommeDuMatch: 2, presences: 11, lapins: 1 },
 };
+
+export const DETAIL_DEMO = {
+  m: {
+    id: 'd2', createur: 'u1', createurUid: 'u1', sport: 'foot5', statut: 'sondage' as const,
+    joueursInscrits: ['u1', 'Karim', 'Naïm', 'Théo', 'Yanis', 'Ibrahim', 'Lucas'],
+    waitlist: ['Adam', 'Mehdi'],
+    creneauxProposes: [
+      { date: h(74), lieu: 'UrbanSoccer Vitry', votes: [] },
+      { date: h(98), lieu: 'Le Five Bercy', votes: [] },
+      { date: h(122), lieu: 'Le Five Massy', votes: [] },
+    ],
+    dateFinale: null, lieuFinal: '', finVisible: h(128), joueursMax: 10,
+  },
+  votes: { '0': ['u1', 'Karim', 'Naïm'], '1': ['Théo'], '2': ['Yanis', 'Lucas'] } as Record<string, string[]>,
+};
