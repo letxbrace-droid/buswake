@@ -1,6 +1,4 @@
-import {
-  addDoc, arrayRemove, arrayUnion, collection, doc, getDoc, serverTimestamp, updateDoc,
-} from 'firebase/firestore';
+import { addDoc, arrayRemove, arrayUnion, collection, deleteDoc, doc, getDoc, serverTimestamp, updateDoc } from 'firebase/firestore';
 import { db } from '../firebase/client';
 import { lireMatch, CreerMatchSchema, type CreerMatch, type Match } from '../domaine/schemas';
 import { basculerVote, finVisibleApres, peutConfirmer, quitter, rejoindre, type Votes } from '../domaine/cycle';
@@ -90,10 +88,26 @@ export async function confirmer(matchId: string, creneauIndex: number): Promise<
   });
 }
 
-export async function annuler(matchId: string): Promise<void> {
-  // On n'efface pas le document : les Cloud Functions ont besoin de le voir
-  // passer en 'annulé' pour reprendre l'XP déjà distribuée.
-  await updateDoc(doc(db, 'matchs', matchId), { statut: 'annulé' });
+/**
+ * Supprime le match. DEUX raisons de le faire ainsi, toutes deux vérifiables
+ * dans le dépôt — l'implémentation précédente se trompait sur les deux.
+ *
+ * Elle écrivait `statut: 'annulé'`, en expliquant que les Cloud Functions
+ * avaient besoin de voir ce statut pour reprendre l'XP distribuée.
+ *
+ *  1. Les règles REFUSENT ce statut : `firestore.rules` borne `statut` à
+ *     ['sondage', 'confirmé', 'terminé']. L'écriture partait et revenait en
+ *     « permission denied » — le créateur n'arrivait tout simplement pas à
+ *     supprimer son match, sans comprendre pourquoi.
+ *  2. La fonction serveur ne réagit pas à ce statut : `onMatchEcrit` teste
+ *     `if (!after)`, donc la SUPPRESSION du document. C'est elle qui déclenche
+ *     `rembourser()`.
+ *
+ * `allow delete` autorise déjà le créateur. C'est le chemin que le serveur
+ * attendait depuis le début.
+ */
+export async function supprimer(matchId: string): Promise<void> {
+  await deleteDoc(doc(db, 'matchs', matchId));
 }
 
 export async function creer(saisie: CreerMatch, uid: string): Promise<string> {

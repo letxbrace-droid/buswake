@@ -76,3 +76,68 @@ describe('CreerMatchSchema', () => {
     ).toBe(false);
   });
 });
+
+describe('lireMatch — fidélité au document réellement stocké', () => {
+  /**
+   * LE DÉFAUT QUE CE BLOC EXISTE POUR ATTRAPER.
+   *
+   * Zod supprime ce qu'il ne déclare pas, en silence et sans erreur. Le
+   * schéma déclarait `createur` là où la base écrit `createurUid` : le champ
+   * arrivait donc toujours vide, personne n'était reconnu comme créateur de
+   * son propre match, et le bouton « Annuler ce match » ne s'affichait
+   * jamais — pour personne. `lieuCoords` était absent pour la même raison :
+   * la distance ne se calculait pas, et le sélecteur de rayon était purement
+   * décoratif.
+   *
+   * Rien ne le signalait. Pas une erreur, pas un avertissement : un champ
+   * vide se comporte comme une donnée manquante, donc comme un cas normal.
+   *
+   * Ce document est copié de ce qu'écrivent `services/cycle.creer` et la v1.
+   * Tout champ que l'app LIT doit survivre au passage.
+   */
+  const DOCUMENT_REEL = {
+    createurUid: 'zizou',
+    sport: 'foot5',
+    statut: 'sondage',
+    joueursMax: 12,
+    joueursInscrits: ['zizou'],
+    waitlist: [],
+    creneauxProposes: [
+      { date: new Date('2026-09-18T19:00:00Z'), lieu: 'LE FIVE Morangis', votes: [], lat: 48.71, lon: 2.33 },
+    ],
+    votes: {},
+    visibilite: 'public',
+    finVisible: new Date('2026-09-19T19:00:00Z'),
+    lieuCoords: { lat: 48.71, lon: 2.33 },
+    dateFinale: null,
+    lieuFinal: '',
+  };
+
+  it('garde le créateur — c’est lui qui décide du match', () => {
+    expect(lireMatch('m1', DOCUMENT_REEL)?.createurUid).toBe('zizou');
+  });
+
+  it('garde les coordonnées, sans quoi le rayon ne filtre rien', () => {
+    const m = lireMatch('m1', DOCUMENT_REEL);
+    expect(m?.lieuCoords).toEqual({ lat: 48.71, lon: 2.33 });
+    expect(m?.creneauxProposes[0].lat).toBe(48.71);
+  });
+
+  it('garde tout ce que l’app lit sur un match', () => {
+    const m = lireMatch('m1', DOCUMENT_REEL);
+    // Le champ nommé ici est un champ dont un écran dépend. En retirer un
+    // du schéma le vide en silence.
+    for (const champ of [
+      'createurUid', 'sport', 'statut', 'joueursMax', 'joueursInscrits',
+      'creneauxProposes', 'finVisible', 'lieuCoords',
+    ] as const) {
+      expect(m?.[champ], `champ perdu au parsing : ${champ}`).not.toBeUndefined();
+    }
+  });
+
+  it('survit à un document ancien qui ne porte rien de tout ça', () => {
+    const m = lireMatch('vieux', { statut: 'terminé' });
+    expect(m?.createurUid).toBe('');
+    expect(m?.lieuCoords).toBeUndefined();
+  });
+});

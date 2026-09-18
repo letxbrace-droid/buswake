@@ -9,7 +9,7 @@ const H = (n: number) => new Date(Date.now() + n * 3600e3);
 
 function match(p: Partial<Match> & { waitlist?: string[] } = {}): Match {
   return {
-    id: 'm', createur: 'c', sport: 'foot5', statut: 'sondage',
+    id: 'm', createurUid: 'c', sport: 'foot5', statut: 'sondage',
     joueursInscrits: [], creneauxProposes: [], dateFinale: null, lieuFinal: '',
     finVisible: H(48), joueursMax: 10, ...p,
   } as Match;

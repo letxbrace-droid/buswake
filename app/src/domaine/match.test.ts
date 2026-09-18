@@ -8,7 +8,7 @@ const IL_Y_A_3_SEMAINES = new Date(Date.now() - 21 * 24 * 3600e3);
 function match(p: Partial<Match> = {}): Match {
   return {
     id: 'm1',
-    createur: 'u1',
+    createurUid: 'u1',
     sport: 'foot5',
     statut: 'sondage',
     joueursInscrits: [],

@@ -19,15 +19,31 @@ const horodatage = z.union([z.date(), z.object({ seconds: z.number() }).passthro
 export const StatutMatch = z.enum(['sondage', 'confirmé', 'terminé', 'annulé']);
 export type StatutMatch = z.infer<typeof StatutMatch>;
 
+const CoordsSchema = z.object({ lat: z.number(), lon: z.number() });
+
 export const CreneauSchema = z.object({
   date: horodatage.nullish(),
   lieu: z.string().default(''),
   votes: z.array(z.string()).default([]),
+  // Un créneau peut porter les coordonnées du terrain proposé. Sans elles
+  // déclarées ici, Zod les supprime et `positionDuMatch` ne trouve jamais
+  // rien : le rayon de recherche ne filtre alors plus rien du tout.
+  lat: z.number().nullish(),
+  lon: z.number().nullish(),
 });
 
 export const MatchSchema = z.object({
   id: z.string(),
-  createur: z.string().default(''),
+  /** LE NOM DU CHAMP EST CELUI DE LA BASE : `createurUid`.
+   *
+   *  Ce schéma déclarait `createur`, qui n'existe dans aucun document. Zod
+   *  supprime ce qu'il ne déclare pas : le champ était donc TOUJOURS vide,
+   *  et personne n'était jamais reconnu comme créateur de son propre match.
+   *  Conséquence visible : le bouton « Annuler ce match » ne s'affichait
+   *  jamais, pour personne. C'est aussi le nom que testent les règles
+   *  Firestore — s'en écarter ici ne changeait rien côté serveur, mais
+   *  rendait l'interface incapable de savoir à qui appartient quoi. */
+  createurUid: z.string().default(''),
   sport: z.string().default('foot5'),
   statut: StatutMatch.catch('sondage'),
   joueursInscrits: z.array(z.string()).default([]),
@@ -36,6 +52,11 @@ export const MatchSchema = z.object({
   lieuFinal: z.string().default(''),
   finVisible: horodatage.nullish(),
   joueursMax: z.number().int().min(2).max(40).catch(10),
+  /** Coordonnées du terrain retenu. Même histoire que ci-dessus : non
+   *  déclarées, elles étaient supprimées, `distanceMatchKm` rendait `null`
+   *  et `dansLeRayon` laissait tout passer. Le sélecteur de rayon était donc
+   *  décoratif — « 5 km » affichait des matchs à n'importe quelle distance. */
+  lieuCoords: CoordsSchema.nullish(),
 });
 export type Match = z.infer<typeof MatchSchema>;
 

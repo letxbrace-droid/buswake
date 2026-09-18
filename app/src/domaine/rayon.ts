@@ -29,18 +29,18 @@ export function haversine(a: Position, b: Position): number {
   return 2 * R * Math.asin(Math.sqrt(h));
 }
 
-interface MatchLocalise extends Match {
-  lieuCoords?: Position | null;
-  createurUid?: string;
-}
+/** Le match suffit : `lieuCoords` et `createurUid` sont déclarés dans le
+ *  schéma. Cette interface les AJOUTAIT en option précisément parce qu'ils
+ *  n'y étaient pas — et comme Zod supprime ce qu'il ne déclare pas, ils
+ *  n'arrivaient jamais. Le type disait « peut-être présent », la réalité
+ *  disait « jamais ». */
+type MatchLocalise = Match;
 
 /** Position d'un match : ses coordonnées finales, sinon celles du premier
  *  créneau qui en porte. */
 export function positionDuMatch(m: MatchLocalise): Position | null {
   if (m.lieuCoords?.lat != null && m.lieuCoords?.lon != null) return m.lieuCoords;
-  const c = (m.creneauxProposes ?? []).find(
-    (x) => (x as { lat?: number; lon?: number }).lat != null,
-  ) as { lat?: number; lon?: number } | undefined;
+  const c = (m.creneauxProposes ?? []).find((x) => x.lat != null && x.lon != null);
   return c?.lat != null && c?.lon != null ? { lat: c.lat, lon: c.lon } : null;
 }
 

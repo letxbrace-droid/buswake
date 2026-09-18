@@ -4,7 +4,7 @@ import type { Match } from './schemas';
 
 const m = (p: Partial<Match> = {}): Match =>
   ({
-    id: 'm', createur: 'c', sport: 'foot5', statut: 'confirmé',
+    id: 'm', createurUid: 'c', sport: 'foot5', statut: 'confirmé',
     joueursInscrits: [], creneauxProposes: [], dateFinale: null, lieuFinal: '',
     finVisible: null, joueursMax: 10, ...p,
   }) as Match;

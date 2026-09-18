@@ -10,7 +10,7 @@ const LYON = { lat: 45.764, lon: 4.8357 };
 
 const m = (p: Record<string, unknown> = {}): Match =>
   ({
-    id: 'm', createur: 'c', sport: 'foot5', statut: 'confirmé',
+    id: 'm', createurUid: 'c', sport: 'foot5', statut: 'confirmé',
     joueursInscrits: [], creneauxProposes: [], dateFinale: null, lieuFinal: '',
     finVisible: null, joueursMax: 10, ...p,
   }) as unknown as Match;

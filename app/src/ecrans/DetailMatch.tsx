@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Plaque } from '../composants/Plaque';
 import {
   aVote, creneauGagnant, peutConfirmer, placeEnRejoignant, type Votes,
@@ -17,7 +18,7 @@ export interface ActionsMatch {
   onRejoindre(): void;
   onQuitter(): void;
   onConfirmer(index: number): void;
-  onAnnuler(): void;
+  onSupprimer(): void;
 }
 
 export function DetailMatch({
@@ -36,7 +37,8 @@ export function DetailMatch({
   const total = maxJoueurs(m);
   const place = placeEnRejoignant(m, uid);
   const dedans = place === 'deja-titulaire' || place === 'deja-banc';
-  const createur = (m as Match & { createurUid?: string }).createurUid === uid;
+  const createur = m.createurUid === uid;
+  const [confirme, setConfirme] = useState(false);
   const conf = peutConfirmer(m);
   const gagnant = creneauGagnant(m, votes);
   const finale = versDate(m.dateFinale);
@@ -212,15 +214,47 @@ export function DetailMatch({
         )}
       </Plaque>
 
-      {createur && m.statut !== 'annulé' && (
-        <button
-          type="button"
-          disabled={occupe}
-          onClick={actions.onAnnuler}
-          className="mt-4 w-full rounded-(--radius-pill) border border-(--color-rouge)/40 py-3 text-sm font-medium text-(--color-rouge) disabled:opacity-50"
-        >
-          Annuler le match
-        </button>
+      {/* CONFIRMATION EN DEUX TEMPS. La suppression efface le match pour
+          tous les inscrits, avec leurs votes, et ne se défait pas. Un seul
+          appui, au pouce, sur un bouton rouge en bas de page — c'est trop peu
+          pour un geste sans retour. */}
+      {createur && (
+        <div className="mt-4">
+          {!confirme ? (
+            <button
+              type="button"
+              disabled={occupe}
+              onClick={() => setConfirme(true)}
+              className="w-full rounded-(--radius-pill) border border-(--color-rouge)/40 py-3 text-sm font-medium text-(--color-rouge) disabled:opacity-50"
+            >
+              Supprimer le match
+            </button>
+          ) : (
+            <div role="group" aria-label="Confirmer la suppression">
+              <p className="mb-2 text-center text-sm text-(--color-encre-sec)">
+                Le match sera supprimé pour tout le monde, avec les votes et les
+                inscriptions. C’est définitif.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setConfirme(false)}
+                  className="flex-1 rounded-(--radius-pill) bg-black/30 py-3 text-sm font-medium"
+                >
+                  Garder
+                </button>
+                <button
+                  type="button"
+                  disabled={occupe}
+                  onClick={actions.onSupprimer}
+                  className="flex-1 rounded-(--radius-pill) bg-(--color-rouge-fond) py-3 text-sm font-semibold text-white disabled:opacity-50"
+                >
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       )}
     </div>
   );

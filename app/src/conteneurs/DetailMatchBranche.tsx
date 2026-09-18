@@ -8,11 +8,13 @@ import { useAction } from '../services/useAction';
 import * as cycle from '../services/cycle';
 import { lireMatch, type Match } from '../domaine/schemas';
 import type { Votes } from '../domaine/cycle';
+import { useNavigate } from 'react-router-dom';
 
 /** Le conteneur : il lit, il appelle, il rafraîchit. L'écran, lui, ne sait
  *  rien de Firestore — c'est ce qui permet de le mesurer avec des fixtures et
  *  de le tester sans réseau. */
 export function DetailMatchBranche({ uid }: { uid: string }) {
+  const aller = useNavigate();
   const { id = '' } = useParams();
 
   const { data, isPending, isError } = useQuery({
@@ -53,13 +55,15 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
     invalider: rafraichir,
   });
 
-  const annuler = useAction(() => cycle.annuler(id), {
-    succes: () => 'Match annulé. L’XP déjà distribuée est reprise.',
-    invalider: rafraichir,
+  const supprimer = useAction(() => cycle.supprimer(id), {
+    succes: () => 'Match supprimé. L’XP déjà distribuée est reprise.',
+    invalider: [['fil', uid]],
+    // Le match n'existe plus : rester sur sa page afficherait « introuvable ».
+    apres: () => aller('/matchs', { replace: true }),
   });
 
   const occupe =
-    voter.occupe || rejoindre.occupe || quitter.occupe || confirmer.occupe || annuler.occupe;
+    voter.occupe || rejoindre.occupe || quitter.occupe || confirmer.occupe || supprimer.occupe;
 
   if (isPending) return <Attente />;
   if (isError || !data) return <Introuvable />;
@@ -75,7 +79,7 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
         onRejoindre: rejoindre.lancer,
         onQuitter: quitter.lancer,
         onConfirmer: confirmer.lancer,
-        onAnnuler: annuler.lancer,
+        onSupprimer: supprimer.lancer,
       }}
     />
   );

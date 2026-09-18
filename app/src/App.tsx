@@ -1,7 +1,7 @@
 import { lazy, Suspense, useCallback, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { Accueil } from './ecrans/Accueil';
+
 import { useSession } from './services/session';
 import { useProfil } from './services/useProfil';
 import { FournisseurToasts, useToast } from './composants/Toasts';
@@ -13,6 +13,7 @@ import { usePush } from './services/usePush';
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
 // première peinture pour rien. Ici il part avec l'écran qui en a besoin.
+const AccueilBranche = lazy(() => import('./conteneurs/AccueilBranche').then((m) => ({ default: m.AccueilBranche })));
 const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Matchs })));
 const EquipesBranche = lazy(() => import('./conteneurs/EquipesBranche').then((m) => ({ default: m.EquipesBranche })));
 const ClassementBranche = lazy(() => import('./conteneurs/ClassementBranche').then((m) => ({ default: m.ClassementBranche })));
@@ -47,7 +48,17 @@ type Demo = Awaited<typeof import('./demo')>;
 let profilDemo: Demo['PROFIL_DEMO'] | null = null;
 if (import.meta.env.DEV) {
   const d = await import('./demo');
-  client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
+  // LE JEU D'ESSAI PASSE PAR LE MÊME PARSEUR QUE LA PRODUCTION.
+  //
+  // Il était injecté tel quel, donc `lireMatch` n'était jamais exercé en
+  // développement — et un champ que le schéma ne déclare pas restait présent
+  // ici alors qu'il disparaissait en production. C'est ce qui a caché
+  // `createurUid` : le bouton « Annuler le match » s'affichait parfaitement
+  // sur cette machine et jamais sur un téléphone. Un harnais qui contourne
+  // le parseur ne mesure pas l'app.
+  const { lireMatch } = await import('./domaine/schemas');
+  const parse = (m: unknown) => lireMatch((m as { id: string }).id, m)!;
+  client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO.map(parse));
   profilDemo = { ...d.PROFIL_DEMO, friends: Object.keys(d.AMIS_DEMO.annuaire).slice(0, 3) };
 
   // ON AMORCE LE CACHE DES CONTENEURS, on ne rend pas un arbre parallèle :
@@ -69,12 +80,12 @@ if (import.meta.env.DEV) {
     ['annuaire', cle(Object.keys(d.AMIS_DEMO.annuaire).slice(0, 3))],
     d.AMIS_DEMO.annuaire,
   );
-  client.setQueryData(['match', 'd2'], { m: d.DETAIL_DEMO.m, votes: d.DETAIL_DEMO.votes });
+  client.setQueryData(['match', 'd2'], { m: parse(d.DETAIL_DEMO.m), votes: d.DETAIL_DEMO.votes });
   client.setQueryData(['apres', 'd2'], {
     inscrits: d.APRES_DEMO.inscrits, ratings: {}, votes: d.APRES_DEMO.votes,
   });
   client.setQueryData(['terminer', 'd2'], {
-    m: { ...d.DETAIL_DEMO.m, statut: 'confirmé', joueursInscrits: d.TERMINER_DEMO.inscrits },
+    m: parse({ ...d.DETAIL_DEMO.m, statut: 'confirmé', joueursInscrits: d.TERMINER_DEMO.inscrits }),
     camps: d.TERMINER_DEMO.camps,
   });
   client.setQueryData(['composer', 'd2'], {
@@ -156,7 +167,16 @@ function Coque() {
             <Routes>
               <Route
                 path="/"
-                element={<Accueil pseudo={profil?.pseudo ?? '…'} xp={profil?.xp ?? 0} />}
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                  <AccueilBranche
+                    uid={uid}
+                    pseudo={profil?.pseudo ?? '…'}
+                    xp={profil?.xp ?? 0}
+                    domicile={domicile}
+                  />
+                  </Suspense>
+                }
               />
               <Route
                 path="/matchs"

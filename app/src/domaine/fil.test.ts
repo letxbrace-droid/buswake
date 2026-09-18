@@ -9,7 +9,7 @@ const LILLE = { lat: 50.629, lon: 3.057 };
 function match(p: Partial<Match> & { lieuCoords?: { lat: number; lon: number } } = {}): Match {
   return {
     id: Math.random().toString(36).slice(2),
-    createur: 'autre',
+    createurUid: 'autre',
     sport: 'foot5',
     statut: 'sondage',
     joueursInscrits: [],

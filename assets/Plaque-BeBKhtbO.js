@@ -1,0 +1,1 @@
+import{t as e}from"./react-Bwp8UEjZ.js";var t=e();function n({variante:e=`normale`,action:n=!1,as:r=`div`,className:i=``,children:a,...o}){let s=[`plaque`,e===`heros`&&`plaque-heros`,n&&`plaque-action`,i].filter(Boolean).join(` `);return(0,t.jsx)(r,{className:s,...o,children:a})}export{n as t};
