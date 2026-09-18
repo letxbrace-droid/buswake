@@ -103,7 +103,7 @@ export function Chat({
           type="submit"
           disabled={!ouvert || !messageValide(texte)}
           aria-label="Envoyer"
-          className="grid size-11 shrink-0 place-items-center rounded-full bg-(--color-vert) text-(--color-fond) disabled:bg-white/10 disabled:text-(--color-encre-faible)"
+          className="grid size-11 shrink-0 place-items-center rounded-full bg-(--color-vert) text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
         >
           <svg viewBox="0 0 24 24" className="size-5" fill="currentColor" aria-hidden>
             <path d="M21.3 3.3 3.6 10.6c-.9.4-.8 1.7.2 1.9l7 1.6 1.6 7c.2 1 1.5 1.1 1.9.2l7.3-17.7c.3-.7-.4-1.5-1.3-1.3z" />

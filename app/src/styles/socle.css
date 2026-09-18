@@ -45,7 +45,12 @@
   --color-encre-faible: rgb(255 255 255 / 0.58);
 
   /* — Signaux — */
-  --color-rouge: #ff1744;
+  /* DEUX rouges, et c'est nécessaire. #FF1744 sur une plaque tombe à 3.79:1
+     en petit texte, et sous du texte blanc il donne 4.08:1 — les deux sous le
+     seuil. Le rouge clair sert d'encre sur fond sombre, le rouge sombre sert
+     de fond sous une encre blanche. Un seul rouge ne peut pas faire les deux. */
+  --color-rouge: #ff6b7d;
+  --color-rouge-fond: #b3001b;
   --color-bleu: #00b0ff;
   --color-or: #ffd700;
   --color-argent: #90a4ae;

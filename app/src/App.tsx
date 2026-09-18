@@ -1,5 +1,5 @@
 import { lazy, Suspense, useState } from 'react';
-import { HashRouter, Routes, Route, Navigate, NavLink, useLocation } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
 import { useSession } from './services/session';
@@ -16,7 +16,6 @@ const Equipes = lazy(() => import('./ecrans/Equipes').then((m) => ({ default: m.
 const Classement = lazy(() => import('./ecrans/Classement').then((m) => ({ default: m.Classement })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 const DetailMatch = lazy(() => import('./conteneurs/DetailMatchBranche').then((m) => ({ default: m.DetailMatchBranche })));
-const TerminerMatch = lazy(() => import('./ecrans/TerminerMatch').then((m) => ({ default: m.TerminerMatch })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 const Accueillir = lazy(() => import('./ecrans/Accueillir').then((m) => ({ default: m.Accueillir })));
 const Reglages = lazy(() => import('./ecrans/Reglages').then((m) => ({ default: m.Reglages })));
@@ -25,6 +24,10 @@ const ApresMatch = lazy(() => import('./conteneurs/ApresMatchBranche').then((m) 
 const CreerMatch = lazy(() => import('./conteneurs/CreerMatchBranche').then((m) => ({ default: m.CreerMatchBranche })));
 const Amis = lazy(() => import('./conteneurs/AmisBranche').then((m) => ({ default: m.AmisBranche })));
 const Chat = lazy(() => import('./conteneurs/ChatBranche').then((m) => ({ default: m.ChatBranche })));
+const TerminerMatch = lazy(() => import('./conteneurs/TerminerMatchBranche').then((m) => ({ default: m.TerminerMatchBranche })));
+const Composer = lazy(() => import('./conteneurs/ComposerBranche').then((m) => ({ default: m.ComposerBranche })));
+const MotDePasse = lazy(() => import('./conteneurs/CompteBranche').then((m) => ({ default: m.MotDePasseBranche })));
+const SupprimerCompte = lazy(() => import('./conteneurs/CompteBranche').then((m) => ({ default: m.SupprimerCompteBranche })));
 
 /** HashRouter et pas BrowserRouter : GitHub Pages ne sait pas réécrire les
  *  URL vers index.html, et l'app v1 utilise déjà des liens d'invitation en
@@ -62,6 +65,14 @@ if (import.meta.env.DEV) {
   client.setQueryData(['apres', 'd2'], {
     inscrits: d.APRES_DEMO.inscrits, ratings: {}, votes: d.APRES_DEMO.votes,
   });
+  client.setQueryData(['terminer', 'd2'], {
+    m: { ...d.DETAIL_DEMO.m, statut: 'confirmé', joueursInscrits: d.TERMINER_DEMO.inscrits },
+    camps: d.TERMINER_DEMO.camps,
+  });
+  client.setQueryData(['composer', 'd2'], {
+    inscrits: d.TERMINER_DEMO.inscrits,
+    camps: d.TERMINER_DEMO.camps.map((c) => ({ ...c, joueurs: c.joueurs.slice(0, 2) })),
+  });
 }
 
 const MASSY = { lat: 48.726, lon: 2.283 };
@@ -95,6 +106,7 @@ export default function App() {
 function Coque() {
   const [reglages, setReglages] = useState(false);
   const chemin = useLocation().pathname;
+  const naviguer = useNavigate();
   const { uid, enAttente } = useSession();
   const { profil } = useProfil(uid, profilDemo ?? undefined);
   const [accueilli, setAccueilli] = useState(dejaAccueilli);
@@ -181,14 +193,7 @@ function Coque() {
                 path="/match/:id/terminer"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {terminerDemo && (
-                      <TerminerMatch
-                        inscrits={terminerDemo.inscrits}
-                        pseudos={terminerDemo.pseudos}
-                        camps={terminerDemo.camps}
-                        onValider={() => {}}
-                      />
-                    )}
+                    <TerminerMatch uid="u1" pseudos={terminerDemo?.pseudos ?? {}} />
                   </Suspense>
                 }
               />
@@ -261,6 +266,30 @@ function Coque() {
                   </Suspense>
                 }
               />
+              <Route
+                path="/match/:id/composer"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <Composer uid="u1" pseudos={terminerDemo?.pseudos ?? {}} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/compte/mot-de-passe"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <MotDePasse fournisseurs={fournisseursDemo} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/compte/supprimer"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <SupprimerCompte fournisseurs={fournisseursDemo} />
+                  </Suspense>
+                }
+              />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
@@ -284,8 +313,14 @@ function Coque() {
                   fournisseurs={fournisseursDemo}
                   actions={{
                     onDeconnexion: () => import('./services/auth').then((m) => m.deconnecter()),
-                    onMotDePasse: () => {},
-                    onSupprimerCompte: () => {},
+                    onMotDePasse: () => {
+                      setReglages(false);
+                      naviguer('/compte/mot-de-passe');
+                    },
+                    onSupprimerCompte: () => {
+                      setReglages(false);
+                      naviguer('/compte/supprimer');
+                    },
                     onInviter: () => {},
                   }}
                 />

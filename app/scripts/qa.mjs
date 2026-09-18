@@ -55,6 +55,9 @@ const ROUTES = [
   // Le fil est fait de bulles, pas de plaques : une plaque par message
   // ferait dix objets flottants là où il faut une conversation.
   { nom: 'chat', hash: '#/match/d2/chat', sansPlaque: true },
+  { nom: 'composer', hash: '#/match/d2/composer' },
+  { nom: 'mot-de-passe', hash: '#/compte/mot-de-passe' },
+  { nom: 'supprimer-compte', hash: '#/compte/supprimer' },
   { nom: 'reglages', hash: '#/', ouvrir: '[aria-label="Réglages"]' },
 ];
 

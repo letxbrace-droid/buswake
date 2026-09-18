@@ -153,7 +153,7 @@ export function CreerMatch({
             })),
           })
         }
-        className="w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/10 disabled:text-(--color-encre-faible)"
+        className="w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
       >
         Proposer le match
       </button>

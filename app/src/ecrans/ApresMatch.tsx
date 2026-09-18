@@ -133,7 +133,7 @@ function Notation({
             type="button"
             disabled={!v.ok}
             onClick={() => onValider(notes)}
-            className="mt-3 w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/10 disabled:text-(--color-encre-faible)"
+            className="mt-3 w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
           >
             Valider mes notes
           </button>
