@@ -20,7 +20,7 @@ export function Equipes({ equipes }: { equipes: readonly Equipe[] }) {
   });
 
   return (
-    <div className="terrain terrain-equipes min-h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-28">
       <header className="mb-4 flex items-baseline justify-between">
         <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
           Équipes

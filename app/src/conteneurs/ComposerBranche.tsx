@@ -6,13 +6,9 @@ import { ComposerEquipes } from '../ecrans/ComposerEquipes';
 import { useAction } from '../services/useAction';
 import { enregistrerComposition } from '../services/cycle';
 import type { Camp } from '../domaine/composition';
+import { usePseudos } from '../services/usePseudos';
 
-export function ComposerBranche({
-  uid, pseudos,
-}: {
-  uid: string;
-  pseudos: Record<string, string>;
-}) {
+export function ComposerBranche({ uid }: { uid: string }) {
   const { id = '' } = useParams();
   const aller = useNavigate();
 
@@ -27,6 +23,12 @@ export function ComposerBranche({
       };
     },
   });
+
+
+  // Les pseudos se lisent ICI, où l'on connaît la liste des joueurs. Le
+  // shell passait une table venue des données de démonstration : vide en
+  // production, elle faisait afficher des identifiants bruts.
+  const pseudos = usePseudos(data?.inscrits ?? []);
 
   const action = useAction((camps: Camp[]) => enregistrerComposition(id, camps), {
     succes: () => 'Équipes enregistrées.',

@@ -2,6 +2,10 @@ import { useEffect, useState } from 'react';
 
 export interface Session {
   readonly uid: string | null;
+  /** Comment ce compte se connecte : 'password', 'google.com'… C'est ce qui
+   *  décide si « changer mon mot de passe » a un sens. Figé en
+   *  développement, où Firebase n'est pas joignable. */
+  readonly fournisseurs: readonly string[];
   /** Vrai tant qu'on ne SAIT pas encore. C'est la distinction qui compte :
    *  « pas encore chargé » n'est pas « déconnecté ». Les confondre fait
    *  clignoter l'écran de connexion devant quelqu'un qui est connecté. */
@@ -9,7 +13,9 @@ export interface Session {
 }
 
 export function useSession(): Session {
-  const [session, setSession] = useState<Session>({ uid: null, enAttente: true });
+  const [session, setSession] = useState<Session>({
+    uid: null, fournisseurs: [], enAttente: true,
+  });
 
   useEffect(() => {
     // En développement, la session est simulée : le conteneur n'atteint pas
@@ -17,7 +23,7 @@ export function useSession(): Session {
     // `import.meta.env.DEV` est une constante à la compilation — ce bloc
     // n'existe pas dans le bundle de production.
     if (import.meta.env.DEV) {
-      setSession({ uid: 'u1', enAttente: false });
+      setSession({ uid: 'u1', fournisseurs: ['password'], enAttente: false });
       return;
     }
     // IMPORT DYNAMIQUE, et ce n'est pas un détail de style : importer
@@ -30,7 +36,13 @@ export function useSession(): Session {
     let annule = false;
     import('./auth').then(({ surSession }) => {
       if (annule) return;
-      couper = surSession((u) => setSession({ uid: u?.uid ?? null, enAttente: false }));
+      couper = surSession((u) =>
+        setSession({
+          uid: u?.uid ?? null,
+          fournisseurs: u?.providerData.map((p) => p.providerId) ?? [],
+          enAttente: false,
+        }),
+      );
     });
     return () => {
       annule = true;

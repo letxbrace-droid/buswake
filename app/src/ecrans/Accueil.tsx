@@ -8,7 +8,7 @@ export function Accueil({ pseudo, xp }: { pseudo: string; xp: number }) {
   const p = progressionDe(xp);
 
   return (
-    <div className="terrain terrain-accueil min-h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-accueil h-full overflow-y-auto px-4 pt-6 pb-28">
       <header className="mb-5 flex items-baseline justify-between">
         <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
           Salut {pseudo}

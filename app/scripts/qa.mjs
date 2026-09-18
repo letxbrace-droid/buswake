@@ -105,6 +105,29 @@ const lum = (r, g, b) => {
   return 0.2126 * f(r) + 0.7152 * f(g) + 0.0722 * f(b);
 };
 
+/**
+ * Sonde — LE DOCUMENT NE DOIT JAMAIS DÉFILER.
+ *
+ * Chaque écran défile dans SA boîte ; la barre du bas est dans le flux, en
+ * dehors de cette boîte. Si le document se met à défiler, la barre remonte
+ * avec lui et se retrouve au milieu de l'écran, par-dessus le contenu — et
+ * les taps de cette bande-là lui arrivent à elle au lieu d'arriver au
+ * formulaire qu'elle recouvre.
+ *
+ * La cause était `min-h-full` : il ne pose qu'un MINIMUM, la hauteur reste
+ * `auto`, donc `overflow-y-auto` ne s'enclenche jamais et le contenu déborde.
+ * `h-full` rend la hauteur définie. Ça ne se voyait que sur un écran assez
+ * long pour déborder — pas sur une liste vide.
+ */
+async function sondeDebordement(page) {
+  return page.evaluate(() => {
+    const d = document.scrollingElement;
+    return d.scrollHeight > window.innerHeight + 1
+      ? { deborde: true, de: d.scrollHeight - window.innerHeight }
+      : { deborde: false };
+  });
+}
+
 /** Sonde 1 — la page se charge-t-elle sans rien casser ?
  *  Erreurs JS, messages console, ET requêtes en échec : une police ou une
  *  photo absente du build ne lève aucune erreur, elle rend juste une page
@@ -438,6 +461,14 @@ try {
           const pl = await sondePlaques(pb);
           console.log(`  ${pl.ok ? '✓' : '✗'} plaque — ${pl.pourquoi}`);
           if (!pl.ok) echecs++;
+        }
+      }
+
+      if (!seulement || seulement === 'debordement') {
+        const d = await sondeDebordement(pb);
+        if (d.deborde) {
+          echecs++;
+          console.log(`  ✗ le document déborde de ${d.de} px — la barre du bas va remonter dans l'écran`);
         }
       }
 

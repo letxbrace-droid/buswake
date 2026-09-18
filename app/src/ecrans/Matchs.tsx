@@ -29,7 +29,7 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
   const liste = matchsDeLOnglet(fil, onglet);
 
   return (
-    <div className="terrain terrain-matchs min-h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-28">
       <Plaque className="mb-4 p-4">
         <div className="mb-3 flex items-baseline justify-between">
           <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">

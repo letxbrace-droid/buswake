@@ -56,6 +56,9 @@ export const JOUEURS_DEMO = [
 export const PROFIL_DEMO = {
   uid: 'u1',
   pseudo: 'Sam',
+  friends: [] as string[],
+  friendRequestsSent: [] as string[],
+  friendRequestsReceived: [] as string[],
   posteFavori: 'milieu',
   club: 'OM',
   codePostal: '91300',

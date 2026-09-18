@@ -74,6 +74,12 @@ export const UtilisateurSchema = z.object({
     .partial()
     .default({}),
   streak: z.number().catch(0),
+  // RELATIONS. Elles manquaient au schéma, et Zod supprime ce qu'il ne
+  // déclare pas : l'écran Joueurs recevait donc toujours des listes vides,
+  // quelles que soient les demandes d'amis réellement en base.
+  friends: z.array(z.string()).default([]),
+  friendRequestsSent: z.array(z.string()).default([]),
+  friendRequestsReceived: z.array(z.string()).default([]),
 });
 export type Utilisateur = z.infer<typeof UtilisateurSchema>;
 

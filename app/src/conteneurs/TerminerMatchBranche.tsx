@@ -9,13 +9,9 @@ import { terminer } from '../services/cycle';
 import { peutTerminer, type Resultat } from '../domaine/fin';
 import { lireMatch } from '../domaine/schemas';
 import type { Camp } from '../domaine/composition';
+import { usePseudos } from '../services/usePseudos';
 
-export function TerminerMatchBranche({
-  uid, pseudos,
-}: {
-  uid: string;
-  pseudos: Record<string, string>;
-}) {
+export function TerminerMatchBranche({ uid }: { uid: string }) {
   const { id = '' } = useParams();
   const aller = useNavigate();
 
@@ -29,6 +25,12 @@ export function TerminerMatchBranche({
       return m ? { m, camps: (d.equipes ?? []) as Camp[] } : null;
     },
   });
+
+
+  // Les pseudos se lisent ICI, où l'on connaît la liste des joueurs. Le
+  // shell passait une table venue des données de démonstration : vide en
+  // production, elle faisait afficher des identifiants bruts.
+  const pseudos = usePseudos(data?.m?.joueursInscrits ?? []);
 
   const action = useAction((r: Resultat) => terminer(id, r), {
     succes: () => 'Résultat enregistré. L’XP part du serveur.',

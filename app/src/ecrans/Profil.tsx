@@ -13,7 +13,7 @@ export function Profil({ j }: { j: ProfilJoueur }) {
   const s = j.stats ?? {};
 
   return (
-    <div className="terrain terrain-profil min-h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-28">
       <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
         Profil
       </h1>

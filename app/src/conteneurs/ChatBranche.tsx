@@ -9,13 +9,9 @@ import { ecouterMessages, envoyerMessage } from '../services/chat';
 import { chatOuvert } from '../domaine/chat';
 import { lireMatch } from '../domaine/schemas';
 import type { Message } from '../domaine/chat';
+import { usePseudos } from '../services/usePseudos';
 
-export function ChatBranche({
-  uid, pseudos,
-}: {
-  uid: string;
-  pseudos: Record<string, string>;
-}) {
+export function ChatBranche({ uid }: { uid: string }) {
   const { id = '' } = useParams();
   const [messages, setMessages] = useState<Message[]>([]);
 
@@ -40,6 +36,12 @@ export function ChatBranche({
       return snap.exists() ? lireMatch(id, snap.data()) : null;
     },
   });
+
+
+  // Les pseudos se lisent ICI, où l'on connaît la liste des joueurs. Le
+  // shell passait une table venue des données de démonstration : vide en
+  // production, elle faisait afficher des identifiants bruts.
+  const pseudos = usePseudos(match?.joueursInscrits ?? []);
 
   const envoyer = useAction((texte: string) => envoyerMessage(id, uid, texte));
 

@@ -6,13 +6,9 @@ import { ApresMatch } from '../ecrans/ApresMatch';
 import { useAction } from '../services/useAction';
 import * as social from '../services/social';
 import type { Notes, VotesMotm } from '../domaine/social';
+import { usePseudos } from '../services/usePseudos';
 
-export function ApresMatchBranche({
-  uid, pseudos,
-}: {
-  uid: string;
-  pseudos: Record<string, string>;
-}) {
+export function ApresMatchBranche({ uid }: { uid: string }) {
   const { id = '' } = useParams();
 
   const { data } = useQuery({
@@ -27,6 +23,12 @@ export function ApresMatchBranche({
       };
     },
   });
+
+
+  // Les pseudos se lisent ICI, où l'on connaît la liste des joueurs. Le
+  // shell passait une table venue des données de démonstration : vide en
+  // production, elle faisait afficher des identifiants bruts.
+  const pseudos = usePseudos(data?.inscrits ?? []);
 
   const rafraichir = [['apres', id]] as const;
 

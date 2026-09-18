@@ -29,7 +29,7 @@ export function Classement({
   const moi = useMemo(() => maPlace(uid, classes), [uid, classes]);
 
   return (
-    <div className="terrain terrain-classement min-h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-classement h-full overflow-y-auto px-4 pt-6 pb-28">
       <header className="mb-3">
         <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
           Classement

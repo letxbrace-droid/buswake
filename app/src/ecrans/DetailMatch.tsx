@@ -44,7 +44,7 @@ export function DetailMatch({
     gagnant != null ? versDate((m.creneauxProposes ?? [])[gagnant.index]?.date) : null;
 
   return (
-    <div className="terrain terrain-matchs min-h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-28">
       <Plaque variante="heros" className="mb-4 p-5">
         <p className="text-xs tracking-[0.18em] text-(--color-encre-faible) uppercase">
           {m.statut === 'sondage' ? 'À caler' : m.statut === 'confirmé' ? 'Confirmé' : m.statut}

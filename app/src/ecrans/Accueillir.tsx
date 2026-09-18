@@ -18,7 +18,7 @@ import { Symbole } from '../composants/Logo';
  */
 export function Accueillir({ onCommencer }: { onCommencer(): void }) {
   return (
-    <div className="terrain terrain-accueil flex min-h-full flex-col justify-end px-6 pb-12">
+    <div className="terrain terrain-accueil flex h-full flex-col overflow-y-auto justify-end px-6 pb-12">
       <motion.div
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}

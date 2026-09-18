@@ -20,7 +20,7 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
   const [erreur, setErreur] = useState('');
 
   return (
-    <div className="terrain terrain-accueil flex min-h-full flex-col justify-center px-5 py-10">
+    <div className="terrain terrain-accueil flex h-full flex-col overflow-y-auto justify-center px-5 py-10">
       {/* Pas de boîte autour du formulaire : le contenu respire, et la photo
           du terrain fait le décor. L'écran d'entrée doit donner envie de
           jouer, pas ressembler à un guichet. */}

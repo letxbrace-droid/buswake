@@ -14,8 +14,8 @@ import { usePush } from './services/usePush';
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
 // première peinture pour rien. Ici il part avec l'écran qui en a besoin.
 const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Matchs })));
-const Equipes = lazy(() => import('./ecrans/Equipes').then((m) => ({ default: m.Equipes })));
-const Classement = lazy(() => import('./ecrans/Classement').then((m) => ({ default: m.Classement })));
+const EquipesBranche = lazy(() => import('./conteneurs/EquipesBranche').then((m) => ({ default: m.EquipesBranche })));
+const ClassementBranche = lazy(() => import('./conteneurs/ClassementBranche').then((m) => ({ default: m.ClassementBranche })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 const DetailMatch = lazy(() => import('./conteneurs/DetailMatchBranche').then((m) => ({ default: m.DetailMatchBranche })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
@@ -44,25 +44,31 @@ const client = new QueryClient({
 // Rendu travaillé sans réseau. `import.meta.env.DEV` est une constante à la
 // compilation : ce bloc n'existe pas dans le bundle de production.
 type Demo = Awaited<typeof import('./demo')>;
-let equipesDemo: Demo['EQUIPES_DEMO'] = [];
-let joueursDemo: Demo['JOUEURS_DEMO'] = [];
 let profilDemo: Demo['PROFIL_DEMO'] | null = null;
-let terminerDemo: Demo['TERMINER_DEMO'] | null = null;
-let apresDemo: Demo['APRES_DEMO'] | null = null;
-let amisDemo: Demo['AMIS_DEMO'] | null = null;
-let chatDemo: Demo['CHAT_DEMO'] | null = null;
 if (import.meta.env.DEV) {
   const d = await import('./demo');
   client.setQueryData(['fil', 'u1'], d.MATCHS_DEMO);
-  equipesDemo = d.EQUIPES_DEMO;
-  joueursDemo = d.JOUEURS_DEMO;
-  profilDemo = d.PROFIL_DEMO;
-  terminerDemo = d.TERMINER_DEMO;
-  apresDemo = d.APRES_DEMO;
-  amisDemo = d.AMIS_DEMO;
-  chatDemo = d.CHAT_DEMO;
-  // On amorce le cache des conteneurs plutôt que de rendre un arbre
-  // parallèle : le harnais mesure ainsi l'écran RÉELLEMENT branché.
+  profilDemo = { ...d.PROFIL_DEMO, friends: Object.keys(d.AMIS_DEMO.annuaire).slice(0, 3) };
+
+  // ON AMORCE LE CACHE DES CONTENEURS, on ne rend pas un arbre parallèle :
+  // le harnais mesure ainsi l'écran RÉELLEMENT branché.
+  //
+  // C'est aussi ce qui a caché le défaut pendant tout le développement. Le
+  // shell passait des props de démonstration à côté des conteneurs — et
+  // hors développement ces props valaient `[]` ou `null`. Les écrans étaient
+  // donc parfaits ici et vides sur un vrai téléphone.
+  client.setQueryData(['equipes'], d.EQUIPES_DEMO);
+  client.setQueryData(['joueurs'], d.JOUEURS_DEMO);
+  const cle = (u: readonly string[]) => [...new Set(u)].sort().join(',');
+  const pseudos = { ...d.TERMINER_DEMO.pseudos, ...d.APRES_DEMO.pseudos, ...d.CHAT_DEMO.pseudos };
+  client.setQueryData(['pseudos', cle(Object.keys(pseudos))], pseudos);
+  for (const lot of [d.TERMINER_DEMO.inscrits, d.APRES_DEMO.inscrits]) {
+    client.setQueryData(['pseudos', cle(lot)], pseudos);
+  }
+  client.setQueryData(
+    ['annuaire', cle(Object.keys(d.AMIS_DEMO.annuaire).slice(0, 3))],
+    d.AMIS_DEMO.annuaire,
+  );
   client.setQueryData(['match', 'd2'], { m: d.DETAIL_DEMO.m, votes: d.DETAIL_DEMO.votes });
   client.setQueryData(['apres', 'd2'], {
     inscrits: d.APRES_DEMO.inscrits, ratings: {}, votes: d.APRES_DEMO.votes,
@@ -77,16 +83,15 @@ if (import.meta.env.DEV) {
   });
 }
 
-const MASSY = { lat: 48.726, lon: 2.283 };
+/** Repli quand le profil ne porte pas encore de domicile : le rayon a besoin
+ *  d'un point de départ, et sans lui l'écran Matchs ne filtre rien du tout.
+ *  C'est un REPLI, pas le domicile de tout le monde — il était passé en dur à
+ *  tous les écrans, donc le rayon de chacun se mesurait depuis Massy. */
+const REPLI_POSITION = { lat: 48.726, lon: 2.283 };
 
 // Même raison que dans session.ts : ces trois fonctions vivent dans un module
 // qui importe Firebase. Les appeler par import dynamique garde Firebase hors
 // du chunk d'entrée — il ne se charge qu'au moment où on s'en sert.
-// En développement les fournisseurs sont figés : le conteneur n'atteint pas
-// Firebase, donc auth.currentUser est nul. En production ils viennent du
-// compte réel, et c'est eux qui décident si le mot de passe se gère ici.
-const fournisseursDemo = import.meta.env.DEV ? ['password'] : [];
-
 const actionsAuth = {
   connecter: (v: Connexion) => import('./services/auth').then((m) => m.connecter(v)),
   inscrire: (v: Inscription) => import('./services/auth').then((m) => m.inscrire(v)),
@@ -110,7 +115,7 @@ function Coque() {
   const lieu = useLocation();
   const chemin = lieu.pathname;
   const naviguer = useNavigate();
-  const { uid, enAttente } = useSession();
+  const { uid, fournisseurs, enAttente } = useSession();
   const { profil } = useProfil(uid, profilDemo ?? undefined);
   const [accueilli, setAccueilli] = useState(dejaAccueilli);
   const toast = useToast();
@@ -118,6 +123,12 @@ function Coque() {
   // Le châssis (barre du bas, bouton réglages) ne s'affiche pas sur les
   // écrans d'entrée : on n'y navigue pas, on s'y identifie.
   const surEcranAuth = chemin === '/connexion' || chemin === '/bienvenue';
+  // Le domicile du JOUEUR, pas une constante. Il servait à calculer le rayon
+  // de recherche de tout le monde depuis un même point.
+  const domicile =
+    profil?.domicileLat != null && profil?.domicileLon != null
+      ? { lat: profil.domicileLat, lon: profil.domicileLon }
+      : REPLI_POSITION;
 
   // La décision vit dans `domaine/entree`, en fonction pure, et y est
   // éprouvée. Elle tenait avant en quatre `if` ici même, où il aurait fallu
@@ -151,7 +162,7 @@ function Coque() {
                 path="/matchs"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <Matchs uid="u1" domicile={MASSY} />
+                    <Matchs uid={uid} domicile={domicile} />
                   </Suspense>
                 }
               />
@@ -159,7 +170,7 @@ function Coque() {
                 path="/equipes"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <Equipes equipes={equipesDemo} />
+                    <EquipesBranche />
                   </Suspense>
                 }
               />
@@ -167,7 +178,7 @@ function Coque() {
                 path="/classement"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <Classement uid="u1" joueurs={joueursDemo} equipes={equipesDemo} />
+                    <ClassementBranche uid={uid ?? ''} />
                   </Suspense>
                 }
               />
@@ -195,7 +206,7 @@ function Coque() {
                 path="/match/:id"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <DetailMatch uid="u1" />
+                    <DetailMatch uid={uid ?? ''} />
                   </Suspense>
                 }
               />
@@ -203,7 +214,7 @@ function Coque() {
                 path="/match/:id/terminer"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <TerminerMatch uid="u1" pseudos={terminerDemo?.pseudos ?? {}} />
+                    <TerminerMatch uid={uid ?? ''} />
                   </Suspense>
                 }
               />
@@ -232,13 +243,7 @@ function Coque() {
                 path="/terrains"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <Terrains
-                      domicile={
-                        profil?.domicileLat != null && profil?.domicileLon != null
-                          ? { lat: profil.domicileLat, lon: profil.domicileLon }
-                          : MASSY
-                      }
-                    />
+                    <Terrains domicile={domicile} />
                   </Suspense>
                 }
               />
@@ -246,7 +251,7 @@ function Coque() {
                 path="/match/:id/apres"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {apresDemo && <ApresMatch uid="u1" pseudos={apresDemo.pseudos} />}
+                    <ApresMatch uid={uid ?? ''} />
                   </Suspense>
                 }
               />
@@ -254,7 +259,7 @@ function Coque() {
                 path="/creer"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <CreerMatch uid="u1" domicile={MASSY} />
+                    <CreerMatch uid={uid ?? ''} domicile={domicile} />
                   </Suspense>
                 }
               />
@@ -262,9 +267,7 @@ function Coque() {
                 path="/joueurs"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {amisDemo && (
-                      <Amis uid="u1" relations={amisDemo.relations} annuaire={amisDemo.annuaire} />
-                    )}
+                    <Amis uid={uid ?? ''} relations={profil ?? {}} />
                   </Suspense>
                 }
               />
@@ -272,7 +275,7 @@ function Coque() {
                 path="/match/:id/chat"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    {chatDemo && <Chat uid="u1" pseudos={chatDemo.pseudos} />}
+                    <Chat uid={uid ?? ''} />
                   </Suspense>
                 }
               />
@@ -280,7 +283,7 @@ function Coque() {
                 path="/match/:id/composer"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <Composer uid="u1" pseudos={terminerDemo?.pseudos ?? {}} />
+                    <Composer uid={uid ?? ''} />
                   </Suspense>
                 }
               />
@@ -288,7 +291,7 @@ function Coque() {
                 path="/compte/mot-de-passe"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <MotDePasse fournisseurs={fournisseursDemo} />
+                    <MotDePasse fournisseurs={fournisseurs} />
                   </Suspense>
                 }
               />
@@ -296,7 +299,7 @@ function Coque() {
                 path="/compte/supprimer"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <SupprimerCompte fournisseurs={fournisseursDemo} />
+                    <SupprimerCompte fournisseurs={fournisseurs} />
                   </Suspense>
                 }
               />
@@ -320,7 +323,7 @@ function Coque() {
                   ouvert={reglages}
                   onFermer={() => setReglages(false)}
                   pseudo={profil?.pseudo ?? '…'}
-                  fournisseurs={fournisseursDemo}
+                  fournisseurs={fournisseurs}
                   actions={{
                     onDeconnexion: () => import('./services/auth').then((m) => m.deconnecter()),
                     onMotDePasse: () => {
