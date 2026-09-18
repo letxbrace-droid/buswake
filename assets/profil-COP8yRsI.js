@@ -1,1 +1,0 @@
-import{D as e,v as t}from"./firebase-kH6ho5KW.js";import{n}from"./client-wV7XAe16.js";import{n as r}from"./schemas-Nu9jd7WA.js";function i(i,a){return t(e(n,`users`,i),e=>{if(!e.exists())return a(null);let t=r.safeParse({...e.data(),uid:i});a(t.success?t.data:null)},()=>a(null))}export{i as ecouterProfil};

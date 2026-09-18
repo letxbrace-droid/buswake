@@ -1,1 +1,0 @@
-import{A as e,O as t,a as n}from"./firebase-kH6ho5KW.js";var r=e({apiKey:`AIzaSyDAtK1Yo0qg0zQsNNU19JFbqrBuFEfPRgc`,authDomain:`inrun-five.firebaseapp.com`,projectId:`inrun-five`,storageBucket:`inrun-five.firebasestorage.app`,messagingSenderId:`942530257495`,appId:`1:942530257495:web:c5ccdcf6d0de6ba2f27912`,measurementId:`G-M4Q43MD69E`}),i=n(r),a=t(r);export{a as n,i as t};

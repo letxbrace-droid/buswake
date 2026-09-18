@@ -1,8 +1,13 @@
 # 🔔 Notifications push — guide de déploiement
 
-Tout le code est prêt (client + `functions/`). Il reste **le déploiement**,
-à faire une seule fois depuis ton ordinateur, avec le compte Google
-propriétaire du projet Firebase **inrun-five**.
+Les deux Cloud Functions sont **déjà déployées**. Le client de la v2 est
+en place : `src/domaine/push.ts` (les décisions), `src/services/push.ts`
+(le jeton), `public/push.js` (la réception app fermée), et le bouton dans
+Réglages → Notifications.
+
+Il reste ce que je ne peux pas faire d'ici : **vérifier qu'une
+notification arrive vraiment**. Ça demande deux appareils réels et la
+permission du navigateur — aucun harnais ne peut la donner.
 
 ## Ce que font les notifications
 
@@ -20,6 +25,33 @@ Garde-fous intégrés : anti-spam (marqueurs `_notifs` sur chaque match,
 1 alerte « manque » max par heure), purge automatique des jetons expirés,
 heure calculée sur le fuseau **Europe/Paris**, clic sur la notif = ouverture
 directe du match concerné.
+
+## Comment c'est branché dans la v2
+
+| Où | Quoi |
+|---|---|
+| `app/src/domaine/push.ts` | états de permission, lecture du message, route d'un clic — **testé** |
+| `app/src/services/push.ts` | jeton FCM, écriture de `fcmTokens`, écoute app ouverte |
+| `app/src/services/usePush.ts` | l'état à l'écran, l'activation, le rafraîchissement du jeton |
+| `app/public/push.js` | réception **app fermée** + clic sur la notification |
+
+Trois points qui ne se devinent pas :
+
+1. **Pas de `firebase-messaging-sw.js`.** Deux service workers enregistrés
+   sur la même portée s'évincent l'un l'autre, et c'est celui qui sert le
+   site qui doit rester. `push.js` est donc **importé** par le worker
+   généré par Workbox (`importScripts` dans `vite.config.ts`).
+2. **Les messages sont DATA-ONLY** (`data: { title, body, matchId }`). Si
+   le serveur envoyait un bloc `notification`, le navigateur en afficherait
+   une **et** `push.js` une seconde : deux bannières pour un match.
+3. **Le lien a changé.** La v1 ouvrait `#j=<id>` ; la v2 est un HashRouter
+   et la route d'un match est `#/match/<id>`. Les anciens liens sont
+   traduits au démarrage (`routeHeritee`, dans `main.tsx`) — ils
+   n'ouvraient plus rien avant ça, alors qu'ils circulent toujours dans
+   les conversations des joueurs.
+
+Le SDK Messaging est chargé **à la demande** : il n'entre pas dans la
+première peinture (mesuré — 99 Ko, inchangé).
 
 ## 1. Prérequis (une fois)
 
@@ -51,9 +83,15 @@ Deux fonctions sont déployées (région `europe-west1`) :
 
 ## 3. Côté joueurs (rien à déployer)
 
-Chaque joueur : **Profil → Réglages → 🔔 Activer les notifications** → accepter.
+Chaque joueur : **⋯ → Réglages → Notifications → Activer** → accepter.
 Le jeton est stocké dans `users/{uid}.fcmTokens` et **rafraîchi
-automatiquement** à chaque connexion.
+automatiquement** à chaque connexion — sans ça les jetons expirent et les
+notifications s'éteignent toutes seules au bout de quelques semaines, sans
+erreur et sans message.
+
+Le bouton dit l'**état**, pas l'intention. S'il est éteint, il explique
+pourquoi : un refus du navigateur est définitif et ne se reprend que dans
+les réglages du navigateur, jamais depuis l'app.
 
 > 💡 **iPhone** : le push web exige que l'app soit **installée sur l'écran
 > d'accueil** (le widget d'installation s'en occupe) et iOS 16.4+. Activer
@@ -67,6 +105,11 @@ automatiquement** à chaque connexion.
 3. Confirme un match → les votants reçoivent « C'est calé ✅ ».
 4. Désiste-toi d'un match confirmé de demain → les non-inscrits reçoivent
    « Il manque 1 joueur ⚡ ».
+5. **Clique la notification** : elle doit ouvrir LE match, pas l'accueil.
+   C'est le point le plus facile à rater sans que ça se voie — une notif
+   qui ouvre l'app a l'air de marcher.
+6. Laisse l'app **ouverte** et déclenche-en une : elle doit apparaître en
+   toast. Le système n'affiche rien quand l'app est au premier plan.
 
 ## Dépannage rapide
 
@@ -77,3 +120,10 @@ automatiquement** à chaque connexion.
 - **Un joueur ne reçoit rien** → vérifier qu'il a bien activé les notifs
   *depuis l'app* (et sur iPhone : depuis l'app installée), puis re-taper
   « Activer les notifications » pour régénérer un jeton frais.
+- **Le bouton dit « Indisponible sur cet appareil »** → FCM se déclare non
+  supporté ici. Sur iPhone, c'est le cas tant que l'app n'est pas installée
+  sur l'écran d'accueil (et avant iOS 16.4).
+- **La notification arrive mais ouvre l'accueil** → le `matchId` n'est pas
+  passé dans `data`, ou le worker publié est l'ancien. Vérifier dans
+  DevTools → Application → Service Workers que le worker actif importe bien
+  `push.js`.

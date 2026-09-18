@@ -17,7 +17,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,woff2,svg,png,jpg}'],
         // Workbox ne nettoie que ses propres caches. Ceux de la v1
         // (« cs5-vNN ») resteraient sur les appareils déjà venus.
-        importScripts: ['nettoyage-v1.js'],
+        // `nettoyage-v1.js` efface les caches de la v1 ; `push.js` reçoit les
+        // notifications quand l'app est fermée. Tous deux dans CE worker, et
+        // pas dans un `firebase-messaging-sw.js` séparé : deux workers sur la
+        // même portée s'évincent, et c'est celui qui sert le site qui doit
+        // rester.
+        importScripts: ['nettoyage-v1.js', 'push.js'],
         cleanupOutdatedCaches: true,
         // Toute navigation retombe sur index.html (routage côté client).
         // v1.html est une VRAIE page, pas une route : sans cette exception,

@@ -59,6 +59,13 @@ const ROUTES = [
   { nom: 'mot-de-passe', hash: '#/compte/mot-de-passe' },
   { nom: 'supprimer-compte', hash: '#/compte/supprimer' },
   { nom: 'reglages', hash: '#/', ouvrir: '[aria-label="Réglages"]' },
+  // Un lien d'invitation de la v1. Il n'est pas là pour l'apparence : il est
+  // là pour que la TRADUCTION soit mesurée sur le site construit. Elle a
+  // d'abord été tentée dans un effet du routeur, où elle ne marchait pas —
+  // le fourre-tout `<Navigate to="/">` réécrit le hash avant, parce que les
+  // effets des enfants s'exécutent avant ceux du parent. `attendHash` est ce
+  // qui aurait fait échouer cette première version.
+  { nom: 'lien-v1', hash: '#j=d2', attendHash: '#/match/d2' },
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
@@ -408,6 +415,16 @@ try {
       const pb = await nav.newPage({ viewport: { width: 400, height: 880 } });
       await pb.goto(`${DEV}/${route.hash}`, { waitUntil: 'networkidle' }).catch(() => {});
       await pb.waitForTimeout(1400);
+
+      // Une route qui doit en devenir une autre. Sans cette vérification, un
+      // lien cassé rend une page parfaitement valide — la mauvaise.
+      if (route.attendHash) {
+        const obtenu = await pb.evaluate(() => location.hash);
+        const ok = obtenu === route.attendHash;
+        console.log(`  ${ok ? '✓' : '✗'} lien — ${route.hash} → ${obtenu}${ok ? '' : ` (attendu ${route.attendHash})`}`);
+        if (!ok) echecs++;
+      }
+
       if (route.ouvrir) {
         await pb.click(route.ouvrir).catch(() => {});
         await pb.waitForTimeout(700);   // le temps que le ressort se pose

@@ -3,22 +3,29 @@ import { Tiroir, Section, Ligne } from '../composants/Tiroir';
 import { usePreferences } from '../services/preferences';
 import { RAYONS, libelleRayon } from '../domaine/rayon';
 import { gereSonMotDePasse } from '../domaine/compte';
+import { aidePush, libellePush, type EtatPush } from '../domaine/push';
 
 export interface ActionsReglages {
   onDeconnexion(): void;
   onMotDePasse(): void;
   onSupprimerCompte(): void;
   onInviter(): void;
+  /** Demande la permission puis enregistre le jeton. L'appel part d'un CLIC :
+   *  une fenêtre de permission qui surgit toute seule se fait refuser, et un
+   *  refus est définitif. */
+  onActiverNotifications(): void;
 }
 
 export function Reglages({
-  ouvert, onFermer, pseudo, fournisseurs, actions,
+  ouvert, onFermer, pseudo, fournisseurs, actions, push, pushEnCours = false,
 }: {
   ouvert: boolean;
   onFermer(): void;
   pseudo: string;
   fournisseurs: readonly string[];
   actions: ActionsReglages;
+  push: EtatPush;
+  pushEnCours?: boolean;
 }) {
   const km = usePreferences((s) => s.km);
   const setKm = usePreferences((s) => s.setKm);
@@ -49,6 +56,24 @@ export function Reglages({
             </button>
           ))}
         </div>
+      </Section>
+
+      <Section titre="Notifications">
+        {/* Le libellé dit l'ÉTAT, pas l'intention. « Activer » sur un bouton
+            éteint parce que le navigateur a refusé se lit comme une panne de
+            l'app — alors que la décision a été prise ailleurs, et qu'elle ne
+            se reprend que là-bas. */}
+        <Ligne
+          onClick={libellePush(push).actif && !pushEnCours ? actions.onActiverNotifications : undefined}
+          aide={aidePush(push) || undefined}
+        >
+          <span className={libellePush(push).actif ? '' : 'text-(--color-encre-faible)'}>
+            {pushEnCours ? 'Activation…' : libellePush(push).texte}
+          </span>
+        </Ligne>
+        <p className="mt-1 text-xs text-(--color-encre-faible)">
+          Nouveau sondage, match confirmé, désistement, rappel la veille et deux heures avant.
+        </p>
       </Section>
 
       <Section titre="Partager">

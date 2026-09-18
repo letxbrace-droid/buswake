@@ -91,6 +91,33 @@ const sw = await page.evaluate(async () => {
 if (!sw.actif) ennuis.push('service worker inactif');
 if (!sw.portee.endsWith(BASE)) ennuis.push(`portée du worker inattendue · ${sw.portee}`);
 
+// Le worker publié importe-t-il ce qu'il doit importer ?
+// Une notification qui ne part plus ne lève aucune erreur : personne ne
+// reçoit rien, et rien ne le dit. C'est exactement le genre de panne qu'on
+// découvre trois semaines plus tard en demandant « tu as reçu, toi ? ».
+const workerPublie = await readFile(join(RACINE, 'sw.js'), 'utf8').catch(() => '');
+// On lit la LISTE D'IMPORTS, pas le fichier entier. Chercher `"push.js"`
+// n'importe où trouvait l'entrée du précache — `{url:"push.js",...}` — et le
+// contrôle passait au vert alors que l'import avait disparu. Vu en
+// l'éprouvant : sans ce resserrement, il ne détectait rien.
+const importes = new Set(
+  [...workerPublie.matchAll(/importScripts\(([^)]*)\)/g)]
+    .flatMap((m) => [...m[1].matchAll(/["']([^"']+)["']/g)].map((x) => x[1])),
+);
+for (const [fichier, pourquoi] of [
+  ['push.js', 'réception des notifications app fermée'],
+  ['nettoyage-v1.js', 'effacement des caches de la v1'],
+]) {
+  if (!importes.has(fichier)) {
+    ennuis.push(`le worker publié n'importe pas ${fichier} — ${pourquoi}`);
+  }
+  try {
+    await stat(join(RACINE, fichier));
+  } catch {
+    ennuis.push(`${fichier} absent de la racine, alors que le worker l'importe`);
+  }
+}
+
 // Le secours : une VRAIE page, pas une route de la v2.
 await page.waitForTimeout(500);
 const rep = await page.goto(`http://localhost:${PORT}${BASE}v1.html`, { waitUntil: 'domcontentloaded' });
@@ -111,4 +138,5 @@ if (ennuis.length) {
 console.log(`  ✓ ${ROUTES.length} routes rendues, aucun 404, aucune erreur page`);
 console.log(`  ✓ service worker actif sur ${sw.portee}`);
 console.log('  ✓ v1.html reste joignable malgré le worker');
+console.log('  ✓ le worker importe push.js et nettoyage-v1.js');
 console.log('\n✓ racine publiée conforme');

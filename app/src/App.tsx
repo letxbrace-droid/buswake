@@ -1,12 +1,14 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useCallback, useState } from 'react';
 import { HashRouter, Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Accueil } from './ecrans/Accueil';
 import { useSession } from './services/session';
 import { useProfil } from './services/useProfil';
-import { FournisseurToasts } from './composants/Toasts';
+import { FournisseurToasts, useToast } from './composants/Toasts';
 import { dejaAccueilli, marquerAccueilli } from './services/premierLancement';
 import type { Connexion, Inscription } from './domaine/auth';
+import { ouAller } from './domaine/entree';
+import { usePush } from './services/usePush';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
@@ -105,29 +107,37 @@ export default function App() {
 
 function Coque() {
   const [reglages, setReglages] = useState(false);
-  const chemin = useLocation().pathname;
+  const lieu = useLocation();
+  const chemin = lieu.pathname;
   const naviguer = useNavigate();
   const { uid, enAttente } = useSession();
   const { profil } = useProfil(uid, profilDemo ?? undefined);
   const [accueilli, setAccueilli] = useState(dejaAccueilli);
-  const surBienvenue = chemin === '/bienvenue';
+  const toast = useToast();
+  const push = usePush(uid, useCallback((t: string, c: string) => toast(c ? `${t} — ${c}` : t), [toast]));
+  // Le châssis (barre du bas, bouton réglages) ne s'affiche pas sur les
+  // écrans d'entrée : on n'y navigue pas, on s'y identifie.
   const surEcranAuth = chemin === '/connexion' || chemin === '/bienvenue';
 
-  // Tant qu'on ne SAIT pas, on ne montre rien plutôt que de faire clignoter
-  // l'écran de connexion devant quelqu'un qui est déjà connecté.
-  if (enAttente) return <div className="h-full bg-(--color-fond)" aria-busy="true" />;
+  // La décision vit dans `domaine/entree`, en fonction pure, et y est
+  // éprouvée. Elle tenait avant en quatre `if` ici même, où il aurait fallu
+  // monter React, Firebase et six écrans pour savoir si un lien survivait à
+  // une connexion — donc où personne ne l'a jamais vérifié.
+  const entree = ouAller({
+    uid,
+    enAttente,
+    chemin,
+    accueilli,
+    destination: (lieu.state as { de?: string } | null)?.de ?? null,
+    dev: import.meta.env.DEV,
+  });
 
-  // Un visiteur déconnecté n'a rien à faire ailleurs qu'à l'entrée — et au
-  // tout premier lancement, l'entrée c'est la promesse, pas un formulaire.
-  if (!uid && !surEcranAuth) {
-    return <Navigate to={accueilli ? '/connexion' : '/bienvenue'} replace />;
+  if (entree.quoi === 'attendre') {
+    return <div className="h-full bg-(--color-fond)" aria-busy="true" />;
   }
-  if (!uid && surBienvenue && accueilli) return <Navigate to="/connexion" replace />;
-  // En production, quelqu'un de connecté n'a pas à voir l'écran d'entrée.
-  // En développement on l'y laisse aller : la session y est simulée comme
-  // connectée, et sans cette exception l'écran deviendrait inatteignable —
-  // ni pour le travail visuel, ni pour le harnais qui le mesure.
-  if (uid && surEcranAuth && !import.meta.env.DEV) return <Navigate to="/" replace />;
+  if (entree.quoi === 'rediriger') {
+    return <Navigate to={entree.vers} replace state={{ de: entree.memoriser ?? null }} />;
+  }
 
   return (
         <div className="flex h-full flex-col">
@@ -322,7 +332,10 @@ function Coque() {
                       naviguer('/compte/supprimer');
                     },
                     onInviter: () => {},
+                    onActiverNotifications: () => void push.activer(),
                   }}
+                  push={push.etat}
+                  pushEnCours={push.enCours}
                 />
               </Suspense>
               <BarreBasse />
