@@ -72,9 +72,12 @@ d'atouts du profil décollent chacune de leur côté.
 
 Depuis qu'il y a une photo par écran, une carte translucide **non
 inscrite dans la liste des plaques** laisse remonter la pelouse et perd
-du contraste sans que personne n'ait touché à sa couleur. La liste vit
-dans `index.html`, bloc `/* ===== LES PLAQUES ===== */`.
-`plaques.mjs` détecte les orphelines.
+du contraste sans que personne n'ait touché à sa couleur. La sonde
+`plaques` de `npm run qa` détecte les orphelines.
+
+Un écran **délibérément** sans plaque le déclare dans les `ROUTES` de
+`qa.mjs` (`sansPlaque: true`), en une ligne qu'on relit. C'est une
+exception nommée, pas une dérogation silencieuse.
 
 ### 6. Un voile est réglé pour UNE image, pas une fois pour toutes
 
@@ -119,14 +122,16 @@ pâté de 4,2 px — mettre `fill="currentColor" stroke="none"`.
 
 1. **Lire `DESIGN.md`** — la décision a peut-être déjà été prise, et
    écartée pour une raison.
-2. **Utiliser les tokens** (`--r-*`, `--ease`, la palette). Une valeur en
-   dur est une dette.
-3. **Écrire la règle** au bon endroit ; si elle s'applique à tous les
-   écrans, la poser sur `.screen`, pas sur `#screen-home`.
-4. **Mesurer** — `contraste.mjs` puis `plaques.mjs`.
-5. **Regarder** — `captures.mjs` : la mesure attrape le mesurable, la
-   capture attrape le reste.
-6. **Documenter** dans `DESIGN.md` la mesure obtenue, pas l'intention.
+2. **Utiliser les tokens** de `app/src/styles/socle.css`, exposés à
+   Tailwind par `@theme`. Une valeur en dur est une dette.
+3. **Choisir la couche**, pas la spécificité. La cascade est déclarée :
+   `@layer theme, base, composants, ecrans, utilities, etats;` — un
+   **état** l'emporte sur un **composant** quel que soit l'ordre des
+   fichiers et quelle que soit la spécificité. C'est ce qui a remplacé
+   les dix-neuf `!important` de la v1 : on ne gagne plus une bagarre de
+   cascade, on déclare qui gagne.
+4. **Mesurer** — `npm run qa contraste`, puis `npm run qa` en entier.
+5. **Documenter** dans `DESIGN.md` la mesure obtenue, pas l'intention.
 
 ## Erreurs à éviter
 
@@ -135,14 +140,24 @@ pâté de 4,2 px — mettre `fill="currentColor" stroke="none"`.
   alors le texte lui-même, et on mesure le texte contre le texte.
 - Compter une pastille décorative, une lueur ou une bordure comme fond.
 - Mesurer un élément passé sous la barre du haut ou la nav du bas.
-- Ajouter une couche d'override plutôt que corriger la règle d'origine.
-- Renommer `--orange`.
+- **Gagner une bagarre de cascade avec `!important` ou de la
+  spécificité** : mettre la règle dans la bonne couche.
+- **Croire une mesure qui contredit la capture d'écran.** Trois angles
+  morts l'ont déjà fait mentir : une couleur lue dans la chaîne CSS
+  (Tailwind émet de l'oklab), un fond en dégradé (donc `backgroundColor`
+  transparent), une image de fond pas encore posée. Une des trois
+  « corrections » tirées de la sonde était un artefact et a été annulée.
+- **Conclure « vert » sans demander ce que la sonde ne regarde pas.** Le
+  contraste mesure du texte : un champ de formulaire **vide** n'en a pas,
+  et une bordure devenue translucide le rendait invisible sans qu'aucune
+  sonde ne bronche.
 - Régler un voile sur une image puis en changer.
 
 ## Critères de validation
 
-- [ ] `contraste.mjs` : les cinq écrans passent.
-- [ ] `plaques.mjs` : aucune surface orpheline.
+- [ ] `npm run qa` : toutes les routes passent en contraste et en plaques.
+- [ ] Aucun champ de formulaire vide sous 0,85 d'opacité.
+- [ ] Aucun `!important` introduit.
 - [ ] Les nouvelles icônes sont lisibles à 20 px.
 - [ ] Aucune valeur de rayon ou de durée en dur.
 - [ ] Les fonds ne contiennent ni texte gravé ni bande noire.
@@ -153,10 +168,16 @@ pâté de 4,2 px — mettre `fill="currentColor" stroke="none"`.
 
 ```bash
 cd ~/buswake
-node .claude/skills/kolektif-testing-qa/scripts/contraste.mjs   # WCAG AA, 5 écrans
-node .claude/skills/kolektif-testing-qa/scripts/plaques.mjs     # surfaces orphelines
-node .claude/skills/kolektif-testing-qa/scripts/captures.mjs    # 6 captures à regarder
+cd app
+npm run qa contraste    # WCAG AA mesuré au pixel, sur toutes les routes
+npm run qa plaques      # surfaces translucides orphelines
+npm run qa champs       # champs de formulaire devenus invisibles
+npm run qa              # tout
 
 # Une valeur de couleur en dur a-t-elle été introduite ?
-grep -nE '#[0-9A-Fa-f]{6}' index.html | grep -v ':root' | grep -v 'COULEURS_EQUIPE' | head -20
+grep -rnE '#[0-9A-Fa-f]{6}' src/ --include='*.tsx' --include='*.css' \
+  | grep -v 'socle.css' | grep -v 'COULEURS_EQUIPE'
+
+# Une bagarre de cascade a-t-elle recommencé ? (doit être vide)
+grep -rn '!important' src/
 ```

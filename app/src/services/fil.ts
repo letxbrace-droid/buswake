@@ -1,4 +1,4 @@
-import { collection, getDocs, limit, query, where, type Query } from 'firebase/firestore';
+import { collection, getDocs, limit, orderBy, query, where, type Query } from 'firebase/firestore';
 import { db } from '../firebase/client';
 import { lireMatch, type Match } from '../domaine/schemas';
 
@@ -33,7 +33,29 @@ export async function filDeMatchs(uid: string | null): Promise<Match[]> {
   };
 
   const [publics, miens, histo] = await Promise.all([
-    lire(query(matchs, where('visibilite', '==', 'public'), where('finVisible', '>', maintenant))),
+    // Les deux autres requêtes sont bornées par l'utilisateur : un joueur a
+    // au plus une poignée de matchs. Celle-ci, non — elle grandit avec la
+    // PLATEFORME. Sans plafond, le fil télécharge tous les matchs publics du
+    // pays pour en montrer trois.
+    //
+    // Le tri est explicite pour que la coupe soit celle qu'on veut : les 60
+    // matchs les PLUS PROCHES dans le temps. Firestore ordonne déjà par
+    // `finVisible` à cause de l'inégalité — l'écrire rend la borne lisible et
+    // ne change pas l'index (visibilite ASC + finVisible ASC, déjà déployé).
+    //
+    // Limite assumée : le rayon se filtre côté client, APRÈS cette coupe. Le
+    // jour où 60 matchs imminents ne suffisent plus à couvrir un rayon, il
+    // faudra une vraie requête géographique (geohash), pas un plafond plus
+    // haut — un plafond plus haut ne fait que déplacer le trou.
+    lire(
+      query(
+        matchs,
+        where('visibilite', '==', 'public'),
+        where('finVisible', '>', maintenant),
+        orderBy('finVisible', 'asc'),
+        limit(60),
+      ),
+    ),
     uid
       ? lire(
           query(

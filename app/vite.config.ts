@@ -15,6 +15,15 @@ export default defineConfig({
       manifest: false,               // le manifest du dépôt fait déjà autorité
       workbox: {
         globPatterns: ['**/*.{js,css,html,woff2,svg,png,jpg}'],
+        // Workbox ne nettoie que ses propres caches. Ceux de la v1
+        // (« cs5-vNN ») resteraient sur les appareils déjà venus.
+        importScripts: ['nettoyage-v1.js'],
+        cleanupOutdatedCaches: true,
+        // Toute navigation retombe sur index.html (routage côté client).
+        // v1.html est une VRAIE page, pas une route : sans cette exception,
+        // le secours de la v1 renverrait la v2 chez quiconque a déjà le
+        // service worker — c'est-à-dire exactement les gens qui en ont besoin.
+        navigateFallbackDenylist: [/v1\.html$/],
         // Les photos de fond pèsent : on les met en cache à l'usage plutôt
         // que de bloquer la première visite dessus.
         runtimeCaching: [{

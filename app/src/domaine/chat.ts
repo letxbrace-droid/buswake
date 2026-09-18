@@ -33,6 +33,42 @@ export interface Message {
   readonly quand: Date | null;
 }
 
+/** Combien de messages on garde à l'écran — et donc combien on lit.
+ *
+ *  Le chat ferme 24 h après le coup d'envoi : cent messages couvrent
+ *  largement la vie d'un fil qui sert à caler un match. */
+export const MESSAGES_GARDES = 100;
+
+/** Une ligne brute du fil, telle que la couche service la sort de Firestore. */
+export interface LigneBrute {
+  readonly id: string;
+  readonly uid?: unknown;
+  readonly text?: unknown;
+  readonly createdAt?: unknown;
+}
+
+/**
+ * Remet en ordre de lecture ce que Firestore rend en ordre de REQUÊTE.
+ *
+ * La requête trie du plus récent au plus ancien — c'est la seule façon qu'un
+ * `limit` garde les messages récents. Triée à l'endroit, la même limite
+ * garderait les cent PREMIERS : le chat se figerait sur le début de la
+ * conversation, et un nouveau message n'apparaîtrait jamais. Le défaut serait
+ * invisible tant qu'un fil reste court.
+ *
+ * On rend donc la liste du plus ancien au plus récent, ici, côté client.
+ */
+export function rangerMessages(lignes: readonly LigneBrute[]): Message[] {
+  return lignes
+    .map((l) => ({
+      id: l.id,
+      auteur: String(l.uid ?? ''),
+      texte: String(l.text ?? ''),
+      quand: versDate(l.createdAt),
+    }))
+    .reverse();
+}
+
 /** Un message vide ou fait d'espaces n'en est pas un, et un message de trois
  *  cents caractères tient déjà un paragraphe. */
 export function messageValide(texte: string): boolean {

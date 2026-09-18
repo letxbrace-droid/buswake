@@ -56,8 +56,9 @@ droit de voter a le droit de tout réécrire.
 validés **contre une liste** dans les règles. Raison : ces valeurs
 finissent dans des attributs SVG et des sélecteurs côté client.
 
-Conséquence directe : **ces listes sont dupliquées entre `index.html` et
-`firestore.rules`**. En changer une sans l'autre casse la création. Le
+Conséquence directe : **ces listes sont dupliquées entre `app/src/domaine/`
+et `firestore.rules`**. En changer une sans l'autre casse la création — la
+règle refuse, et le client n'apprend qu'un « permission denied ». Le
 vert historique `#00D88A` est gardé dans la règle pour que les équipes
 créées avant le changement de palette restent modifiables.
 
@@ -72,6 +73,24 @@ capitaine ».
 Aucun client n'a besoin d'y toucher. Le trigger ignore les écritures qui
 ne changent qu'eux (`stripNotifs`), sinon il se déclenche lui-même en
 boucle.
+
+### 7. L'échappement n'est plus un travail, `dangerouslySetInnerHTML` l'est
+
+React échappe `{expression}` par construction : un pseudo, un nom de
+terrain venu d'une API tierce, un message de chat s'affichent tels quels,
+comme du **texte**. C'est pourquoi la v2 n'a plus le défaut que la v1
+traînait à plusieurs endroits.
+
+Cette protection a exactement une porte de sortie, et elle est nommée pour
+qu'on ne la franchisse pas par distraction. **Il n'y a aujourd'hui aucun
+`dangerouslySetInnerHTML` dans `app/src/` ; en introduire un ramènerait la
+classe entière de défauts.** Si un jour il en faut vraiment un,
+l'assainissement se démontre à côté, avec un test.
+
+Les mêmes chaînes restent **étrangères** pour autant : une valeur qui
+finit dans un attribut SVG, un `style`, une URL ou un sélecteur n'est pas
+protégée par React. C'est ce que fait la règle 4 — identifiants fermés,
+jamais de chaîne libre.
 
 ### 7. Toute chaîne affichée passe par `escapeHtml()`
 
@@ -118,26 +137,28 @@ s'applique — y compris sur les nouveaux champs.
 
 ## Points ouverts connus (à traiter, non corrigés)
 
-1. **XP et badges modifiables par n'importe quel joueur connecté.**
-   `onlyGamificationAndSocial()` autorise tout compte connecté à écrire
-   `xp`, `badges`, `stats` sur **n'importe quel** document `users/{uid}`.
-   C'est voulu au départ (le créateur distribue l'XP en fin de match
-   depuis le client, via `addXP`), mais cela rend le classement joueurs
-   falsifiable depuis la console. Le classement par équipe est protégé,
-   celui des joueurs ne l'est pas.
-   *Correction : déplacer l'attribution d'XP dans `onMatchEcrit`, comme
-   `majBilanEquipes`, et retirer `xp`/`badges`/`stats` de la liste.*
+1. ~~**XP et badges modifiables par n'importe quel joueur connecté.**~~
+   **Corrigé.** `champsDeJeu()` — `xp`, `badges`, `stats`, `noteSum`,
+   `noteCount`, `presences`, `lapins`, `streak` — est refusé à **tous** les
+   clients, y compris au propriétaire du document. L'XP est versée par
+   `onMatchEcrit` (Admin SDK), et `_xp` retient qui a déjà été payé, pour
+   qu'un match rejoué ne paie pas deux fois.
 
-2. **Chaînes affichées sans échappement.**
-   Au moins : `index.html:4457` (`${j.pseudo}` dans la fiche joueur d'un
-   match), `index.html:6266` (`${c.lieu}`, nom de terrain venant de
-   l'API tierce), et `showToast()` qui interpole son message en
-   `innerHTML` alors que plusieurs appelants lui passent un pseudo brut.
-   *Correction : `escapeHtml()` sur ces sites, et faire de `showToast`
-   une fonction qui pose du texte, pas du HTML.*
+2. ~~**Chaînes affichées sans échappement.**~~
+   **Dissous par la migration, pas corrigé site par site.** React échappe
+   `{expression}` par construction ; la v2 ne contient **aucun**
+   `dangerouslySetInnerHTML` ni `innerHTML`. La classe entière de défauts
+   a disparu avec le `innerHTML` de la v1 — ce qui vaut mieux que de
+   l'avoir traquée un site à la fois.
 
-3. **`creneauxProposes[].lieu` n'est borné par aucune règle** (contrairement
-   à `defis.lieu`, borné à 80 caractères).
+   La règle survit sous une autre forme, plus étroite : voir la règle 7.
+
+3. **`creneauxProposes[].lieu` n'est borné par aucune règle.** *Toujours
+   ouvert.* La liste est bornée en **nombre** (≤ 10 entrées), pas en
+   contenu : le langage des règles ne sait pas itérer une liste pour
+   valider chaque élément. Il faudrait soit aplatir le créneau en champs
+   séparés, soit valider dans `onMatchEcrit` après coup. À arbitrer ; le
+   nom vient d'une API tierce, donc d'ailleurs que du joueur.
 
 ## Critères de validation
 
@@ -146,7 +167,9 @@ s'applique — y compris sur les nouveaux champs.
 - [ ] Chaque valeur d'énumération est validée contre une liste fermée.
 - [ ] Chaque liste fermée correspond à la constante côté client.
 - [ ] Chaque tableau écrit par un client a une borne de taille.
-- [ ] Chaque chaîne affichée passe par `escapeHtml()`.
+- [ ] Aucun `dangerouslySetInnerHTML` introduit.
+- [ ] Aucune chaîne venant d'un tiers ne part dans un attribut SVG, un
+      `style`, une URL ou un sélecteur sans liste fermée.
 - [ ] Les règles **et** les index sont déployés.
 
 ## Commandes de test
@@ -156,11 +179,13 @@ cd ~/buswake
 
 # Les listes fermées concordent-elles entre le client et les règles ?
 grep -n "embleme\|couleur\|niveau" firestore.rules | head
-grep -n "COULEURS_EQUIPE\|const NIVEAUX\|EMBLEMES = {" index.html
+grep -rn "COULEURS_EQUIPE\|NIVEAUX\|EMBLEMES" app/src/domaine/
 
-# Interpolations de données utilisateur sans échappement
-grep -nE '\$\{[^}]*\b(pseudo|\.nom|lieu|message|description|appel|text)\b[^}]*\}' index.html \
-  | grep -v escapeHtml
+# La porte de sortie de l'échappement de React — doit rester vide
+grep -rn "dangerouslySetInnerHTML\|\.innerHTML" app/src/
+
+# Les champs de jeu sont-ils bien refusés à tous les clients ?
+grep -n "champsDeJeu" -A 4 firestore.rules
 
 # Déploiement (depuis Google Cloud Shell ou une machine avec firebase-tools)
 firebase deploy --only firestore:rules,firestore:indexes

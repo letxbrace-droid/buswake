@@ -1,4 +1,4 @@
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, limit, query, where } from 'firebase/firestore';
 import { db } from '../firebase/client';
 import { lireMatch, type Match } from '../domaine/schemas';
 import { peutCreerUnMatch, type Eligibilite } from '../domaine/match';
@@ -18,6 +18,11 @@ export async function mesMatchsAVenir(uid: string): Promise<Match[]> {
     collection(db, 'matchs'),
     where('joueursInscrits', 'array-contains', uid),
     where('finVisible', '>', new Date()),
+    // Un joueur ne peut être titulaire que d'un match vivant à la fois
+    // (`peutCreerUnMatch`) ; 20 laisse la place aux remplaçants et aux
+    // invitations. La borne est là pour que la requête ne puisse pas
+    // déraper, pas parce qu'on s'attend à l'atteindre.
+    limit(20),
   );
   const snap = await getDocs(q);
   return snap.docs

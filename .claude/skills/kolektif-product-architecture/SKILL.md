@@ -26,9 +26,12 @@ lignes où rien n'empêche mécaniquement une incohérence.
 |---|---|
 | `ARCHITECTURE.md` | modèle de données par collection, cycle de vie, push |
 | `AUDIT.md` | décisions produit prises et écartées, avec l'argument |
-| `index.html` | tout le client : CSS ~2 850 lignes puis module JS ~5 500 |
+| `app/src/domaine/` | **la règle métier, en fonctions pures** — c'est là qu'on lit ce que l'app décide |
+| `app/src/services/` | la seule couche qui parle à Firestore |
+| `app/src/ecrans/` | un écran = un fichier ; ils ne connaissent pas Firestore |
 | `functions/index.js` | les deux seules fonctions serveur |
 | `firestore.rules` | ce que chaque client a le droit d'écrire |
+| la racine du dépôt | **le site publié** : produit de `npm run deployer`, jamais édité à la main |
 
 ## Règles métier
 
@@ -87,23 +90,31 @@ pas dans le markdown.
 
 ## Étapes de travail
 
-1. **Situer** — quel écran, quelle collection, quelle fonction de rendu ?
-   `grep -n 'function render<Écran>' index.html`.
+1. **Situer** — quel écran, quelle collection ?
+   `ls app/src/ecrans/` puis `grep -rn '<champ>' app/src/domaine/`
 2. **Vérifier le modèle** — le champ existe-t-il déjà ? sous quel nom ?
-   `grep -n '<champ>' index.html functions/index.js firestore.rules`
+   `grep -rn '<champ>' app/src/domaine/ functions/index.js firestore.rules`
 3. **Décider où vit la vérité** — client, règle, ou Cloud Function. Toute
    donnée qu'un joueur aurait intérêt à gonfler va côté serveur.
-4. **Écrire le code** au bon endroit dans `index.html` : la fonction doit
-   rester **au niveau du module**, jamais imbriquée dans une autre.
-5. **Propager** — règles Firestore, index, `sw.js` (version de cache),
-   `ARCHITECTURE.md`.
-6. **Vérifier** — `node .claude/skills/kolektif-testing-qa/scripts/tout.mjs`
+4. **Écrire la RÈGLE dans `domaine/`, en fonction pure.** C'est le point
+   d'architecture qui porte tout le reste : une décision métier écrite
+   dans un composant n'est testable qu'en montant un navigateur, donc
+   elle finit par ne pas l'être. Le composant appelle, il ne décide pas.
+5. **Le service** si Firestore est en jeu : aucun écran n'importe
+   `firebase/firestore` directement. C'est ce qui garde le domaine
+   testable sans réseau.
+6. **Propager** — règles Firestore, index, `ARCHITECTURE.md`.
+7. **Vérifier** — `node .claude/skills/kolektif-testing-qa/scripts/tout.mjs`
+8. **Publier** — `cd app && npm run deployer`. Le source poussé n'est pas
+   le site : voir `kolektif-release-checklist`.
 
 ## Erreurs à éviter
 
-- **Imbriquer une fonction d'écran dans une autre.** C'est déjà arrivé :
-  cinq fonctions se sont retrouvées dans `renderHome`, l'onglet Équipes
-  est parti mort en production. Le test de portée existe pour ça.
+- **Écrire une règle métier dans un composant.** Elle devient intestable
+  sans navigateur, donc elle ne sera pas testée. Elle va dans `domaine/`.
+- **Importer `firebase/firestore` depuis un écran.** La couche service
+  existe pour que le reste soit remplaçable et testable hors réseau.
+- **Modifier la racine du dépôt à la main.** C'est un produit de build.
 - **Remplacer une chaîne partout sans regarder où elle atterrit.** Un
   remplacement global `#FF8A3D` → `var(--feu)` a corrompu
   `COULEURS_EQUIPE`, dont les valeurs sont **écrites en base** et
@@ -111,7 +122,8 @@ pas dans le markdown.
 - **Ajouter un champ sans l'autoriser dans les règles.** L'écriture
   échoue silencieusement dans un `catch` ; l'écran reste vide.
 - **Supposer un type de date.** Une date peut arriver en `Timestamp`, en
-  `Date` ou en chaîne selon l'âge du document. Utiliser `_versDate()`.
+  `Date` ou en chaîne selon l'âge du document. Utiliser `versDate()` de
+  `domaine/match`.
 - **Documenter avant de vérifier.** Lire le code fait foi.
 
 ## Critères de validation
@@ -121,19 +133,27 @@ pas dans le markdown.
 - [ ] Les règles autorisent explicitement l'écriture prévue.
 - [ ] Si une requête composite est introduite : l'index est dans
       `firestore.indexes.json`.
-- [ ] `portee.mjs` passe : les cinq écrans rendent.
+- [ ] La nouvelle règle métier est dans `domaine/`, avec son test.
+- [ ] Aucun écran n'importe `firebase/firestore`.
+- [ ] Toute nouvelle route est ajoutée aux `ROUTES` de `qa.mjs` **et** de
+      `verifier-racine.mjs`, sinon elle n'est jamais mesurée.
 - [ ] Aucune constante de football codée en dur.
 
 ## Commandes de test
 
 ```bash
 cd ~/buswake
-node .claude/skills/kolektif-testing-qa/scripts/portee.mjs      # les 5 écrans rendent
-node .claude/skills/kolektif-testing-qa/scripts/tout.mjs        # suite complète
+node .claude/skills/kolektif-testing-qa/scripts/tout.mjs   # suite complète
 
 # Où vit un champ ?
-grep -n 'joueursMax' index.html functions/index.js firestore.rules
+grep -rn 'joueursMax' app/src/ functions/index.js firestore.rules
 
-# Une fonction est-elle au niveau du module ?
-grep -n '^function renderEquipes\|^async function renderEquipes' index.html
+# Un écran parle-t-il à Firestore en direct ? (doit être vide)
+grep -rn "from 'firebase/firestore'" app/src/ecrans/ app/src/composants/
+
+# Quelle règle métier n'a pas de test ?
+cd app && for f in src/domaine/*.ts; do
+  case "$f" in *.test.ts) continue;; esac
+  [ -f "${f%.ts}.test.ts" ] || echo "sans test : $f"
+done
 ```

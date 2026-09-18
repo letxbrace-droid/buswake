@@ -1,7 +1,14 @@
-import { addDoc, collection, onSnapshot, orderBy, query, serverTimestamp } from 'firebase/firestore';
+import {
+  addDoc,
+  collection,
+  limit,
+  onSnapshot,
+  orderBy,
+  query,
+  serverTimestamp,
+} from 'firebase/firestore';
 import { db } from '../firebase/client';
-import { versDate } from '../domaine/match';
-import type { Message } from '../domaine/chat';
+import { MESSAGES_GARDES, rangerMessages, type Message } from '../domaine/chat';
 
 /** Les messages vivent dans une sous-collection `matchs/{id}/messages`.
  *
@@ -14,18 +21,24 @@ export function ecouterMessages(
   matchId: string,
   onMessages: (m: Message[]) => void,
 ): () => void {
-  const q = query(collection(db, 'matchs', matchId, 'messages'), orderBy('createdAt', 'asc'));
+  // Borné, et borné DANS LE BON SENS. Une écoute temps réel sans plafond
+  // relit tout l'historique du fil à chaque message ; sur un match bavard,
+  // ça se facture et ça rame.
+  //
+  // Le tri est donc DESCENDANT avec `limit` — c'est ce qui garde les 100
+  // messages les plus RÉCENTS. Trié ascendant, la même limite garderait les
+  // 100 PREMIERS : le chat se figerait sur le début de la conversation et
+  // les nouveaux messages n'arriveraient jamais. On remet dans l'ordre de
+  // lecture ici, côté client, où ça ne coûte rien.
+  const q = query(
+    collection(db, 'matchs', matchId, 'messages'),
+    orderBy('createdAt', 'desc'),
+    limit(MESSAGES_GARDES),
+  );
   return onSnapshot(
     q,
     (snap) => {
-      onMessages(
-        snap.docs.map((d) => ({
-          id: d.id,
-          auteur: String(d.data().uid ?? ''),
-          texte: String(d.data().text ?? ''),
-          quand: versDate(d.data().createdAt),
-        })),
-      );
+      onMessages(rangerMessages(snap.docs.map((d) => ({ id: d.id, ...d.data() }))));
     },
     () => onMessages([]),
   );

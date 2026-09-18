@@ -11,7 +11,11 @@ export function Equipes({ equipes }: { equipes: readonly Equipe[] }) {
   const triees = [...equipes].sort((a, b) => {
     const ma = etatEquipe(a).manque;
     const mb = etatEquipe(b).manque;
-    if (ma === 0 !== (mb === 0)) return ma === 0 ? 1 : -1; // les prêtes en bas
+    // Parenthèses explicites : `ma === 0 !== (mb === 0)` se lit comme une
+    // comparaison à trois termes alors que c'en est un OU EXCLUSIF entre
+    // deux booléens. Même résultat, mais l'intention se lisait mal.
+    const complete = (n: number) => n === 0;
+    if (complete(ma) !== complete(mb)) return complete(ma) ? 1 : -1; // les prêtes en bas
     return ma - mb;
   });
 

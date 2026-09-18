@@ -1,129 +1,171 @@
 ---
 name: kolektif-testing-qa
-description: Harnais de test et méthode de vérification de KOLEKTIF — portée des fonctions, contraste WCAG mesuré, surfaces translucides, intégrité du précache, captures d'écran. À utiliser après toute modification d'index.html, sw.js ou des assets, et avant chaque commit ou déploiement.
+description: Harnais de test et méthode de vérification de KOLEKTIF — types, tests unitaires du domaine, sondes mesurées sur le site construit (contraste WCAG, plaques, poids, champs), conformité de la racine publiée, XP serveur. À utiliser après toute modification de app/, functions/ ou des assets, et avant chaque commit ou déploiement.
 ---
 
 # Tests et vérification — KOLEKTIF
 
 ## Objectif
 
-Remplacer « ça a l'air bon » par une mesure, dans une application sans
-framework, sans build et sans tests unitaires — où la seule façon
-d'exercer le code est de **charger le document entier dans un vrai
-navigateur**.
+Remplacer « ça a l'air bon » par une mesure.
+
+Depuis la migration vers la v2 (Vite + React + TypeScript dans `app/`),
+la vérification tient sur **quatre étages**, du moins cher au plus cher.
+Chacun attrape ce que l'étage précédent ne peut pas voir — c'est le seul
+critère qui justifie son existence.
+
+| Étage | Commande | Ce qu'il attrape |
+|---|---|---|
+| types | `npm run build` (`tsc -b`) | un nom qui n'existe pas, une forme qui ne colle pas |
+| unité | `npm test` | la règle métier, sans navigateur |
+| sondes | `npm run qa` | ce qui ne se voit qu'une fois **construit et peint** |
+| racine | `npm run verifier-racine` | ce qui ne se voit qu'une fois **publié** |
+
+`tout.mjs` les enchaîne, ajoute l'XP serveur, et renvoie un code de sortie
+unique.
 
 ## Quand l'utiliser
 
-- Après **toute** modification de `index.html`, `sw.js` ou d'un asset.
+- Après **toute** modification de `app/`, `functions/` ou d'un asset.
 - Avant chaque commit et avant chaque déploiement.
 - Quand un écran est vide et qu'on ne sait pas pourquoi.
 - Quand il faut prouver qu'un texte est lisible.
 
-## Ce que le harnais fait
+## Pourquoi quatre étages et pas un
 
-`scripts/lib/harnais.mjs` charge `index.html` **en entier**, remplace les
-imports Firebase par des bouchons (dont un `getDocs` qui respecte la
-collection interrogée et `orderBy`), injecte un jeu d'essai, et ouvre le
-tout dans Chromium.
+### Les types ne remplacent pas les tests
 
-Le document instrumenté est écrit en `_harnais.html` **à la racine du
-dépôt** — obligatoire, car les images, les polices et le manifeste sont
-référencés en relatif — puis supprimé à la fin. S'il traîne après un
-plantage, le supprimer à la main ; ne jamais le committer.
+TypeScript garantit qu'`encreBlason` reçoit une chaîne. Il ne dit rien du
+fait qu'elle doit rendre du blanc sur `#B36BFF`. La règle métier vit dans
+`src/domaine/` **en fonctions pures**, précisément pour être testable sans
+navigateur ni Firestore : c'est là que se trouve la quasi-totalité des
+tests unitaires.
 
-## Les cinq contrôles
+### Les tests ne remplacent pas les sondes
 
-| Script | Ce qu'il attrape |
+`qa.mjs` n'ouvre **pas** le source : il lance `vite build`, sert `dist/`
+en HTTP et ouvre la page produite. C'est ce qui lui a fait trouver deux
+choses qu'aucune lecture du code n'aurait montrées :
+
+- des `@font-face` dans un `<style>` en ligne, que Vite ne traite pas — le
+  build partait **sans polices** ;
+- des assets refusés par le serveur de dev (`server.fs.allow`).
+
+### Les sondes ne remplacent pas la vérification de la racine
+
+`qa.mjs` mesure `dist/`. Le site servi, lui, c'est **la racine du dépôt**,
+sous le sous-chemin `/buswake/`, avec le service worker actif et `v1.html`
+posé à côté. Trois choses n'existent qu'à ce niveau :
+
+1. **le sous-chemin** — Pages ne sert pas à la racine du domaine ;
+2. **les fichiers partagés avec la v1**, absents de `dist/` ;
+3. **le service worker**, qui détourne les navigations.
+
+Le point 3 avait déjà mordu : toute navigation retombe sur `index.html`,
+donc `v1.html` — le **secours** — renvoyait la v2 dès que le worker était
+installé, c'est-à-dire chez exactement les gens qui en auraient eu besoin.
+`navigateFallbackDenylist` corrige ; `verifier-racine.mjs` est ce qui le
+prouve, et a été vu échouer avec le bug avant d'être gardé.
+
+## Les cinq sondes de `qa.mjs`
+
+| Sonde | Ce qu'elle attrape |
 |---|---|
-| `portee.mjs` | une fonction d'écran déclarée par accident dans une autre, **et un nom appelé mais jamais défini** |
-| `plaques.mjs` | une carte translucide qui laisse passer la photo sans être déclarée |
-| `contraste.mjs` | un texte sous le seuil WCAG AA sur l'un des cinq écrans |
-| `precache.mjs` | un fichier listé absent, un cache non versionné, un asset orphelin |
-| `functions.mjs` | l'XP serveur : montants, versement unique, remboursement |
-| `captures.mjs` | tout le reste — il faut regarder |
+| `erreurs` | une erreur page, un 404, un écran qui ne rend rien |
+| `contraste` | un texte sous le seuil WCAG AA, **mesuré au pixel** |
+| `plaques` | une carte translucide qui laisse passer la photo |
+| `poids` | un chunk qui grossit la première peinture |
+| `champs` | un champ de formulaire vide devenu invisible |
 
-`tout.mjs` enchaîne les cinq premiers et renvoie un code de sortie unique.
-
-`functions.mjs` tourne **sans Firebase** : il recopie `functions/index.js`
-en remplaçant les `require` par des bouchons, exactement comme le harnais
-du navigateur remplace les imports. Les fonctions serveur n'avaient aucun
-test — et c'est là que vit l'XP.
+Deux passes : le site **construit** servi en HTTP (intégrité, poids), et
+le serveur de **dev** avec un jeu d'essai (contraste, plaques, champs) —
+parce que remplir l'app demande des bouchons que le build ne porte pas.
 
 ## Règles métier
 
-### 1. Charger le document entier, jamais un extrait
+### 1. Mesurer le contraste sur le PIXEL, jamais sur la chaîne CSS
 
-Le jour où cinq fonctions se sont retrouvées imbriquées dans
-`renderHome`, le harnais de l'époque **fabriquait le HTML à la main** :
-il n'a jamais exercé la portée des fonctions, et l'onglet Équipes est
-parti mort en production. Un harnais qui reconstruit la page ne teste pas
-la page.
+Trois angles morts, tous rencontrés, tous silencieux :
 
-### 2. Une fonction supprimée ne casse pas le rendu
+- **oklab** — Tailwind v4 émet `text-white/55` en oklab. Chrome l'accepte
+  dans `fillStyle` mais le **re-sérialise en oklab** : relire la chaîne
+  renvoyait un quasi-noir, et un texte parfaitement lisible était déclaré
+  en échec. Peindre, puis **lire le pixel**.
+- **les dégradés** donnent un `backgroundColor` transparent : la remontée
+  vers l'ancêtre opaque mesurait la page au lieu de la carte posée dessus.
+  Lire les vrais pixels d'une capture.
+- **l'image pas encore posée** — un `bg-black/55` lisait `rgb(158,158,156)`
+  parce que le `backdrop-filter` n'était pas réappliqué. Attendre.
 
-Elle casse le **clic**, en production, et seulement là. `annonceXP` a été
-poussée appelée cinq fois et définie zéro : les cinq écrans rendaient,
-aucune erreur page, la suite était verte. Le rendu n'exerce pas les
-gestionnaires d'événements.
+**Conséquence assumée : une des trois « corrections » de contraste tirées
+de cette sonde était un artefact, et a été annulée.** Quand la mesure
+contredit la capture, suspecter la mesure.
 
-`portee.mjs` lit donc aussi le source : tout `nom(` doit correspondre à
-quelque chose. Deux étapes, parce qu'une seule ne suffit pas — on relève
-les noms appelés **commentaires et chaînes effacés** (sinon « la vie (…) »
-et `var(--orange)` deviennent des appels, et le test crie au loup cent
-fois), puis on demande à la page si chaque nom existe **dans la portée du
-module**. La portée d'un module ne se devine pas depuis le texte.
+### 2. Une sonde ne voit que ce qu'elle regarde
 
-Limite assumée : le scanner ne démêle pas complètement un gabarit imbriqué
-dans un `${...}`. Un garde sur les caractères accentués rattrape le dernier
-résidu connu.
+Le contraste mesure **du texte**. Un champ de formulaire **vide** n'en a
+pas : une bordure devenue translucide le rendait invisible sans qu'aucune
+sonde ne bronche. `sondeChamps` (opacité ≥ 0,85) a été ajoutée — et a
+immédiatement trouvé le même défaut sur un écran déjà commité.
 
-### 3. Mesurer le contraste sans l'encre
+Avant de conclure « c'est vert », demander ce que la sonde **ne regarde
+pas**.
 
-Capturer avec le texte visible fait que le pixel le plus clair de la
-boîte **est le texte** : on mesure le texte contre lui-même et tout passe
-à 1,00. Effacer l'encre (`color:transparent`) avant la capture.
+### 3. Un budget se calcule sur le manifeste, pas sur les noms de fichiers
 
-Trois autres pièges, tous rencontrés :
-- lire une couleur codée en dur au lieu de `getComputedStyle` ;
-- compter un enfant décoratif (pastille, lueur) comme fond ;
-- compter la **bordure** de l'élément, où aucun glyphe ne se pose.
+Le poids de première peinture se calculait en filtrant les noms de chunks.
+Un filtre sur « Matchs » ne reconnaît ni `DetailMatch` ni `TerminerMatch` :
+des chunks chargés **à la demande** étaient comptés dans la première
+peinture. Les chiffres annoncés étaient gonflés. Le manifeste de Vite dit
+quels chunks l'entrée importe **statiquement** ; c'est lui qui fait foi.
 
-### 4. Un élément passé sous le châssis n'est pas mesurable
+### 4. Un bouchon qui ment produit un faux bug
 
-La barre du haut et la nav du bas recouvrent le contenu : y mesurer un
-texte revient à mesurer la barre. `contraste.mjs` les exclut.
+Tant qu'un bouchon ignorait `orderBy`, le podium sortait dans le désordre
+et ressemblait à un bug de tri. Ce n'en était pas un. **Avant de déclarer
+un bug trouvé par le harnais, vérifier que le bouchon ne l'a pas
+fabriqué.**
 
-### 5. Une propriété en transition ne se lit pas tout de suite
+### 5. Une exception se déclare, elle ne se glisse pas
 
-`getComputedStyle` pendant une transition CSS renvoie la valeur
-**interpolée**, donc au premier instant celle d'AVANT. Mesurée
-synchroniquement après un changement de classe, une couleur qui transite
-paraît ne pas avoir changé.
+Un écran sans plaque le dit dans `ROUTES` (`sansPlaque: true`), en une
+ligne qu'on relit. Elle dit « cet écran ne nous doit pas de plaque », pas
+« il ne doit jamais en porter » : exiger l'**absence** produisait une
+fausse alerte sur l'état vide du chat, qui en utilise une légitimement.
 
-Ça m'a fait chercher pendant six manipulations un `!important` fantôme :
-même un `style="color:red"` posé en ligne semblait perdre. Le CSS était
-juste depuis le début — la capture d'écran, elle, montrait la bonne
-couleur. **Quand la mesure contredit la capture, suspecter la mesure.**
-Attendre la fin de la transition (`waitForTimeout` au-delà de `--t-base`)
-avant de lire.
+### 6. Une nouvelle route s'ajoute à `ROUTES`
 
-### 6. Un bouchon qui ment produit un faux bug
+Dans `qa.mjs` **et** dans `verifier-racine.mjs`. Une route absente de ces
+listes n'est jamais mesurée — c'est la seule façon qu'une régression
+passe.
 
-Tant que le bouchon `getDocs` ignorait `orderBy`, le podium du classement
-sortait dans le désordre et ressemblait à un bug de tri. Ce n'en était
-pas un. **Avant de déclarer un bug trouvé par le harnais, vérifier que le
-bouchon ne l'a pas fabriqué.**
+### 7. Un échec se lit, il ne se contourne pas
 
-### 7. Le jeu d'essai doit peupler les cinq écrans
+Chaque `✗` nomme l'élément et le ratio obtenu. Corriger la cause, pas le
+seuil.
 
-`fixturesParDefaut()` fournit des matchs, des équipes et des joueurs.
-Sans joueurs, le classement rend son état vide et la sonde de contraste
-ne voit rien — elle passe pour de mauvaises raisons.
+## Ce qui a été retiré, et pourquoi
 
-### 8. Un échec se lit, il ne se contourne pas
+Le harnais de la v1 chargeait `index.html` **en entier** dans Chromium :
+c'était la seule façon d'exercer du code sans build ni modules. Ses sondes
+`portee`, `plaques`, `contraste`, `precache` et `captures` visaient ce
+fichier unique, qui n'existe plus sous cette forme.
 
-Chaque ligne `✗` nomme l'élément et le ratio obtenu. Corriger la cause,
-pas le seuil.
+- `portee.mjs` cherchait un nom appelé mais jamais défini, et une fonction
+  d'écran imbriquée par accident dans une autre. **TypeScript répond aux
+  deux à la compilation**, sur tout le code, sans navigateur.
+- `plaques` et `contraste` sont devenues des sondes de `qa.mjs`.
+- `precache.mjs` vérifiait qu'un fichier listé existait. Workbox génère
+  désormais la liste **depuis le build** : l'écart qu'il cherchait ne peut
+  plus se produire.
+- `captures.mjs` fabriquait des images à regarder ; `qa.mjs` en produit.
+
+`v1.html` n'est **pas** testé : c'est du code gelé, gardé comme secours.
+Des tests sur du code que personne ne modifie produisent du bruit, pas du
+signal.
+
+`functions.mjs` survit intact : les fonctions serveur n'ont ni build ni
+dépendances communes avec l'app, et c'est là que vit l'XP.
 
 ## Étapes de travail
 
@@ -131,52 +173,51 @@ pas le seuil.
 2. `node .claude/skills/kolektif-testing-qa/scripts/tout.mjs`
 3. Lire chaque `✗` : élément, ratio, écran.
 4. Corriger la **cause**.
-5. `captures.mjs` et regarder les six images.
-6. Rejouer `tout.mjs` jusqu'au vert.
+5. Rejouer jusqu'au vert.
 
 ## Erreurs à éviter
 
-- Reconstruire le HTML à la main dans un test.
-- Committer `_harnais.html`.
-- Baisser un seuil pour faire passer un test.
+- Lire une couleur dans une chaîne CSS au lieu du pixel peint.
+- Baisser un seuil pour faire passer une sonde.
 - Croire un bug rapporté par le harnais sans vérifier le bouchon.
-- Tester un seul écran après une modification qui touche `.screen`.
-- Ajouter une fonction à `index.html` sans l'ajouter à `ATTENDUES` dans
-  `portee.mjs` si c'est une fonction d'écran.
+- Ajouter une route sans l'ajouter aux deux `ROUTES`.
+- Publier à la racine sans rejouer `verifier-racine.mjs` : `dist/` peut
+  être vert et la racine cassée.
+- Garder une sonde qui ne peut plus rien attraper.
 
 ## Critères de validation
 
 - [ ] `tout.mjs` sort en 0.
-- [ ] Les cinq écrans rendent plus de 40 caractères.
-- [ ] Aucune erreur page.
-- [ ] Aucune surface orpheline.
-- [ ] Les six captures ont été regardées.
-- [ ] `_harnais.html` n'existe plus.
+- [ ] Aucune erreur page, aucun 404, sur les 18 routes.
+- [ ] Le service worker s'active et `v1.html` reste joignable.
+- [ ] Le poids de première peinture tient dans le budget.
 
 ## Commandes de test
 
 ```bash
 cd ~/buswake
-node .claude/skills/kolektif-testing-qa/scripts/tout.mjs        # suite complète
+node .claude/skills/kolektif-testing-qa/scripts/tout.mjs   # suite complète
 
-node .claude/skills/kolektif-testing-qa/scripts/portee.mjs      # portée + rendu des 5 écrans
-node .claude/skills/kolektif-testing-qa/scripts/plaques.mjs     # surfaces translucides
-node .claude/skills/kolektif-testing-qa/scripts/contraste.mjs   # WCAG AA mesuré
-node .claude/skills/kolektif-testing-qa/scripts/precache.mjs    # intégrité + poids du cache
-node .claude/skills/kolektif-testing-qa/scripts/functions.mjs   # XP serveur, Firebase bouchonné
-node .claude/skills/kolektif-testing-qa/scripts/captures.mjs    # captures dans ./captures
+cd app
+npm run build              # types
+npm test                   # unité
+npm run qa                 # sondes sur le site construit
+npm run qa contraste       # une seule sonde
+npm run verifier-racine    # conformité de la racine publiée
+npm run deployer           # build + publication + vérification
 
-# Serveur local pour un essai à la main
-python3 -m http.server 8000    # puis http://localhost:8000
+cd ~/buswake
+node .claude/skills/kolektif-testing-qa/scripts/functions.mjs   # XP serveur
 ```
 
 ### Variables d'environnement
 
 | Variable | Défaut | Usage |
 |---|---|---|
-| `KOLEKTIF_RACINE` | `process.cwd()` | racine du dépôt |
-| `KOLEKTIF_CHROME` | `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` | binaire Chromium |
+| `KOLEKTIF_RACINE` | racine déduite du script | racine du dépôt |
+| `KOLEKTIF_CHROME` | `/opt/pw-browsers/chromium-1194/chrome-linux/chrome` | binaire Chromium (`functions.mjs` n'en a pas besoin) |
 
-Sur une autre machine, pointer `KOLEKTIF_CHROME` vers un Chromium
-installé, ou installer Playwright (`npx playwright install chromium`) et
-remplacer le chemin par celui qu'il renvoie.
+Sur une autre machine, installer Playwright
+(`npx playwright install chromium`) et pointer le chemin vers le binaire
+qu'il renvoie — dans `qa.mjs` et `verifier-racine.mjs`, où il est en
+constante.

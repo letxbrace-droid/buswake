@@ -3,9 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Kolektif" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="theme-color" content="#0F0F0F" />
-    <title>KOLEKTIF</title>
-    <link rel="icon" type="image/png" sizes="192x192" href="../icon-192.png" />
+    <meta name="description" content="Trouve des joueurs près de chez toi, propose un match, réunis ton équipe." />
+    <title>Kolektif</title>
+
+    <!-- Aperçu de partage : le logo et le titre s'affichent quand on envoie le
+         lien. URLs absolues, parce que GitHub Pages ne résout pas le relatif
+         pour les robots des messageries. Repris tel quel de la v1 : ces liens
+         circulent déjà, changer l'aperçu casserait ce que les gens ont partagé. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Kolektif" />
+    <meta property="og:title" content="Kolektif — Ton match, au complet" />
+    <meta property="og:description" content="Crée ta carte, propose un match, réunis ton équipe. L'app qui complète tes matchs." />
+    <meta property="og:url" content="https://letxbrace-droid.github.io/buswake/" />
+    <meta property="og:image" content="https://letxbrace-droid.github.io/buswake/og-image.jpg" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Kolektif — Ton match, au complet" />
+    <meta name="twitter:description" content="Crée ta carte, propose un match, réunis les 10." />
+    <meta name="twitter:image" content="https://letxbrace-droid.github.io/buswake/og-image.jpg" />
+
+    <link rel="manifest" href="./manifest.json" />
+    <link rel="icon" type="image/png" sizes="32x32" href="./favicon-32.png" />
+    <link rel="icon" type="image/png" sizes="16x16" href="./favicon-16.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png" />
+    <link rel="apple-touch-icon" href="./icon-192.png" />
   </head>
   <body>
     <div id="root"></div>

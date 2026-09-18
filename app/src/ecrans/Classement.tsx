@@ -11,6 +11,9 @@ import { Segment } from '../composants/Segment';
 
 type Mode = 'joueurs' | 'equipes';
 
+/** Or, argent, bronze. Ce sont des MÉTAUX, pas des couleurs de marque :
+ *  elles ne bougent pas si la palette change, et les mettre en tokens
+ *  laisserait croire l'inverse. Elles restent donc en dur, ici, nommées. */
 const MEDAILLES = ['#FFD700', '#90A4AE', '#A05000'];
 
 export function Classement({
@@ -164,7 +167,14 @@ function Podium({ trois }: { trois: readonly JoueurClasse[] }) {
             <p className="text-xs text-(--color-encre-faible)">{u.xp} XP</p>
             <motion.div
               className="mt-1.5 w-full rounded-t-(--radius-sm)"
-              style={{ background: `color-mix(in srgb, ${medaille} 22%, #1C201A)`, borderTop: `2px solid ${medaille}` }}
+              // Le fond du socle est la couleur de carte du thème, PAS une
+              // copie de sa valeur : `#1C201A` recopié ici se serait figé le
+              // jour où la palette bouge, et la marche du podium se serait
+              // décollée du reste sans que rien ne le signale.
+              style={{
+                background: `color-mix(in srgb, ${medaille} 22%, var(--color-carte))`,
+                borderTop: `2px solid ${medaille}`,
+              }}
               initial={{ height: 0 }}
               animate={{ height: hauteurs[i] }}
               transition={{ duration: 0.45, delay: i * 0.06, ease: [0.34, 1.45, 0.64, 1] }}
