@@ -25,7 +25,7 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
           du terrain fait le décor. L'écran d'entrée doit donner envie de
           jouer, pas ressembler à un guichet. */}
       <header className="mb-8 text-center">
-        <Logo taille={52} />
+        <Logo largeur={230} className="mx-auto" />
         <p className="mt-2 text-sm text-(--color-encre-sec)">
           Trouve des joueurs, crée ton match, réunis les 10.
         </p>

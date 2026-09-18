@@ -1,4 +1,4 @@
-const CACHE = 'cs5-v91';
+const CACHE = 'cs5-v92';
 // `og-*.jpg` n'est volontairement PAS ici : ces bannières ne sont lues que
 // par les robots d'aperçu (WhatsApp, iMessage), jamais par l'app. Les
 // précharger coûtait 128 ko à chaque installation pour rien.
@@ -9,7 +9,8 @@ const CACHE = 'cs5-v91';
 // gestionnaire de navigation retombe explicitement sur './index.html'.
 const PRECACHE = [
   './index.html','./manifest.json',
-  './icon-512.png','./icon-192.png','./logo.png',
+  './icon-512.png','./icon-192.png','./icon-maskable-512.png',
+  './favicon-32.png','./favicon-16.png','./logo.png',
   './art-bolt.png','./art-goal.png','./art-player.jpg',
   './art-empty-histo.png','./art-empty-amis.png','./art-empty-vestiaire.png','./art-podium.png',
   './texture-turf.jpg','./art-hero-jouer.jpg',

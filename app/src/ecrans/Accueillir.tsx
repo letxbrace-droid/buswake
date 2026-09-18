@@ -1,4 +1,5 @@
 import { motion } from 'motion/react';
+import { Symbole } from '../composants/Logo';
 
 /** PREMIER LANCEMENT — UN SEUL ÉCRAN.
  *
@@ -10,10 +11,10 @@ import { motion } from 'motion/react';
  *  Ce qui s'apprend ici ne s'apprend pas en lisant : la vraie explication,
  *  c'est le premier match qu'on propose.
  *
- *  PAS DE LOGO ICI. Il y a été posé puis retiré : au-dessus du titre, deux
- *  blocs Anton se concurrencent et le plus petit se perd. La promesse porte
- *  déjà la marque ; le logo identifie l'app sur l'écran de connexion, juste
- *  après.
+ *  Le SYMBOLE seul y figure, jamais le logo complet : le mot répéterait ce
+ *  que le titre dit déjà, et deux blocs se concurrenceraient — c'est ce qui
+ *  s'était produit à l'essai. Le logo entier identifie l'app sur l'écran de
+ *  connexion, juste après.
  */
 export function Accueillir({ onCommencer }: { onCommencer(): void }) {
   return (
@@ -23,6 +24,10 @@ export function Accueillir({ onCommencer }: { onCommencer(): void }) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
       >
+        {/* Le SYMBOLE seul, pas le logo complet : le mot répéterait ce que le
+            titre dit déjà, et deux blocs se concurrenceraient. */}
+        <Symbole taille={56} className="mb-6" />
+
         <h1 className="font-[family-name:var(--font-titre)] text-6xl leading-[0.92] tracking-wide">
           LE SPORT
           <br />
