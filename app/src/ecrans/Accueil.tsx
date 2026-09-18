@@ -4,6 +4,7 @@ import { libelleRayon } from '../domaine/rayon';
 import type { Vedette } from '../domaine/accueil';
 
 export interface ActionsAccueil {
+  onProfil(): void;
   onOuvrirMatch(id: string): void;
   onRejoindre(id: string): void;
   onProposer(): void;
@@ -37,14 +38,24 @@ export function Accueil({
 
   return (
     <div className="terrain terrain-accueil h-full overflow-y-auto px-4 pt-6 pb-28">
-      {/* `pr-12` : le bouton des réglages est posé en absolu dans ce coin.
+      {/* L'EN-TÊTE MÈNE AU PROFIL. La route `/profil` — et donc la carte
+          joueur — n'était liée depuis NULLE PART : ni la barre du bas, ni un
+          écran. Elle existait, elle rendait, et personne ne pouvait
+          l'atteindre.
+
+          `pr-12` : le bouton des réglages est posé en absolu dans ce coin.
           Sans la réserve, un total d'XP à quatre chiffres passait dessous. */}
-      <header className="mb-5 flex items-baseline justify-between gap-3 pr-12">
-        <h1 className="min-w-0 truncate font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <button
+        type="button"
+        onClick={actions.onProfil}
+        aria-label="Voir ma carte joueur"
+        className="mb-5 flex w-full items-baseline justify-between gap-3 pr-12 text-left"
+      >
+        <span className="min-w-0 truncate font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
           Salut {pseudo}
-        </h1>
+        </span>
         <span className="shrink-0 text-sm text-(--color-encre-sec)">{xp} XP</span>
-      </header>
+      </button>
 
       {vedette ? (
         <Plaque variante="heros" className="mb-4 p-5">

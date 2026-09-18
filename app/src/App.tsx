@@ -356,6 +356,10 @@ function Coque() {
                     },
                     onInviter: () => {},
                     onActiverNotifications: () => void push.activer(),
+                    onProfil: () => {
+                      setReglages(false);
+                      naviguer('/profil');
+                    },
                   }}
                   push={push.etat}
                   pushEnCours={push.enCours}

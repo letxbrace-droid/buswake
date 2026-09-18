@@ -10,6 +10,7 @@ export interface ActionsReglages {
   onMotDePasse(): void;
   onSupprimerCompte(): void;
   onInviter(): void;
+  onProfil(): void;
   /** Demande la permission puis enregistre le jeton. L'appel part d'un CLIC :
    *  une fenêtre de permission qui surgit toute seule se fait refuser, et un
    *  refus est définitif. */
@@ -56,6 +57,12 @@ export function Reglages({
             </button>
           ))}
         </div>
+      </Section>
+
+      <Section titre="Ma carte">
+        <Ligne onClick={actions.onProfil} aide="Poste, atouts, badges et statistiques">
+          Voir ma carte joueur
+        </Ligne>
       </Section>
 
       <Section titre="Notifications">
@@ -111,6 +118,11 @@ export function Reglages({
           Supprimer mon compte
         </Ligne>
       </Section>
+      {/* Sans ce repère, « le correctif ne marche pas » et « je n'ai pas
+          encore la version qui le contient » se ressemblent exactement. */}
+      <p className="mt-6 text-center text-[11px] text-(--color-encre-faible)">
+        Version {__VERSION__}
+      </p>
     </Tiroir>
   );
 }

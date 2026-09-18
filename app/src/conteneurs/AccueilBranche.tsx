@@ -49,6 +49,7 @@ export function AccueilBranche({
       terrains={terrains}
       km={km}
       actions={{
+        onProfil: () => aller('/profil'),
         onOuvrirMatch: (id) => aller(`/match/${id}`),
         onRejoindre: rejoindre.lancer,
         onProposer: () => aller('/creer'),

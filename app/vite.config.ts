@@ -2,11 +2,30 @@ import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
+import { execSync } from 'node:child_process';
+
+/** Marqueur de build, affiché en bas des réglages.
+ *
+ *  Il existe pour une raison précise : « le correctif ne marche pas » et
+ *  « je n'ai pas encore la version qui le contient » se ressemblent
+ *  exactement du côté de celui qui essaie. Sans repère, on cherche un défaut
+ *  dans du code que l'appareil n'a pas encore. GitHub Pages sert `main` —
+ *  une correction poussée sur une branche n'atteint personne avant d'être
+ *  fusionnée. */
+function versionDuBuild(): string {
+  try {
+    const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
+    return `${sha} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;
+  } catch {
+    return 'inconnue';
+  }
+}
 
 // GitHub Pages sert le dépôt sous /buswake/ ; `./` garde les chemins
 // relatifs valides aussi bien en local qu'en production.
 export default defineConfig({
   base: './',
+  define: { __VERSION__: JSON.stringify(versionDuBuild()) },
   plugins: [
     react(),
     tailwindcss(),
