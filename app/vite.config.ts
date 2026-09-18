@@ -14,8 +14,17 @@ import { execSync } from 'node:child_process';
  *  fusionnée. */
 function versionDuBuild(): string {
   try {
-    const sha = execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
-    return `${sha} · ${new Date().toISOString().slice(0, 16).replace('T', ' ')}`;
+    // LE SHA SEUL, sans horodatage. J'y avais mis l'heure du build : elle
+    // change à chaque reconstruction, donc les empreintes de fichiers
+    // changeaient aussi, et la racine publiée paraissait périmée alors que
+    // le source était identique. Ça annulait le seul moyen de savoir si la
+    // racine commitée est à jour — `npm run deployer` puis `git status`.
+    //
+    // Le sha identifie le build mieux qu'une heure, et il désigne le commit
+    // DEPUIS lequel on a construit : c'est donc le parent de celui qui
+    // contient ce build. C'est sans importance pour ce à quoi il sert —
+    // savoir si l'appareil a la dernière version.
+    return execSync('git rev-parse --short HEAD', { encoding: 'utf8' }).trim();
   } catch {
     return 'inconnue';
   }
