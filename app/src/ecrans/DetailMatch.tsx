@@ -5,6 +5,8 @@ import {
 } from '../domaine/cycle';
 import { maxJoueurs, versDate } from '../domaine/match';
 import type { Match } from '../domaine/schemas';
+import { Pulse } from '../composants/Pulse';
+import { useEntree } from '../services/useEntree';
 
 const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
@@ -39,6 +41,8 @@ export function DetailMatch({
   const dedans = place === 'deja-titulaire' || place === 'deja-banc';
   const createur = m.createurUid === uid;
   const [confirme, setConfirme] = useState(false);
+  // Rejouer le geste quand l'effectif change : quelqu'un vient d'arriver.
+  const entree = useEntree(inscrits.length);
   const conf = peutConfirmer(m);
   const gagnant = creneauGagnant(m, votes);
   const finale = versDate(m.dateFinale);
@@ -65,15 +69,15 @@ export function DetailMatch({
           {m.lieuFinal || (m.creneauxProposes ?? []).find((c) => c.lieu)?.lieu || 'Lieu à définir'}
         </p>
 
-        <div className="mt-4 flex items-center gap-2">
-          <div className="h-1.5 flex-1 overflow-hidden rounded-(--radius-pill) bg-white/10">
-            <div
-              className="h-full rounded-(--radius-pill) bg-(--color-vert) transition-[width] duration-(--duration-recompense) ease-(--ease-kolektif)"
-              style={{ width: `${Math.min(100, (inscrits.length / total) * 100)}%` }}
-            />
+        {/* Le détail est un moment qu'on REGARDE : le Pulse y a plus de place
+            qu'en liste, et c'est là que le geste compte le plus — c'est
+            l'écran où l'on vient voir si l'équipe se réunit. */}
+        <div className={`mt-4 flex items-center gap-2.5 ${entree}`}>
+          <div className="min-w-0 flex-1">
+            <Pulse pris={inscrits.length} total={total} hauteur={20} />
           </div>
-          <span className="text-xs tabular-nums text-(--color-encre-sec)">
-            {inscrits.length}/{total}
+          <span className="kpulse-cnt shrink-0 text-sm font-bold tabular-nums text-(--color-encre-sec)">
+            <b className="text-(--color-encre)">{inscrits.length}</b>/{total}
           </span>
         </div>
 

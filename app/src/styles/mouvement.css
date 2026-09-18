@@ -1,0 +1,61 @@
+@layer composants {
+  /* ===== LE MOUVEMENT COMME SIGNATURE =====
+     C'est la seule part de l'identité qu'un concurrent ne peut pas copier
+     depuis une capture d'écran. Rien ici n'est décoratif : le produit a un
+     geste évident à mettre en scène — un groupe qui se complète. */
+
+  .kpulse { display: block; max-width: 100%; overflow: visible; }
+
+  .kp-seg {
+    stroke: color-mix(in srgb, var(--color-encre) 12%, transparent);
+    stroke-width: 1.2;
+    stroke-linecap: round;
+    transition: stroke var(--duration-interface) var(--ease-kolektif);
+  }
+  .kp-seg.on { stroke: var(--color-vert); stroke-width: 1.7; }
+
+  .kp-dot {
+    fill: color-mix(in srgb, var(--color-encre) 15%, transparent);
+    transition:
+      fill var(--duration-interface) var(--ease-kolektif),
+      r var(--duration-interface) var(--ease-kolektif);
+  }
+  .kp-dot.on { fill: var(--color-vert); }
+
+  /* LE geste : le groupe se CONSTITUE, point par point, de gauche à droite.
+     Une barre qui grandit dit « 70 % » ; une chaîne qui se pose dit « sept
+     personnes sont là ». Le délai est porté par --i, posé dans le markup :
+     une règle CSS au lieu de quarante. */
+  .anim-in .kp-dot.on,
+  .anim-in .kp-seg.on {
+    animation: kPulseIn 300ms var(--ease-ressort) both;
+    animation-delay: calc(var(--i, 0) * 38ms);
+    transform-origin: center;
+    transform-box: fill-box;
+  }
+  @keyframes kPulseIn { from { opacity: 0; transform: scale(0.25); } }
+
+  /* Le compteur arrive juste après : le chiffre confirme ce que la chaîne
+     vient de raconter. */
+  .anim-in .kpulse-cnt { animation: kPop 420ms var(--ease-ressort) 180ms both; }
+  @keyframes kPop { from { opacity: 0; transform: scale(0.72); } }
+
+  /* Les cartes entrent en cascade — la liste aussi se remplit. */
+  .anim-in .mc { animation: kRise 420ms var(--ease-kolektif) both; }
+  .anim-in .mc:nth-child(1) { animation-delay: 0ms; }
+  .anim-in .mc:nth-child(2) { animation-delay: 55ms; }
+  .anim-in .mc:nth-child(3) { animation-delay: 110ms; }
+  .anim-in .mc:nth-child(4) { animation-delay: 165ms; }
+  .anim-in .mc:nth-child(n + 5) { animation-delay: 210ms; }
+  @keyframes kRise { from { opacity: 0; transform: translateY(10px); } }
+
+  /* Rien de tout cela ne s'impose à qui a demandé moins d'animation. */
+  @media (prefers-reduced-motion: reduce) {
+    .anim-in .kp-dot,
+    .anim-in .kp-seg,
+    .anim-in .kpulse-cnt,
+    .anim-in .mc {
+      animation: none;
+    }
+  }
+}

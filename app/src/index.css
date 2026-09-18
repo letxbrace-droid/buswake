@@ -13,6 +13,7 @@
 @import './styles/socle.css';
 @import './styles/plaques.css';
 @import './styles/ecrans.css';
+@import './styles/mouvement.css';
 
 @layer base {
   * {

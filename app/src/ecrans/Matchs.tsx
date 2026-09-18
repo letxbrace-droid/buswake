@@ -7,6 +7,7 @@ import { filDeMatchs } from '../services/fil';
 import { usePreferences } from '../services/preferences';
 import { compter, matchsDeLOnglet, rangerFil, type Onglet } from '../domaine/fil';
 import { RAYONS, distanceMatchKm, libelleRayon, type Position } from '../domaine/rayon';
+import { useEntree } from '../services/useEntree';
 
 export function Matchs({ uid, domicile }: { uid: string | null; domicile: Position | null }) {
   const [onglet, setOnglet] = useState<Onglet>('sondage');
@@ -27,6 +28,7 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
   );
   const c = useMemo(() => compter(fil), [fil]);
   const liste = matchsDeLOnglet(fil, onglet);
+  const entree = useEntree(onglet);
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-28">
@@ -80,7 +82,11 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
         <EtatVide onglet={onglet} km={km} />
       )}
 
-      <div className="flex flex-col gap-3">
+      {/* L'entrée ne joue qu'à la PREMIÈRE apparition, et se rejoue quand on
+          change d'onglet — c'est une autre liste, elle a droit à son geste.
+          Sans cette garde, la chaîne d'un match repartirait de zéro parce
+          qu'un AUTRE match a bougé : du bruit, pas du mouvement. */}
+      <div className={`flex flex-col gap-3 ${entree}`}>
         {liste.map((m) => {
           const d = distanceMatchKm(m, domicile);
           return (

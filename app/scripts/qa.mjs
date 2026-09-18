@@ -128,6 +128,49 @@ async function sondeDebordement(page) {
   });
 }
 
+/**
+ * Sonde — LE MOUVEMENT DE SIGNATURE JOUE-T-IL ENCORE ?
+ *
+ * `DESIGN.md` : « C'est la seule part de l'identité qu'un concurrent ne peut
+ * pas copier depuis une capture d'écran. » Et c'est exactement pour ça
+ * qu'aucune autre sonde ne pouvait le voir disparaître : le contraste, les
+ * plaques et les poids se mesurent sur une image fixe, où une animation
+ * absente ressemble à une animation terminée.
+ *
+ * Le Pulse avait été perdu au portage — la v2 était repartie sur une barre
+ * de remplissage, c'est-à-dire sur le récit qu'on avait délibérément quitté.
+ * Personne ne l'a vu pendant tout le développement.
+ *
+ * On mesure l'animation RÉELLE via `getAnimations()`, pas la présence d'une
+ * classe : une règle CSS écrite mais jamais déclenchée passerait sinon.
+ */
+async function sondeMouvement(page) {
+  return page.evaluate(() => {
+    const anim = (e) => e.getAnimations().map((a) => ({
+      nom: a.animationName, delai: a.effect.getTiming().delay,
+    }));
+    const points = [...document.querySelectorAll('.kp-dot.on')];
+    const cartes = [...document.querySelectorAll('.mc')];
+    if (!points.length) return { concerne: false };
+
+    const d = points.map((p) => anim(p)[0]).filter(Boolean);
+    const nomme = d.every((a) => a.nom === 'kPulseIn');
+    // Le décalage est LE geste : les points se posent l'un après l'autre.
+    // Tous à zéro, ils apparaissent d'un bloc — une barre déguisée.
+    const decale = new Set(d.map((a) => a.delai)).size > 1;
+    const cascade = cartes.length < 2
+      || new Set(cartes.map((c) => anim(c)[0]?.delai)).size > 1;
+
+    return {
+      concerne: true,
+      ok: d.length > 0 && nomme && decale && cascade,
+      points: d.length,
+      delais: [...new Set(d.map((a) => a.delai))].sort((a, b) => a - b).slice(0, 4),
+      cascade,
+    };
+  });
+}
+
 /** Sonde 1 — la page se charge-t-elle sans rien casser ?
  *  Erreurs JS, messages console, ET requêtes en échec : une police ou une
  *  photo absente du build ne lève aucune erreur, elle rend juste une page
@@ -462,6 +505,21 @@ try {
           console.log(`  ${pl.ok ? '✓' : '✗'} plaque — ${pl.pourquoi}`);
           if (!pl.ok) echecs++;
         }
+      }
+
+      if (!seulement || seulement === 'mouvement') {
+        // On recharge pour attraper l'entrée : elle ne joue qu'une fois, et
+        // la page mesurée plus haut l'a déjà consommée.
+        await pb.reload({ waitUntil: 'networkidle' }).catch(() => {});
+        await pb.waitForTimeout(120);
+        const mv = await sondeMouvement(pb);
+        if (mv.concerne) {
+          console.log(
+            `  ${mv.ok ? '✓' : '✗'} mouvement — ${mv.points} points, décalages ${mv.delais.join('/')} ms`,
+          );
+          if (!mv.ok) echecs++;
+        }
+        await pb.waitForTimeout(900);
       }
 
       if (!seulement || seulement === 'debordement') {

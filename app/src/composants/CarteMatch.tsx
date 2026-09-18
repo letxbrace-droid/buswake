@@ -2,6 +2,7 @@ import { Plaque } from './Plaque';
 import type { Match } from '../domaine/schemas';
 import { maxJoueurs, versDate } from '../domaine/match';
 import { libelleDistance } from '../domaine/rayon';
+import { Pulse } from './Pulse';
 
 const JOURS = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
 
@@ -58,7 +59,8 @@ export function CarteMatch({
   const q = quand(m);
 
   return (
-    <Plaque action as="button" onClick={onOuvrir} className="w-full p-4 text-left">
+    // `mc` : la cascade d'entrée de la liste s'accroche à cette classe.
+    <Plaque action as="button" onClick={onOuvrir} className="mc w-full p-4 text-left">
       <p className="text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
         {m.statut === 'sondage' ? 'À caler' : m.statut === 'terminé' ? 'Joué' : 'Confirmé'}
       </p>
@@ -74,15 +76,16 @@ export function CarteMatch({
         {horsRayon && <span className="text-(--color-encre-faible)"> · tu y joues</span>}
       </p>
 
-      <div className="mt-3 flex items-center gap-2">
-        <div className="h-1.5 flex-1 overflow-hidden rounded-(--radius-pill) bg-white/10">
-          <div
-            className="h-full rounded-(--radius-pill) bg-(--color-vert) transition-[width] duration-(--duration-recompense) ease-(--ease-kolektif)"
-            style={{ width: `${Math.min(100, (inscrits / total) * 100)}%` }}
-          />
+      {/* LE PULSE, PAS UNE BARRE. Le Pulse avait remplacé la barre partout où
+          elle existait en v1, pour une raison de récit : une barre à 70 % dit
+          « 70 % » ; sept points posés disent « sept personnes sont là ». La v2
+          était repartie sur la barre — donc sur le récit qu'on avait quitté. */}
+      <div className="mt-3 flex items-center gap-2.5">
+        <div className="min-w-0 flex-1">
+          <Pulse pris={inscrits} total={total} />
         </div>
-        <span className="text-xs tabular-nums text-(--color-encre-sec)">
-          {inscrits}/{total}
+        <span className="kpulse-cnt shrink-0 text-xs font-bold tabular-nums text-(--color-encre-sec)">
+          <b className="text-(--color-encre)">{inscrits}</b>/{total}
         </span>
       </div>
 
