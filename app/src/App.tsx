@@ -18,6 +18,7 @@ const AccueilBranche = lazy(() => import('./conteneurs/AccueilBranche').then((m)
 const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Matchs })));
 const MessagesEcran = lazy(() => import('./conteneurs/MessagesBranche').then((m) => ({ default: m.MessagesBranche })));
 const EquipesBranche = lazy(() => import('./conteneurs/EquipesBranche').then((m) => ({ default: m.EquipesBranche })));
+const MonClubBranche = lazy(() => import('./conteneurs/MonClubBranche').then((m) => ({ default: m.MonClubBranche })));
 const ClassementBranche = lazy(() => import('./conteneurs/ClassementBranche').then((m) => ({ default: m.ClassementBranche })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 const DetailMatch = lazy(() => import('./conteneurs/DetailMatchBranche').then((m) => ({ default: m.DetailMatchBranche })));
@@ -179,6 +180,14 @@ function Coque() {
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
                     <Matchs uid={uid} domicile={domicile} />
+                  </Suspense>
+                }
+              />
+              <Route
+                path="/club"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <MonClubBranche uid={uid} />
                   </Suspense>
                 }
               />
@@ -391,7 +400,7 @@ function BarreBasse() {
   const ONGLETS = [
     { to: '/', nom: 'accueil' as const, label: 'Accueil', exact: true },
     { to: '/matchs', nom: 'ballon' as const, label: 'Matchs' },
-    { to: '/equipes', nom: 'blason' as const, label: 'Mon Club' },
+    { to: '/club', nom: 'blason' as const, label: 'Mon Club' },
     { to: '/messages', nom: 'message' as const, label: 'Messages' },
     { to: '/profil', nom: 'joueur' as const, label: 'Profil' },
   ];

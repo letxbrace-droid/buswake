@@ -1,1 +1,0 @@
-function e(e,t,n){return`${e}${t.replace(/index\.html$/,``).replace(/\/+$/,``)}/#/match/${n}`}function t(e,t,n,r){let i=t?` au ${t}`:``;return{titre:`Un match sur Kolektif`,texte:`${r>0?`Il manque ${r} joueur${r>1?`s`:``}`:`On est au complet`}${i}${n?` — ${n}`:``}.`,lien:e}}export{t as invitation,e as lienDuMatch};

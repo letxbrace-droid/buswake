@@ -39,6 +39,14 @@ export const EMBLEMES: Record<string, string> = {
 export interface Equipe {
   readonly id: string;
   readonly nom: string;
+  /** Le capitaine. Il manquait à cette interface alors que les règles
+   *  Firestore en font le pivot : lui seul modifie l'équipe. Sans lui,
+   *  l'app ne savait pas à qui appartient un club. */
+  readonly capitaineUid?: string;
+  readonly description?: string;
+  /** L'appel de l'équipe — « on cherche un gardien ». Borné à 120 par les
+   *  règles. */
+  readonly appel?: string;
   readonly sport?: string;
   readonly couleur?: string;
   readonly embleme?: string;

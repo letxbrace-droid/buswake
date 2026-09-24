@@ -95,6 +95,16 @@ export const UtilisateurSchema = z.object({
     .partial()
     .default({}),
   streak: z.number().catch(0),
+  /** LA NOTE DU JOUEUR, en somme et en nombre.
+   *
+   *  Ces deux champs existent en base — les règles les refusent d'ailleurs
+   *  explicitement à tout client, ils sont écrits par les Cloud Functions —
+   *  mais ils n'étaient pas déclarés ici. Zod supprime ce qu'il ne déclare
+   *  pas : la moyenne était donc impossible à calculer, alors que toute la
+   *  donnée était là. Même défaut que `createurUid` sur le match, dans un
+   *  autre schéma. */
+  noteSum: z.number().catch(0),
+  noteCount: z.number().catch(0),
   // RELATIONS. Elles manquaient au schéma, et Zod supprime ce qu'il ne
   // déclare pas : l'écran Joueurs recevait donc toujours des listes vides,
   // quelles que soient les demandes d'amis réellement en base.

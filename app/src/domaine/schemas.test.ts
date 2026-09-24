@@ -141,3 +141,59 @@ describe('lireMatch — fidélité au document réellement stocké', () => {
     expect(m?.lieuCoords).toBeUndefined();
   });
 });
+
+describe('UtilisateurSchema — fidélité au document réellement stocké', () => {
+  /**
+   * LA MÊME GARDE QUE POUR LE MATCH, GÉNÉRALISÉE.
+   *
+   * Elle ne couvrait que `lireMatch`, et le défaut est revenu ailleurs :
+   * `noteSum` et `noteCount` existent en base — les règles les refusent
+   * explicitement à tout client, donc ils sont bien là — mais n'étaient pas
+   * déclarés ici. Zod les supprimait, et la note moyenne du joueur était
+   * impossible à calculer alors que toute la donnée était présente.
+   *
+   * Ce document est copié de ce qu'écrivent l'inscription et les Cloud
+   * Functions. Tout champ que l'app LIT doit survivre au passage.
+   */
+  const DOCUMENT_REEL = {
+    pseudo: 'Zizou',
+    xp: 2240,
+    badges: ['premier-match'],
+    codePostal: '91130',
+    domicileLat: 48.726,
+    domicileLon: 2.283,
+    posteFavori: 'milieu',
+    club: 'OM',
+    atouts: { vitesse: 82, dribble: 79 },
+    profilComplet: true,
+    stats: { matchsJoues: 42, victoires: 28, hommeDuMatch: 2, presences: 11, lapins: 1 },
+    streak: 3,
+    noteSum: 42,
+    noteCount: 5,
+    friends: ['u7'],
+    friendRequestsSent: [],
+    friendRequestsReceived: ['u3'],
+  };
+
+  it('garde tout ce que l’app lit sur un joueur', () => {
+    const u = UtilisateurSchema.parse({ ...DOCUMENT_REEL, uid: 'z' });
+    for (const champ of [
+      'pseudo', 'xp', 'badges', 'codePostal', 'domicileLat', 'domicileLon',
+      'posteFavori', 'atouts', 'stats', 'streak', 'noteSum', 'noteCount',
+      'friends', 'friendRequestsSent', 'friendRequestsReceived',
+    ] as const) {
+      expect(u[champ], `champ perdu au parsing : ${champ}`).not.toBeUndefined();
+    }
+  });
+
+  it('garde la note, sans quoi la moyenne est incalculable', () => {
+    const u = UtilisateurSchema.parse({ ...DOCUMENT_REEL, uid: 'z' });
+    expect(u.noteSum / u.noteCount).toBeCloseTo(8.4, 5);
+  });
+
+  it('survit à un compte tout neuf qui ne porte rien de tout ça', () => {
+    const u = UtilisateurSchema.parse({ uid: 'neuf', pseudo: 'Neuf' });
+    expect(u.noteCount).toBe(0);
+    expect(u.friends).toEqual([]);
+  });
+});

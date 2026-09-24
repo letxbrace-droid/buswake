@@ -102,6 +102,68 @@ export async function lireFiches(uids: readonly string[]): Promise<Record<string
   return fiches;
 }
 
+export interface FicheComplete extends FicheJoueur {
+  readonly posteFavori?: string;
+  readonly noteSum?: number;
+  readonly noteCount?: number;
+}
+
+/**
+ * Les fiches COMPLÈTES — avec le poste et la note.
+ *
+ * `lireFiches` ne rend que le nécessaire aux pastilles ; le club a besoin de
+ * plus. Deux fonctions plutôt qu'une qui rend tout : la première est appelée
+ * sur chaque liste de match, et lui faire porter des champs dont personne
+ * n'a besoin là-bas les ferait transiter pour rien.
+ */
+export async function lireFichesCompletes(
+  uids: readonly string[],
+): Promise<Record<string, FicheComplete>> {
+  const uniques = [...new Set(uids.filter(Boolean))];
+  if (!uniques.length) return {};
+
+  if (import.meta.env.DEV) {
+    const d = await import('../demo');
+    return Object.fromEntries(
+      uniques.map((u) => {
+        const j = d.JOUEURS_DEMO.find((x) => x.id === u);
+        return [u, {
+          uid: u,
+          pseudo: j?.pseudo ?? 'Joueur',
+          xp: j?.xp ?? 0,
+          posteFavori: d.POSTES_DEMO[u],
+          noteSum: d.NOTES_DEMO[u]?.somme,
+          noteCount: d.NOTES_DEMO[u]?.nombre,
+        }];
+      }),
+    );
+  }
+
+  const lots: string[][] = [];
+  for (let i = 0; i < uniques.length; i += PAR_LOT) lots.push(uniques.slice(i, i + PAR_LOT));
+
+  const fiches: Record<string, FicheComplete> = {};
+  await Promise.all(
+    lots.map(async (lot) => {
+      const snap = await getDocs(
+        query(collection(db, 'users'), where(documentId(), 'in', lot)),
+      ).catch(() => null);
+      for (const doc of snap?.docs ?? []) {
+        const v = doc.data();
+        fiches[doc.id] = {
+          uid: doc.id,
+          pseudo: typeof v.pseudo === 'string' ? v.pseudo : doc.id,
+          xp: typeof v.xp === 'number' ? v.xp : 0,
+          posteFavori: typeof v.posteFavori === 'string' ? v.posteFavori : undefined,
+          noteSum: typeof v.noteSum === 'number' ? v.noteSum : 0,
+          noteCount: typeof v.noteCount === 'number' ? v.noteCount : 0,
+        };
+      }
+    }),
+  );
+  return fiches;
+}
+
 /** Une fiche seule — pour un joueur qu'on vient de trouver par pseudo. */
 export async function lireFiche(uid: string): Promise<FicheJoueur | null> {
   const d = await getDoc(doc(db, 'users', uid)).catch(() => null);

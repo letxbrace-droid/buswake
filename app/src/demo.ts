@@ -27,18 +27,26 @@ export const MATCHS_DEMO: Match[] = [
 ];
 
 export const EQUIPES_DEMO = [
+  // Le joueur de démonstration est CAPITAINE de la première : sans ça,
+  // l'onglet Mon Club ne rendait que son état vide, et l'écran le plus dense
+  // de l'app n'était mesuré par aucune sonde.
   { id: 'e1', nom: 'Les Bleus du Dimanche', sport: 'foot5', couleur: '#00B0FF',
-    embleme: 'etoile', niveau: 'intermediaire' as const, membres: ['a', 'b', 'c', 'd'],
-    stats: { victoires: 7, nuls: 2, defaites: 3, serie: 3 } },
+    embleme: 'etoile', niveau: 'intermediaire' as const, capitaineUid: 'u1',
+    appel: 'On cherche un gardien pour le dimanche matin',
+    membres: ['u1', 'u7', 'u3', 'u9'],
+    stats: { victoires: 7, nuls: 2, defaites: 3, serie: 3, butsPour: 34, butsContre: 21 } },
   { id: 'e2', nom: 'Massy Warriors', sport: 'foot5', couleur: '#FF8A3D',
-    embleme: 'griffe', niveau: 'confirme' as const, membres: ['a', 'b', 'c', 'd', 'e'],
-    stats: { victoires: 12, nuls: 1, defaites: 2, serie: 0 } },
+    embleme: 'griffe', niveau: 'confirme' as const, capitaineUid: 'u7',
+    membres: ['u7', 'u2', 'u5', 'u4', 'u8'],
+    stats: { victoires: 12, nuls: 1, defaites: 2, serie: 0, butsPour: 51, butsContre: 19 } },
   { id: 'e3', nom: 'FC Palaiseau', sport: 'foot5', couleur: '#FFD24A',
-    embleme: '', niveau: 'debutant' as const, membres: ['a', 'b'],
-    stats: { victoires: 1, nuls: 0, defaites: 4, serie: 0 } },
+    embleme: '', niveau: 'debutant' as const, capitaineUid: 'u6',
+    membres: ['u6', 'u10'],
+    stats: { victoires: 1, nuls: 0, defaites: 4, serie: 0, butsPour: 9, butsContre: 28 } },
   { id: 'e4', nom: 'Vitry Nord', sport: 'foot5', couleur: '#B36BFF',
-    embleme: 'couronne', niveau: 'intermediaire' as const, membres: ['a', 'b', 'c'],
-    stats: { victoires: 5, nuls: 3, defaites: 5, serie: 0 } },
+    embleme: 'couronne', niveau: 'intermediaire' as const, capitaineUid: 'u3',
+    membres: ['u3', 'u9', 'u2'],
+    stats: { victoires: 5, nuls: 3, defaites: 5, serie: 0, butsPour: 22, butsContre: 24 } },
 ];
 
 export const JOUEURS_DEMO = [
@@ -61,9 +69,25 @@ export const PSEUDOS_DEMO: Record<string, { uid: string; pseudo: string; xp: num
     JOUEURS_DEMO.map((j) => [j.id, { uid: j.id, pseudo: j.pseudo, xp: j.xp }]),
   );
 
+/** Postes et notes du jeu d'essai — ce que `lireFichesCompletes` rend en
+ *  développement, où Firestore n'est pas joignable. */
+export const POSTES_DEMO: Record<string, string> = {
+  u7: 'attaquant', u3: 'milieu', u9: 'défenseur', u1: 'milieu',
+  u2: 'gardien', u5: 'attaquant', u4: 'défenseur', u8: 'milieu', u6: 'gardien',
+};
+
+export const NOTES_DEMO: Record<string, { somme: number; nombre: number }> = {
+  u7: { somme: 42, nombre: 5 }, u3: { somme: 31.2, nombre: 4 },
+  u9: { somme: 21.6, nombre: 3 }, u1: { somme: 33.6, nombre: 4 },
+  u2: { somme: 14.4, nombre: 2 }, u5: { somme: 20.7, nombre: 3 },
+  u4: { somme: 13.8, nombre: 2 },
+};
+
 export const PROFIL_DEMO = {
   uid: 'u1',
   pseudo: 'Sam',
+  noteSum: 42,
+  noteCount: 5,
   friends: [] as string[],
   friendRequestsSent: [] as string[],
   friendRequestsReceived: [] as string[],

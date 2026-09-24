@@ -37,7 +37,7 @@ const TYPES = {
 /** Les routes de l'app. Le hash, parce que la v2 utilise HashRouter — Pages
  *  ne sait pas réécrire les URLs, et les liens d'invitation de la v1
  *  circulent déjà sous cette forme. */
-const ROUTES = ['/', '/matchs', '/equipes', '/classement', '/profil', '/bienvenue',
+const ROUTES = ['/', '/matchs', '/equipes', '/club', '/classement', '/profil', '/bienvenue',
   '/connexion', '/terrains', '/creer', '/joueurs', '/messages', '/compte/mot-de-passe',
   '/compte/supprimer', '/match/demo', '/match/demo/chat', '/match/demo/composer',
   '/match/demo/terminer', '/match/demo/apres', '/route-inconnue'];

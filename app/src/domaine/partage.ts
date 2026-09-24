@@ -35,3 +35,11 @@ export function invitation(lien: string, lieu: string, quand: string, manque: nu
     lien,
   };
 }
+
+/** Le lien vers les équipes — pour inviter quelqu'un dans un club. Les
+ *  règles n'autorisent qu'à s'ajouter SOI-MÊME : on ne peut pas inscrire
+ *  autrui, on lui envoie de quoi entrer. */
+export function lienDuClub(origine: string, chemin: string): string {
+  const base = chemin.replace(/index\.html$/, '').replace(/\/+$/, '');
+  return `${origine}${base}/#/equipes`;
+}
