@@ -73,7 +73,7 @@ export async function lireFiches(uids: readonly string[]): Promise<Record<string
   if (import.meta.env.DEV) {
     const d = await import('../demo');
     return Object.fromEntries(
-      uniques.map((u) => [u, d.PSEUDOS_DEMO[u] ?? { uid: u, pseudo: 'Joueur ' + u, xp: 0 }]),
+      uniques.map((u) => [u, d.PSEUDOS_DEMO[u] ?? { uid: u, pseudo: 'Joueur', xp: 0 }]),
     );
   }
 

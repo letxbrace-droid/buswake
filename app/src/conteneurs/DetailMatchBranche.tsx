@@ -5,6 +5,7 @@ import { db } from '../firebase/client';
 import { DetailMatch } from '../ecrans/DetailMatch';
 import { Plaque } from '../composants/Plaque';
 import { useAction } from '../services/useAction';
+import { usePseudos } from '../services/usePseudos';
 import * as cycle from '../services/cycle';
 import { lireMatch, type Match } from '../domaine/schemas';
 import type { Votes } from '../domaine/cycle';
@@ -28,6 +29,7 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
   });
 
   const rafraichir = [['match', id], ['fil', uid]] as const;
+  const pseudos = usePseudos(data?.m.joueursInscrits ?? []);
 
   const voter = useAction((i: number) => cycle.voter(id, i, uid), {
     succes: (aVote) => (aVote ? 'Vote enregistré — 10 XP en route.' : 'Vote retiré.'),
@@ -62,6 +64,42 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
     apres: () => aller('/matchs', { replace: true }),
   });
 
+  /**
+   * PARTAGER. `navigator.share` ouvre la feuille de partage du système —
+   * c'est ce qui met le lien dans la bonne conversation en un geste. Il
+   * n'existe pas partout (bureau, navigateurs anciens) et l'utilisateur peut
+   * l'annuler : on retombe alors sur le presse-papier, et on le DIT, sinon
+   * l'appui a l'air d'avoir échoué.
+   */
+  const partager = useAction(
+    async () => {
+      const { invitation, lienDuMatch } = await import('../domaine/partage');
+      const { nomDuLieu } = await import('../domaine/terrainDuMatch');
+      const m = data?.m;
+      if (!m) return 'rien';
+      const lien = lienDuMatch(window.location.origin, window.location.pathname, m.id);
+      const manque = Math.max(0, (m.joueursMax ?? 10) - (m.joueursInscrits ?? []).length);
+      const inv = invitation(lien, nomDuLieu(m), '', manque);
+
+      if (navigator.share) {
+        // Une annulation par l'utilisateur lève aussi : on ne la traite pas
+        // comme une panne, on ne dit simplement rien.
+        try {
+          await navigator.share({ title: inv.titre, text: inv.texte, url: inv.lien });
+          return 'partage';
+        } catch {
+          return 'annule';
+        }
+      }
+      await navigator.clipboard.writeText(`${inv.texte} ${inv.lien}`);
+      return 'copie';
+    },
+    {
+      succes: (r) =>
+        r === 'copie' ? 'Lien copié — colle-le dans ta conversation.' : '',
+    },
+  );
+
   const occupe =
     voter.occupe || rejoindre.occupe || quitter.occupe || confirmer.occupe || supprimer.occupe;
 
@@ -74,12 +112,14 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
       votes={data.votes}
       uid={uid}
       occupe={occupe}
+      pseudos={pseudos}
       actions={{
         onVoter: voter.lancer,
         onRejoindre: rejoindre.lancer,
         onQuitter: quitter.lancer,
         onConfirmer: confirmer.lancer,
         onSupprimer: supprimer.lancer,
+        onPartager: partager.lancer,
       }}
     />
   );

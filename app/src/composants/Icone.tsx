@@ -11,7 +11,8 @@
  */
 export type NomIcone =
   | 'accueil' | 'ballon' | 'blason' | 'message' | 'joueur'
-  | 'plus' | 'calendrier' | 'recherche' | 'carte' | 'partage' | 'cloche';
+  | 'plus' | 'calendrier' | 'recherche' | 'carte' | 'partage' | 'cloche'
+  | 'toit' | 'verifie';
 
 const CHEMINS: Record<NomIcone, string> = {
   accueil: 'M3 10.6 12 3l9 7.6M5.4 9.2V20a1 1 0 0 0 1 1h3.3v-5.4h4.6V21h3.3a1 1 0 0 0 1-1V9.2',
@@ -24,6 +25,8 @@ const CHEMINS: Record<NomIcone, string> = {
   recherche: 'M10.8 17.6a6.8 6.8 0 1 0 0-13.6 6.8 6.8 0 0 0 0 13.6Zm5-1.8L20 20',
   carte: 'M9 4.2 3.8 6.4v13.4L9 17.6l6 2.2 5.2-2.2V4.2L15 6.4 9 4.2Zm0 0v13.4m6-11v13.4',
   partage: 'M12 15.5V4m0 0L8.2 7.8M12 4l3.8 3.8M5 14v5.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V14',
+  toit: 'M3.5 11 12 4.5l8.5 6.5M6 12.4v7.1h12v-7.1',
+  verifie: 'M12 3.4 19 6v5.4c0 4-2.8 7.3-7 9.1-4.2-1.8-7-5.1-7-9.1V6l7-2.6Zm-2.8 8.5 2 2 3.6-3.7',
   cloche: 'M12 3.5a5.5 5.5 0 0 0-5.5 5.5c0 5-2 6.5-2 6.5h15s-2-1.5-2-6.5A5.5 5.5 0 0 0 12 3.5ZM10.3 19a2 2 0 0 0 3.4 0',
 };
 

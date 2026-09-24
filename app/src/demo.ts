@@ -9,19 +9,19 @@ export const MATCHS_DEMO: Match[] = [
   {
     id: 'd1', createurUid: 'u9', sport: 'foot5', statut: 'confirmé',
     joueursInscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4', 'u8'],
-    creneauxProposes: [], dateFinale: h(50), lieuFinal: 'Le Five Massy',
+    creneauxProposes: [], dateFinale: h(50), lieuFinal: 'LE FIVE Morangis',
     finVisible: h(54), joueursMax: 10,
   },
   {
     id: 'd2', createurUid: 'u1', sport: 'foot5', statut: 'sondage',
     joueursInscrits: ['u1', 'u7', 'u3'],
-    creneauxProposes: [{ date: h(74), lieu: 'UrbanSoccer Vitry', votes: ['u1', 'u7'] }],
+    creneauxProposes: [{ date: h(74), lieu: 'UrbanSoccer Orsay', votes: ['u1', 'u7'] }],
     dateFinale: null, lieuFinal: '', finVisible: h(80), joueursMax: 10,
   },
   {
     id: 'd3', createurUid: 'u4', sport: 'foot5', statut: 'sondage',
     joueursInscrits: ['u2', 'u5'],
-    creneauxProposes: [{ date: h(98), lieu: 'Le Five Bercy', votes: ['u2'] }],
+    creneauxProposes: [{ date: h(98), lieu: 'LE FIVE Créteil', votes: ['u2'] }],
     dateFinale: null, lieuFinal: '', finVisible: h(104), joueursMax: 10,
   },
 ];
@@ -51,6 +51,7 @@ export const JOUEURS_DEMO = [
   { id: 'u4', pseudo: 'Lucas', xp: 640 },
   { id: 'u8', pseudo: 'Adam', xp: 415 },
   { id: 'u6', pseudo: 'Mehdi', xp: 260 },
+  { id: 'u10', pseudo: 'Rayan', xp: 180 },
 ];
 
 /** L'annuaire du jeu d'essai : uid → fiche, pour les pastilles et les fils.
@@ -80,12 +81,12 @@ export const PROFIL_DEMO = {
 export const DETAIL_DEMO = {
   m: {
     id: 'd2', createurUid: 'u1', sport: 'foot5', statut: 'sondage' as const,
-    joueursInscrits: ['u1', 'Karim', 'Naïm', 'Théo', 'Yanis', 'Ibrahim', 'Lucas'],
-    waitlist: ['Adam', 'Mehdi'],
+    joueursInscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4'],
+    waitlist: ['u8', 'u6'],
     creneauxProposes: [
-      { date: h(74), lieu: 'UrbanSoccer Vitry', votes: [] },
-      { date: h(98), lieu: 'Le Five Bercy', votes: [] },
-      { date: h(122), lieu: 'Le Five Massy', votes: [] },
+      { date: h(74), lieu: 'UrbanSoccer Orsay', votes: [] },
+      { date: h(98), lieu: 'LE FIVE Créteil', votes: [] },
+      { date: h(122), lieu: 'LE FIVE Morangis', votes: [] },
     ],
     dateFinale: null, lieuFinal: '', finVisible: h(128), joueursMax: 10,
   },
@@ -93,19 +94,19 @@ export const DETAIL_DEMO = {
 };
 
 export const TERMINER_DEMO = {
-  inscrits: ['u1', 'k', 'n', 't', 'y', 'i', 'l', 'a', 'm', 'z'],
+  inscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4', 'u8', 'u6', 'u10'],
   pseudos: {
     u1: 'Sam', k: 'Karim', n: 'Naïm', t: 'Théo', y: 'Yanis',
     i: 'Ibrahim', l: 'Lucas', a: 'Adam', m: 'Mehdi', z: 'Zied',
   } as Record<string, string>,
   camps: [
-    { nom: 'Chasubles', couleur: '#FF6A00', joueurs: ['u1', 'k', 'n', 't', 'y'] },
-    { nom: 'Verts', couleur: '#5DD62C', joueurs: ['i', 'l', 'a', 'm', 'z'] },
+    { nom: 'Chasubles', couleur: '#FF6A00', joueurs: ['u1', 'u7', 'u3', 'u9', 'u2'] },
+    { nom: 'Verts', couleur: '#5DD62C', joueurs: ['u5', 'u4', 'u8', 'u6', 'u10'] },
   ],
 };
 
 export const APRES_DEMO = {
-  inscrits: ['u1', 'k', 'n', 't', 'y', 'i'],
+  inscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5'],
   pseudos: { u1: 'Sam', k: 'Karim', n: 'Naïm', t: 'Théo', y: 'Yanis', i: 'Ibrahim' } as Record<string, string>,
   votes: { k: ['n', 't', 'y'], t: ['k'], n: ['i'] } as Record<string, string[]>,
 };

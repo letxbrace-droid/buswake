@@ -72,16 +72,10 @@ if (import.meta.env.DEV) {
   // donc parfaits ici et vides sur un vrai téléphone.
   client.setQueryData(['equipes'], d.EQUIPES_DEMO);
   client.setQueryData(['joueurs'], d.JOUEURS_DEMO);
-  const cle = (u: readonly string[]) => [...new Set(u)].sort().join(',');
-  const pseudos = { ...d.TERMINER_DEMO.pseudos, ...d.APRES_DEMO.pseudos, ...d.CHAT_DEMO.pseudos };
-  client.setQueryData(['pseudos', cle(Object.keys(pseudos))], pseudos);
-  for (const lot of [d.TERMINER_DEMO.inscrits, d.APRES_DEMO.inscrits]) {
-    client.setQueryData(['pseudos', cle(lot)], pseudos);
-  }
-  client.setQueryData(
-    ['annuaire', cle(Object.keys(d.AMIS_DEMO.annuaire).slice(0, 3))],
-    d.AMIS_DEMO.annuaire,
-  );
+  // Les pseudos ne sont PLUS amorcés ici : `services/annuaire.lireFiches` a
+  // son propre repli de développement, et deux mécanismes pour la même chose
+  // finissent par diverger — c'est précisément ce qui est arrivé, avec des
+  // identifiants d'un côté et des pseudos de l'autre.
   client.setQueryData(['match', 'd2'], { m: parse(d.DETAIL_DEMO.m), votes: d.DETAIL_DEMO.votes });
   client.setQueryData(['apres', 'd2'], {
     inscrits: d.APRES_DEMO.inscrits, ratings: {}, votes: d.APRES_DEMO.votes,
