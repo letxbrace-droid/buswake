@@ -9,6 +9,7 @@ import { Pulse } from '../composants/Pulse';
 import { Icone } from '../composants/Icone';
 import { YAller } from '../composants/YAller';
 import { Avatar, RangeeJoueurs } from '../composants/Avatar';
+import { LIBELLES_NIVEAU } from '../domaine/assistant';
 import {
   ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, nomDuLieu,
   type Ambiance,
@@ -94,6 +95,9 @@ export function DetailMatch({
             {formatDuMatch(m)}
           </span>
           <span className="rounded-(--radius-pill) bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec) backdrop-blur-sm">
+            {LIBELLES_NIVEAU[m.niveau]}
+          </span>
+          <span className="rounded-(--radius-pill) bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec) backdrop-blur-sm">
             {m.statut === 'sondage' ? 'À caler' : m.statut === 'confirmé' ? 'Confirmé' : m.statut}
           </span>
           {conf.manque > 0 ? (
@@ -121,6 +125,14 @@ export function DetailMatch({
           <p className="text-xs text-(--color-encre-faible)">en tête du vote</p>
         )}
         <p className="mt-1 text-(--color-encre-sec)">{nomDuLieu(m) || 'Lieu à définir'}</p>
+
+        {/* Le mot du créateur. Il vient d'une saisie libre : React l'échappe,
+            et les règles le bornent à 200. */}
+        {m.message && (
+          <p className="mt-2.5 rounded-(--radius-sm) bg-black/25 px-3 py-2 text-sm text-(--color-encre-sec)">
+            « {m.message} »
+          </p>
+        )}
 
         {/* QUI VIENT, avant combien. La maquette montre les visages en
             premier : c'est ce qui donne envie d'entrer, pas un ratio. */}

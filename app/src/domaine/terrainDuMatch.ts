@@ -1,5 +1,6 @@
 import { TERRAINS_VERIFIES, type TerrainVerifie } from './terrains';
 import { maxJoueurs } from './match';
+import { libelleDuree } from './assistant';
 import type { Match } from './schemas';
 
 /**
@@ -78,7 +79,9 @@ export interface Detail {
  * relever lieu par lieu et les mettre dans la fiche — pas les supposer.
  */
 export function detailsDuLieu(m: Match, fiche: TerrainVerifie | null): Detail[] {
-  const lignes: Detail[] = [{ icone: 'ballon', texte: `Foot à ${maxJoueurs(m) / 2 || maxJoueurs(m)} · ${formatDuMatch(m)}` }];
+  const lignes: Detail[] = [
+    { icone: 'ballon', texte: `${formatDuMatch(m)} · ${libelleDuree(m.duree)} de jeu` },
+  ];
   if (!fiche) return lignes;
 
   lignes.push({

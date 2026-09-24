@@ -10,19 +10,19 @@ export const MATCHS_DEMO: Match[] = [
     id: 'd1', createurUid: 'u9', sport: 'foot5', statut: 'confirmé',
     joueursInscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4', 'u8'],
     creneauxProposes: [], dateFinale: h(50), lieuFinal: 'LE FIVE Morangis',
-    finVisible: h(54), joueursMax: 10,
+    finVisible: h(54), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
   {
     id: 'd2', createurUid: 'u1', sport: 'foot5', statut: 'sondage',
     joueursInscrits: ['u1', 'u7', 'u3'],
     creneauxProposes: [{ date: h(74), lieu: 'UrbanSoccer Orsay', votes: ['u1', 'u7'] }],
-    dateFinale: null, lieuFinal: '', finVisible: h(80), joueursMax: 10,
+    dateFinale: null, lieuFinal: '', finVisible: h(80), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
   {
     id: 'd3', createurUid: 'u4', sport: 'foot5', statut: 'sondage',
     joueursInscrits: ['u2', 'u5'],
     creneauxProposes: [{ date: h(98), lieu: 'LE FIVE Créteil', votes: ['u2'] }],
-    dateFinale: null, lieuFinal: '', finVisible: h(104), joueursMax: 10,
+    dateFinale: null, lieuFinal: '', finVisible: h(104), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
 ];
 
@@ -112,7 +112,7 @@ export const DETAIL_DEMO = {
       { date: h(98), lieu: 'LE FIVE Créteil', votes: [] },
       { date: h(122), lieu: 'LE FIVE Morangis', votes: [] },
     ],
-    dateFinale: null, lieuFinal: '', finVisible: h(128), joueursMax: 10,
+    dateFinale: null, lieuFinal: '', finVisible: h(128), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
   votes: { '0': ['u1', 'Karim', 'Naïm'], '1': ['Théo'], '2': ['Yanis', 'Lucas'] } as Record<string, string[]>,
 };

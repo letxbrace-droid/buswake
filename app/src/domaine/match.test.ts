@@ -17,6 +17,9 @@ function match(p: Partial<Match> = {}): Match {
     lieuFinal: '',
     finVisible: DANS_2H,
     joueursMax: 10,
+    duree: 60,
+    niveau: 'tous',
+    message: '',
     ...p,
   };
 }

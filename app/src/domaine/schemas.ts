@@ -57,6 +57,16 @@ export const MatchSchema = z.object({
    *  et `dansLeRayon` laissait tout passer. Le sélecteur de rayon était donc
    *  décoratif — « 5 km » affichait des matchs à n'importe quelle distance. */
   lieuCoords: CoordsSchema.nullish(),
+  /** Durée en minutes. `catch` plutôt que `nullish` : un document ancien n'en
+   *  porte pas, et un client bricolé peut y mettre n'importe quoi — la borne
+   *  est ici parce que les règles ne la posent pas. */
+  duree: z.number().int().min(30).max(240).catch(60),
+  /** Niveau attendu. Borné À LA LECTURE : sans ça, un client bricolé pourrait
+   *  écrire une chaîne de dix kilo-octets qui s'afficherait dans le fil de
+   *  tout le monde. React l'échapperait, mais il l'afficherait. */
+  niveau: z.enum(['tous', 'debutant', 'intermediaire', 'confirme']).catch('tous'),
+  /** Le mot du créateur. Les règles le bornent déjà à 200 à l'écriture. */
+  message: z.string().max(200).catch(''),
 });
 export type Match = z.infer<typeof MatchSchema>;
 
@@ -124,6 +134,11 @@ export type Utilisateur = z.infer<typeof UtilisateurSchema>;
 export const CreerMatchSchema = z.object({
   sport: z.string().min(1),
   joueursMax: z.number().int().min(2).max(40),
+  duree: z.number().int().min(30).max(240).default(60),
+  niveau: z.enum(['tous', 'debutant', 'intermediaire', 'confirme']).default('tous'),
+  // Borné ici ET par les règles. Ici pour dire quoi corriger, là-bas parce
+  // qu'un client n'est jamais une garantie.
+  message: z.string().max(200, '200 caractères au maximum').default(''),
   creneauxProposes: z
     .array(
       z.object({
