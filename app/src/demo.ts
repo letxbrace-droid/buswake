@@ -8,20 +8,20 @@ const h = (n: number) => new Date(Date.now() + n * 3600e3);
 export const MATCHS_DEMO: Match[] = [
   {
     id: 'd1', createurUid: 'u9', sport: 'foot5', statut: 'confirmé',
-    joueursInscrits: ['u1', 'a', 'b', 'c', 'd', 'e', 'f', 'g'],
+    joueursInscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4', 'u8'],
     creneauxProposes: [], dateFinale: h(50), lieuFinal: 'Le Five Massy',
     finVisible: h(54), joueursMax: 10,
   },
   {
     id: 'd2', createurUid: 'u1', sport: 'foot5', statut: 'sondage',
-    joueursInscrits: ['u1', 'a', 'b'],
-    creneauxProposes: [{ date: h(74), lieu: 'UrbanSoccer Vitry', votes: ['u1', 'a'] }],
+    joueursInscrits: ['u1', 'u7', 'u3'],
+    creneauxProposes: [{ date: h(74), lieu: 'UrbanSoccer Vitry', votes: ['u1', 'u7'] }],
     dateFinale: null, lieuFinal: '', finVisible: h(80), joueursMax: 10,
   },
   {
     id: 'd3', createurUid: 'u4', sport: 'foot5', statut: 'sondage',
-    joueursInscrits: ['x', 'y'],
-    creneauxProposes: [{ date: h(98), lieu: 'Le Five Bercy', votes: ['x'] }],
+    joueursInscrits: ['u2', 'u5'],
+    creneauxProposes: [{ date: h(98), lieu: 'Le Five Bercy', votes: ['u2'] }],
     dateFinale: null, lieuFinal: '', finVisible: h(104), joueursMax: 10,
   },
 ];
@@ -52,6 +52,13 @@ export const JOUEURS_DEMO = [
   { id: 'u8', pseudo: 'Adam', xp: 415 },
   { id: 'u6', pseudo: 'Mehdi', xp: 260 },
 ];
+
+/** L'annuaire du jeu d'essai : uid → fiche, pour les pastilles et les fils.
+ *  Dérivé de JOUEURS_DEMO pour qu'il ne puisse pas diverger. */
+export const PSEUDOS_DEMO: Record<string, { uid: string; pseudo: string; xp: number }> =
+  Object.fromEntries(
+    JOUEURS_DEMO.map((j) => [j.id, { uid: j.id, pseudo: j.pseudo, xp: j.xp }]),
+  );
 
 export const PROFIL_DEMO = {
   uid: 'u1',

@@ -1,13 +1,16 @@
 import { Plaque } from '../composants/Plaque';
+import { Icone } from '../composants/Icone';
 import { progressionDe } from '../domaine/xp';
 import { libelleRayon } from '../domaine/rayon';
 import type { Vedette } from '../domaine/accueil';
 
 export interface ActionsAccueil {
   onProfil(): void;
+  onJoueurs(): void;
   onOuvrirMatch(id: string): void;
   onRejoindre(id: string): void;
   onProposer(): void;
+  onMatchs(): void;
   onRang(): void;
   onTerrains(): void;
 }
@@ -101,6 +104,33 @@ export function Accueil({
           </button>
         </Plaque>
       )}
+
+      {/* LES TROIS ACTIONS, comme dans la maquette. Elles remplacent le « + »
+          flottant de la barre : lues en toutes lettres, elles se comprennent
+          sans apprendre, et « Trouver des joueurs » n'avait aucune porte
+          d'entrée depuis que la barre est passée à cinq onglets. */}
+      <div className="mb-4 grid grid-cols-3 gap-2.5">
+        {[
+          { nom: 'plus' as const, label: 'Créer\nun match', faire: actions.onProposer },
+          { nom: 'calendrier' as const, label: 'Rejoindre\nun match', faire: actions.onMatchs },
+          { nom: 'recherche' as const, label: 'Trouver\ndes joueurs', faire: actions.onJoueurs },
+        ].map((t) => (
+          <Plaque key={t.label} action className="p-0">
+            <button
+              type="button"
+              onClick={t.faire}
+              className="flex w-full flex-col items-center gap-2 px-2 py-3.5"
+            >
+              <span className="grid size-9 place-items-center rounded-full bg-(--color-vert)/15 text-(--color-vert)">
+                <Icone nom={t.nom} taille={19} />
+              </span>
+              <span className="text-center text-[11px] leading-tight whitespace-pre-line text-(--color-encre-sec)">
+                {t.label}
+              </span>
+            </button>
+          </Plaque>
+        ))}
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <Plaque action className="p-0">

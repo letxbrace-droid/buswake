@@ -65,6 +65,18 @@ export async function lireFiches(uids: readonly string[]): Promise<Record<string
   const uniques = [...new Set(uids.filter(Boolean))];
   if (!uniques.length) return {};
 
+  // En développement, Firestore n'est pas joignable : sans ce repli, toutes
+  // les pastilles rendraient « ? » et le harnais mesurerait un écran que
+  // personne ne verra jamais. C'est la même convention que `session.ts` et
+  // `useProfil` — et la leçon apprise en dur : un environnement de travail
+  // qui ment sur les données ne sert à rien. Éliminé du bundle de production.
+  if (import.meta.env.DEV) {
+    const d = await import('../demo');
+    return Object.fromEntries(
+      uniques.map((u) => [u, d.PSEUDOS_DEMO[u] ?? { uid: u, pseudo: 'Joueur ' + u, xp: 0 }]),
+    );
+  }
+
   const lots: string[][] = [];
   for (let i = 0; i < uniques.length; i += PAR_LOT) lots.push(uniques.slice(i, i + PAR_LOT));
 

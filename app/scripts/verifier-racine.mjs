@@ -38,7 +38,7 @@ const TYPES = {
  *  ne sait pas réécrire les URLs, et les liens d'invitation de la v1
  *  circulent déjà sous cette forme. */
 const ROUTES = ['/', '/matchs', '/equipes', '/classement', '/profil', '/bienvenue',
-  '/connexion', '/terrains', '/creer', '/joueurs', '/compte/mot-de-passe',
+  '/connexion', '/terrains', '/creer', '/joueurs', '/messages', '/compte/mot-de-passe',
   '/compte/supprimer', '/match/demo', '/match/demo/chat', '/match/demo/composer',
   '/match/demo/terminer', '/match/demo/apres', '/route-inconnue'];
 

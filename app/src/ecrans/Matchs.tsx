@@ -8,6 +8,7 @@ import { usePreferences } from '../services/preferences';
 import { compter, matchsDeLOnglet, rangerFil, type Onglet } from '../domaine/fil';
 import { RAYONS, distanceMatchKm, libelleRayon, type Position } from '../domaine/rayon';
 import { useEntree } from '../services/useEntree';
+import { usePseudos } from '../services/usePseudos';
 
 export function Matchs({ uid, domicile }: { uid: string | null; domicile: Position | null }) {
   const [onglet, setOnglet] = useState<Onglet>('sondage');
@@ -29,6 +30,9 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
   const c = useMemo(() => compter(fil), [fil]);
   const liste = matchsDeLOnglet(fil, onglet);
   const entree = useEntree(onglet);
+  // Les pseudos de tous les inscrits visibles, en UNE lecture pour la liste
+  // entière plutôt qu'une par carte.
+  const pseudos = usePseudos(useMemo(() => liste.flatMap((m) => m.joueursInscrits ?? []), [liste]));
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-28">
@@ -95,6 +99,7 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
               m={m}
               distanceKm={d}
               horsRayon={d != null && km > 0 && d > km}
+              pseudos={pseudos}
             />
           );
         })}

@@ -53,6 +53,8 @@ export function AccueilBranche({
         onOuvrirMatch: (id) => aller(`/match/${id}`),
         onRejoindre: rejoindre.lancer,
         onProposer: () => aller('/creer'),
+        onMatchs: () => aller('/matchs'),
+        onJoueurs: () => aller('/joueurs'),
         onRang: () => aller('/classement'),
         onTerrains: () => aller('/terrains'),
       }}

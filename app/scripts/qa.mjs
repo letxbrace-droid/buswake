@@ -52,6 +52,7 @@ const ROUTES = [
   { nom: 'apres-match', hash: '#/match/d2/apres' },
   { nom: 'creer', hash: '#/creer' },
   { nom: 'joueurs', hash: '#/joueurs' },
+  { nom: 'messages', hash: '#/messages' },
   // Le fil est fait de bulles, pas de plaques : une plaque par message
   // ferait dix objets flottants là où il faut une conversation.
   { nom: 'chat', hash: '#/match/d2/chat', sansPlaque: true },

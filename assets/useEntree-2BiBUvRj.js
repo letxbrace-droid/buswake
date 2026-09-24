@@ -1,0 +1,1 @@
+import{r as e}from"./rolldown-runtime-hePW80VL.js";import{f as t}from"./react-Bwp8UEjZ.js";var n=e(t(),1);function r(e=``){let[t,r]=(0,n.useState)(!0),i=(0,n.useRef)(e);return(0,n.useEffect)(()=>{i.current!==e&&(i.current=e,r(!0))},[e]),(0,n.useEffect)(()=>{if(!t)return;let e=window.setTimeout(()=>r(!1),900);return()=>window.clearTimeout(e)},[t]),t?`anim-in`:``}export{r as t};

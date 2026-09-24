@@ -9,12 +9,14 @@ import { dejaAccueilli, marquerAccueilli } from './services/premierLancement';
 import type { Connexion, Inscription } from './domaine/auth';
 import { ouAller } from './domaine/entree';
 import { usePush } from './services/usePush';
+import { Icone } from './composants/Icone';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
 // première peinture pour rien. Ici il part avec l'écran qui en a besoin.
 const AccueilBranche = lazy(() => import('./conteneurs/AccueilBranche').then((m) => ({ default: m.AccueilBranche })));
 const Matchs = lazy(() => import('./ecrans/Matchs').then((m) => ({ default: m.Matchs })));
+const MessagesEcran = lazy(() => import('./conteneurs/MessagesBranche').then((m) => ({ default: m.MessagesBranche })));
 const EquipesBranche = lazy(() => import('./conteneurs/EquipesBranche').then((m) => ({ default: m.EquipesBranche })));
 const ClassementBranche = lazy(() => import('./conteneurs/ClassementBranche').then((m) => ({ default: m.ClassementBranche })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
@@ -284,6 +286,14 @@ function Coque() {
                 }
               />
               <Route
+                path="/messages"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <MessagesEcran uid={uid} />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="/joueurs"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
@@ -375,39 +385,49 @@ function Coque() {
 /** Le « + » central est surélevé et c'est le SEUL élément vert de la barre :
  *  une barre où tout est accentué n'accentue rien. */
 function BarreBasse() {
-  const onglet = ({ isActive }: { isActive: boolean }) =>
-    `flex-1 min-w-0 py-2 text-center text-xs ${
-      isActive ? 'text-(--color-vert)' : 'text-(--color-encre-faible)'
-    }`;
+  /* CINQ ONGLETS, AVEC ICÔNES — la maquette.
+     Elle abandonne le « + » flottant au profit d'une tuile d'action sur
+     l'accueil. C'est un arbitrage réel : le « + » était plus court d'un
+     geste, mais il coûtait une place dans une barre qui en a cinq à tenir,
+     et « Créer un match » lu en toutes lettres se comprend sans apprendre.
+
+     Profil devient un onglet : jusqu'ici la carte joueur n'était liée depuis
+     nulle part. Joueurs quitte la barre et se rejoint par l'accueil, comme
+     dans la maquette. */
+  const ONGLETS = [
+    { to: '/', nom: 'accueil' as const, label: 'Accueil', exact: true },
+    { to: '/matchs', nom: 'ballon' as const, label: 'Matchs' },
+    { to: '/equipes', nom: 'blason' as const, label: 'Mon Club' },
+    { to: '/messages', nom: 'message' as const, label: 'Messages' },
+    { to: '/profil', nom: 'joueur' as const, label: 'Profil' },
+  ];
 
   return (
     <nav
-      className="relative flex min-h-16 items-center border-t border-(--color-bord) bg-(--color-fond)/92 backdrop-blur-xl"
+      className="relative flex min-h-16 items-stretch border-t border-(--color-bord) bg-(--color-fond)/92 backdrop-blur-xl"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >
-      <NavLink to="/" className={onglet} end>
-        Accueil
-      </NavLink>
-      <NavLink to="/matchs" className={onglet}>
-        Matchs
-      </NavLink>
-
-      <div className="min-w-0 flex-1">
+      {ONGLETS.map((o) => (
         <NavLink
-          to="/creer"
-          aria-label="Proposer un match"
-          className="mx-auto -mt-6 grid size-14 place-items-center rounded-full bg-(--color-vert) text-3xl leading-none font-light text-(--color-fond) shadow-[0_8px_20px_-6px_rgba(93,214,44,.55)] transition-transform duration-(--duration-doigt) active:scale-95"
+          key={o.to}
+          to={o.to}
+          end={o.exact}
+          className={({ isActive }) =>
+            `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-1.5 text-[11px] transition-colors duration-(--duration-doigt) ${
+              isActive ? 'text-(--color-vert)' : 'text-(--color-encre-faible)'
+            }`
+          }
         >
-          +
+          {({ isActive }) => (
+            <>
+              {/* L'onglet actif se REMPLIT. Un trait qui change juste de
+                  couleur se distingue mal au pouce, en plein soleil. */}
+              <Icone nom={o.nom} taille={22} pleine={isActive} />
+              <span className="max-w-full truncate">{o.label}</span>
+            </>
+          )}
         </NavLink>
-      </div>
-
-      <NavLink to="/equipes" className={onglet}>
-        Équipes
-      </NavLink>
-      <NavLink to="/joueurs" className={onglet}>
-        Joueurs
-      </NavLink>
+      ))}
     </nav>
   );
 }
