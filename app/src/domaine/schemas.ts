@@ -91,6 +91,10 @@ export const UtilisateurSchema = z.object({
       hommeDuMatch: z.number().catch(0),
       presences: z.number().catch(0),
       lapins: z.number().catch(0),
+      /** Écrits par `gainsFinDeMatch` à partir de ce que le créateur a saisi
+       *  en fin de match. Absents d'un compte qui n'a jamais joué. */
+      buts: z.number().catch(0),
+      passes: z.number().catch(0),
     })
     .partial()
     .default({}),

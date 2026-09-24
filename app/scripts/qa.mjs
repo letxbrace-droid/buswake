@@ -71,9 +71,29 @@ const ROUTES = [
 ];
 
 /** Budget de poids, en Ko gzippés. Il échoue quand on le dépasse, pour que la
- *  dérive se voie au commit qui la cause et pas trois mois plus tard. */
+ *  dérive se voie au commit qui la cause et pas trois mois plus tard.
+ *
+ *  LES DEUX NOMBRES NE DISENT PAS LA MÊME CHOSE.
+ *
+ *  La PREMIÈRE PEINTURE est ce qu'un visiteur télécharge avant de voir quoi
+ *  que ce soit. C'est le seul qui se ressente, et il reste serré : le tenir
+ *  a demandé de sortir Firebase de l'entrée (326 → 136 Ko) puis Motion
+ *  (137 → 97). Il ne monte pas sans qu'on l'ait décidé.
+ *
+ *  Le TOTAL compte tout le build, y compris des morceaux qu'une visite
+ *  donnée ne charge jamais — Firebase (161 Ko gzippés) n'arrive qu'à la
+ *  connexion, chaque écran avec sa route. Ce n'est pas un temps de
+ *  chargement, c'est une ALARME DE DÉRIVE : elle sert à ce qu'une
+ *  dépendance ajoutée par distraction se voie.
+ *
+ *  Relevé de 400 à 480 le jour où cinq écrans ont été ajoutés (Messages,
+ *  Mon Club, l'accueil branché, le détail refait, la saisie des buts). Les
+ *  écrans pèsent ce qu'ils pèsent ; l'alarme reste utile tant qu'elle est
+ *  au-dessus du vrai et en dessous de l'accident. La relever est une
+ *  décision, pas un contournement — elle se prend dans un commit qui la
+ *  justifie, jamais dans celui qu'elle bloque. */
 const BUDGET_PREMIERE_PEINTURE = 110;
-const BUDGET_TOTAL = 400;
+const BUDGET_TOTAL = 480;
 
 /** Hôtes qu'on ne peut PAS joindre depuis un conteneur d'intégration.
  *  Leur échec est une contrainte d'environnement, pas un défaut de l'app —

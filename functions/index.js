@@ -304,6 +304,32 @@ async function gainsFinDeMatch(m, ref) {
   absents.forEach(u => ajout(acc, u, { xp: XP.lapin, lapins: 1, streak: 0 }));
   if (m.hommeDuMatchUid) ajout(acc, m.hommeDuMatchUid, { xp: XP.hdm, 'stats.hommeDuMatch': 1 });
 
+  // BUTS ET PASSES. Le créateur les saisit sur le match ; c'est ICI qu'ils
+  // deviennent des statistiques de joueur, parce que les règles Firestore
+  // refusent `stats` à tout client — sans ça, gonfler son total de buts
+  // tiendrait en trois lignes dans la console du navigateur.
+  //
+  // Aucune XP n'y est attachée, et c'est délibéré : en donner changerait le
+  // sens du classement, qui récompense aujourd'hui la présence et
+  // l'organisation, pas la performance. C'est une décision de produit, à
+  // prendre en la voyant, pas à glisser dans un correctif.
+  //
+  // Le grand livre `_xp` retient chaque `stats.*` crédité : la suppression
+  // du match les reprend donc automatiquement, sans une ligne de plus.
+  const compte = (table, champ) => {
+    for (const [uid, n] of Object.entries(table || {})) {
+      // Un absent ne peut pas avoir marqué. Le client le refuse déjà, mais
+      // ce trigger ne fait confiance à personne : il lit un document que
+      // n'importe quel créateur a pu écrire.
+      if (!presents.includes(uid)) continue;
+      const v = Math.floor(Number(n));
+      if (!Number.isFinite(v) || v <= 0) continue;
+      ajout(acc, uid, { [champ]: Math.min(20, v) });
+    }
+  };
+  compte(m.buts, 'stats.buts');
+  compte(m.passes, 'stats.passes');
+
   await appliquer(acc);
   await noterLivre(ref, acc);
   await majBadges([...acc.keys()]);

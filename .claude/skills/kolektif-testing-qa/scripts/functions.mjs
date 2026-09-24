@@ -124,15 +124,33 @@ const joueurs = Array.from({length:10}, (_,i)=>'p'+i);
 let conf = { statut:'confirmé', createurUid:'p0', joueursInscrits:joueurs,
              votes:{}, creneauxProposes:[], equipes:[] };
 await trigger(ev(null, conf));                       // création
+// Buts et passes : saisis par le créateur sur le match, transformés en
+// statistiques de joueur par le trigger — le client n'a pas le droit
+// d'écrire `stats`.
 const fini = { ...conf, statut:'terminé', scoreA:3, scoreB:2,
-               hommeDuMatchUid:'p1', attendance:{} };
+               hommeDuMatchUid:'p1', attendance:{ p9:false },
+               buts:{ p1:2, p2:1, p9:5 }, passes:{ p3:2 } };
 await trigger(ev(conf, fini));                       // fin de match
+const stat = (u,c) => (((BASE['users/'+u]||{}).stats||{})[c]||0);
+
+test('buts crédités au bon joueur', 2, stat('p1','buts'));
+test('passes créditées', 2, stat('p3','passes'));
+// Le trigger ne fait confiance à personne : il lit un document que
+// n'importe quel créateur a pu écrire, y compris avec un buteur absent.
+test('un absent ne marque pas, même si le document le dit', 0, stat('p9','buts'));
+// Aucune XP n'est attachée aux buts : en donner changerait le sens du
+// classement, qui récompense la présence et l'organisation.
 const totalApresFin = joueurs.reduce((n,u)=>n+xp(u), 0);
-test('fin de match : 10×100 + 200 MVP + 50 création', 1250, totalApresFin);
+test('fin de match : 9×100 + 200 MVP + 50 création − 15 lapin', 1135, totalApresFin);
+
 await trigger(ev(fini, null));                       // suppression
 test('suppression après fin : tout repris', 0, joueurs.reduce((n,u)=>n+xp(u), 0));
 test('statistiques reprises aussi', 0,
-  joueurs.reduce((n,u)=>n + (((BASE['users/'+u]||{}).stats||{}).matchsJoues||0), 0));
+  joueurs.reduce((n,u)=>n + stat(u,'matchsJoues'), 0));
+// Le grand livre `_xp` retient chaque `stats.*` crédité : les buts se
+// reprennent donc tout seuls, sans une ligne de plus dans `rembourser`.
+test('buts et passes repris aussi', 0,
+  joueurs.reduce((n,u)=>n + stat(u,'buts') + stat(u,'passes'), 0));
 
 console.log(ko ? `\n✗ ${ko} test(s) en échec` : '\n✓ tous les tests passent');
 try { fs.unlinkSync(TMP); } catch (_) {}

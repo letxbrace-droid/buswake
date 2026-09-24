@@ -86,8 +86,8 @@ export const NOTES_DEMO: Record<string, { somme: number; nombre: number }> = {
 export const PROFIL_DEMO = {
   uid: 'u1',
   pseudo: 'Sam',
-  noteSum: 42,
-  noteCount: 5,
+  noteSum: 33.6,
+  noteCount: 4,
   friends: [] as string[],
   friendRequestsSent: [] as string[],
   friendRequestsReceived: [] as string[],
@@ -99,7 +99,7 @@ export const PROFIL_DEMO = {
   xp: 1240,
   atouts: { vitesse: 78, dribble: 81, frappe: 72, defense: 64, physique: 70 },
   badges: ['Régulier', 'Buteur', 'Capitaine'],
-  stats: { matchsJoues: 12, victoires: 7, hommeDuMatch: 2, presences: 11, lapins: 1 },
+  stats: { matchsJoues: 12, victoires: 7, hommeDuMatch: 2, presences: 11, lapins: 1, buts: 17, passes: 9 },
 };
 
 export const DETAIL_DEMO = {

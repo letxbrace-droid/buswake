@@ -159,6 +159,13 @@ export async function terminer(matchId: string, r: Resultat): Promise<void> {
     scoreB: r.scoreB,
     hommeDuMatchUid: r.hommeDuMatchUid,
     attendance: r.attendance,
+    // Le client pose QUI a marqué, pas le total de chacun : c'est
+    // `gainsFinDeMatch` qui incrémente `stats.buts` et `stats.passes` sur
+    // les joueurs, et les règles refusent `stats` à tous les clients. Le
+    // grand livre `_xp` retient ce qui a été crédité, donc la suppression du
+    // match reprend aussi les buts — sans une ligne de plus.
+    buts: r.buts,
+    passes: r.passes,
   });
 }
 

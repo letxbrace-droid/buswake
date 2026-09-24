@@ -221,6 +221,8 @@ function Coque() {
                           xp: profil.xp,
                           badges: profil.badges,
                           stats: profil.stats,
+                          noteSum: profil.noteSum,
+                          noteCount: profil.noteCount,
                         }}
                       />
                     )}
