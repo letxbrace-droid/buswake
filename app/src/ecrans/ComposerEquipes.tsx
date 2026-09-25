@@ -53,7 +53,7 @@ export function ComposerEquipes({
                   vive posée à nu sur la plaque tombe sous le seuil — mesuré
                   à 4.42:1 pour le orange des chasubles. */}
               <p
-                className="inline-block rounded-(--radius-pill) bg-black/45 px-2.5 py-1 text-xs font-semibold tracking-[0.1em] uppercase"
+                className="inline-block rounded-(--radius-pill) bg-(--color-fond)/92 px-2.5 py-1 text-xs font-semibold tracking-[0.1em] uppercase"
                 style={{ color: c.couleur }}
               >
                 {c.nom} · {c.joueurs.length}

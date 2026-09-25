@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
 import { Plaque } from '../composants/Plaque';
 import { Icone } from '../composants/Icone';
-import { creneauxSuggeres, terrainsProches } from '../domaine/creation';
+import { terrainsProches } from '../domaine/creation';
+import { Calendrier } from '../composants/Calendrier';
+import { ajouterCreneau, composer, libelleCreneau, retirerCreneau } from '../domaine/calendrier';
 import { libelleDistance, type Position } from '../domaine/rayon';
 import {
   DUREES, ETAPES, etapeAtteignable, etapeComplete, libelleDuree, LIBELLES,
@@ -21,7 +23,6 @@ export function CreerMatch({
   onCreer(v: Saisie): void;
 }) {
   const terrains = useMemo(() => terrainsProches(domicile, 3), [domicile]);
-  const creneaux = useMemo(() => creneauxSuggeres(), []);
   const [terrain, setTerrain] = useState<TerrainVerifie | null>(null);
   const [etape, setEtape] = useState<Etape>('infos');
   const [b, setB] = useState<Brouillon>(SAISIE_VIDE);
@@ -29,11 +30,22 @@ export function CreerMatch({
   const maj = <K extends keyof Brouillon>(cle: K, v: Brouillon[K]) =>
     setB((p) => ({ ...p, [cle]: v }));
 
-  const basculerCreneau = (i: number) =>
-    setB((p) => ({
-      ...p,
-      creneaux: p.creneaux.includes(i) ? p.creneaux.filter((x) => x !== i) : [...p.creneaux, i],
-    }));
+  /** Le jour sélectionné au calendrier, et l'heure tapée. Ils ne deviennent
+   *  un créneau qu'à l'ajout : on choisit un jour, une heure, puis on ajoute
+   *  — et on recommence. C'est ce qui permet d'en proposer plusieurs. */
+  const [jour, setJour] = useState<Date | null>(null);
+  const [heure, setHeure] = useState('19:00');
+  const [refus, setRefus] = useState<string | null>(null);
+
+  const ajouter = () => {
+    const r = ajouterCreneau(b.creneaux, composer(jour ?? new Date(NaN), heure));
+    if (!r.ok) {
+      setRefus(r.probleme);
+      return;
+    }
+    setRefus(null);
+    maj('creneaux', r.creneaux);
+  };
 
   const manque = manqueA(etape, b);
   const suite = suivante(etape);
@@ -99,39 +111,63 @@ export function CreerMatch({
             <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
               Quand
             </p>
-            {/* ON EN PROPOSE PLUSIEURS, et c'est le vote qui tranche. C'est le
-                mécanisme sur lequel le produit est bâti : un match à cinq se
-                cale rarement du premier coup. */}
+            {/* ON EN PROPOSE PLUSIEURS, et c'est le vote qui tranche. Le
+                calendrier sert à les composer soi-même : choisir un jour, une
+                heure, ajouter — et recommencer. */}
             <p className="mb-3 text-xs text-(--color-encre-sec)">
-              Coche-en plusieurs : c’est le vote qui tranchera.
+              Choisis un jour et une heure, puis ajoute. Propose-en plusieurs :
+              c’est le vote qui tranchera.
             </p>
-            <div className="flex flex-col gap-2">
-              {creneaux.map((c, i) => {
-                const pris = b.creneaux.includes(i);
-                return (
-                  <button
-                    key={i}
-                    type="button"
-                    onClick={() => basculerCreneau(i)}
-                    aria-pressed={pris}
-                    className={`flex items-center gap-3 rounded-(--radius-md) border p-3 text-left text-sm transition-colors duration-(--duration-doigt) ${
-                      pris
-                        ? 'border-(--color-vert) bg-(--color-vert)/12'
-                        : 'border-white/10 bg-black/25'
-                    }`}
-                  >
-                    <span
-                      className={`grid size-5 shrink-0 place-items-center rounded-(--radius-sm) border ${
-                        pris ? 'border-(--color-vert) bg-(--color-vert) text-(--color-fond)' : 'border-white/25'
-                      }`}
-                    >
-                      {pris && '✓'}
-                    </span>
-                    {c.libelle}
-                  </button>
-                );
-              })}
+
+            <Calendrier choisi={jour} onChoisir={(d) => { setJour(d); setRefus(null); }} />
+
+            <div className="mt-3 flex items-center gap-2">
+              <label className="flex-1">
+                <span className="sr-only">Heure du match</span>
+                <input
+                  type="time"
+                  step={900}
+                  value={heure}
+                  onChange={(e) => { setHeure(e.target.value); setRefus(null); }}
+                  className="w-full rounded-(--radius-sm) bg-(--color-fond)/92 px-3 py-2.5 text-center text-base font-semibold text-(--color-encre) outline-none focus:ring-1 focus:ring-(--color-vert)"
+                />
+              </label>
+              <button
+                type="button"
+                disabled={!jour}
+                onClick={ajouter}
+                className="rounded-(--radius-pill) bg-(--color-vert) px-5 py-2.5 text-sm font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+              >
+                Ajouter
+              </button>
             </div>
+
+            {/* On dit POURQUOI l'ajout n'a pas pris. Un appui sans effet se
+                lit comme une panne. */}
+            {refus && <p className="mt-2 text-xs text-(--color-feu)">{refus}</p>}
+
+            {b.creneaux.length > 0 && (
+              <ul className="mt-3 flex flex-col gap-1.5">
+                {b.creneaux.map((c) => (
+                  <li
+                    key={c.getTime()}
+                    className="flex items-center gap-2 rounded-(--radius-sm) bg-(--color-vert)/12 px-3 py-2"
+                  >
+                    <span className="min-w-0 flex-1 truncate text-sm first-letter:uppercase">
+                      {libelleCreneau(c)}
+                    </span>
+                    <button
+                      type="button"
+                      aria-label={`Retirer ${libelleCreneau(c)}`}
+                      onClick={() => maj('creneaux', retirerCreneau(b.creneaux, c))}
+                      className="grid size-7 shrink-0 place-items-center rounded-full text-(--color-encre-faible)"
+                    >
+                      ×
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
           </Plaque>
 
           <Plaque className="p-4">
@@ -241,7 +277,7 @@ export function CreerMatch({
               rows={3}
               maxLength={MESSAGE_MAX}
               aria-label="Un mot sur le match"
-              className="w-full resize-none rounded-(--radius-sm) bg-black/45 p-3 text-sm text-(--color-encre) outline-none placeholder:text-(--color-encre-faible) focus:ring-1 focus:ring-(--color-vert)"
+              className="w-full resize-none rounded-(--radius-sm) bg-(--color-fond)/92 p-3 text-sm text-(--color-encre) outline-none placeholder:text-(--color-encre-faible) focus:ring-1 focus:ring-(--color-vert)"
               placeholder="Match chill, bon esprit, venez motivés !"
             />
             <p className="mt-1 text-right text-[11px] text-(--color-encre-faible) tabular-nums">
@@ -313,8 +349,8 @@ export function CreerMatch({
                 duree: b.duree,
                 niveau: b.niveau,
                 message: b.message.trim(),
-                creneauxProposes: b.creneaux.map((i) => ({
-                  date: creneaux[i].date,
+                creneauxProposes: b.creneaux.map((date) => ({
+                  date,
                   lieu: b.lieu as string,
                 })),
               })

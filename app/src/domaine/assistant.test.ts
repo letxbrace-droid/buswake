@@ -6,12 +6,13 @@ import {
 } from './assistant';
 
 const s = (p: Partial<Saisie> = {}): Saisie => ({ ...SAISIE_VIDE, ...p });
-const complete = s({ creneaux: [0, 2], lieu: 'LE FIVE Morangis' });
+const d = (n: number) => new Date(2026, 9, n, 19, 0);
+const complete = s({ creneaux: [d(1), d(3)], lieu: 'LE FIVE Morangis' });
 
 describe('manqueA', () => {
   it('dit ce qui manque, étape par étape', () => {
     expect(manqueA('infos', s())).toBe('Coche au moins un créneau');
-    expect(manqueA('lieu', s({ creneaux: [0] }))).toBe('Choisis un terrain');
+    expect(manqueA('lieu', s({ creneaux: [d(1)] }))).toBe('Choisis un terrain');
     expect(manqueA('joueurs', s({ joueursMax: 1 }))).toContain('2 et 40');
     expect(manqueA('publier', s({ message: 'x'.repeat(MESSAGE_MAX + 1) }))).toContain('maximum');
   });
@@ -34,8 +35,8 @@ describe('manqueA', () => {
   // La règle serveur borne les créneaux à dix : la dire ici aussi évite le
   // même refus opaque.
   it('refuse plus de dix créneaux', () => {
-    expect(etapeComplete('infos', s({ creneaux: Array.from({ length: 11 }, (_, i) => i) }))).toBe(false);
-    expect(etapeComplete('infos', s({ creneaux: Array.from({ length: 10 }, (_, i) => i) }))).toBe(true);
+    expect(etapeComplete('infos', s({ creneaux: Array.from({ length: 11 }, (_, i) => d(i + 1)) }))).toBe(false);
+    expect(etapeComplete('infos', s({ creneaux: Array.from({ length: 10 }, (_, i) => d(i + 1)) }))).toBe(true);
   });
 
   it('borne l’effectif comme les règles', () => {
@@ -71,7 +72,7 @@ describe('navigation', () => {
 
   it('nomme la première étape incomplète', () => {
     expect(premiereIncomplete(s())).toBe('infos');
-    expect(premiereIncomplete(s({ creneaux: [0] }))).toBe('lieu');
+    expect(premiereIncomplete(s({ creneaux: [d(1)] }))).toBe('lieu');
     expect(premiereIncomplete(complete)).toBeNull();
   });
 });
@@ -79,7 +80,7 @@ describe('navigation', () => {
 describe('peutPublier', () => {
   it('exige TOUTES les étapes, pas seulement la dernière', () => {
     expect(peutPublier(complete)).toBe(true);
-    expect(peutPublier(s({ creneaux: [0] }))).toBe(false);
+    expect(peutPublier(s({ creneaux: [d(1)] }))).toBe(false);
     expect(peutPublier(s({ lieu: 'X' }))).toBe(false);
   });
 });

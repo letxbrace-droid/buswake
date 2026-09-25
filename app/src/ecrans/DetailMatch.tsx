@@ -226,7 +226,7 @@ export function DetailMatch({
                   {gagne && voix > 0 && (
                     <span // Fond noir et non une teinte du vert sous du vert : mesuré à 3.85:1,
                       // sous le seuil — le même piège que la pastille de tier.
-                      className="shrink-0 rounded-(--radius-pill) bg-black/45 px-2 py-0.5 text-[10px] font-semibold text-(--color-vert)">
+                      className="shrink-0 rounded-(--radius-pill) bg-(--color-fond)/92 px-2 py-0.5 text-[10px] font-semibold text-(--color-vert)">
                       EN TÊTE
                     </span>
                   )}

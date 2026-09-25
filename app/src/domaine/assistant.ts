@@ -9,7 +9,13 @@
  * le vote qui tranche. La maquette montre une date unique ; ce serait retirer
  * le mécanisme sur lequel le produit est bâti — « coche-en plusieurs, le vote
  * tranchera » est la promesse de l'écran d'accueil, et un match à cinq se cale
- * rarement du premier coup. L'étape 1 propose donc des créneaux, au pluriel.
+ * rarement du premier coup.
+ *
+ * En revanche les créneaux ne sont plus IMPOSÉS. L'étape 1 offrait cinq
+ * propositions calculées (« vendredi 19h, samedi 14h… ») : un raccourci pour
+ * les cas courants, mais quelqu'un qui joue le mardi à 21 h n'avait aucun
+ * moyen de le dire. On choisit maintenant ses dates au calendrier, et son
+ * heure — autant qu'on veut, dans la limite des dix que les règles posent.
  *
  * L'état est PUR : la validation par étape, l'étape atteignable, ce qui
  * manque. C'est ce qui permet de l'éprouver sans monter un formulaire.
@@ -55,7 +61,9 @@ export const LIBELLES_NIVEAU: Record<NiveauMatch, string> = {
 export const MESSAGE_MAX = 200;
 
 export interface Saisie {
-  readonly creneaux: readonly number[];
+  /** Les créneaux proposés, en dates pleines. C'étaient des INDICES dans une
+   *  liste de suggestions : ça interdisait de proposer autre chose. */
+  readonly creneaux: readonly Date[];
   readonly duree: Duree;
   readonly lieu: string | null;
   readonly joueursMax: number;

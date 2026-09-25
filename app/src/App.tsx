@@ -348,7 +348,7 @@ function Coque() {
               <button
                 onClick={() => setReglages(true)}
                 aria-label="Réglages"
-                className="fixed top-3 right-3 z-30 grid size-10 place-items-center rounded-full bg-black/45 text-(--color-encre-sec) backdrop-blur-md"
+                className="fixed top-3 right-3 z-30 grid size-10 place-items-center rounded-full bg-(--color-fond)/92 text-(--color-encre-sec) backdrop-blur-md"
                 style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
               >
                 <span aria-hidden className="text-lg leading-none">⋯</span>
