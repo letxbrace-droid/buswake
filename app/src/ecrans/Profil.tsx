@@ -16,7 +16,7 @@ export interface ProfilJoueur extends Joueur {
   readonly noteCount?: number;
 }
 
-export function Profil({ j }: { j: ProfilJoueur }) {
+export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => void }) {
   const p = progressionDe(j.xp);
   const s = j.stats ?? {};
   const note = noteMoyenne(j.noteSum ?? 0, j.noteCount ?? 0);
@@ -27,9 +27,22 @@ export function Profil({ j }: { j: ProfilJoueur }) {
         Profil
       </h1>
 
-      <div className="mb-5">
+      <div className="mb-3">
         <CarteFut j={j} largeur={280} />
       </div>
+
+      {/* La carte se modifie. `majProfil` existait et aucun écran ne
+          l'appelait : poste, atouts et code postal étaient figés à
+          l'inscription. */}
+      {onModifier && (
+        <button
+          type="button"
+          onClick={onModifier}
+          className="mx-auto mb-5 block rounded-(--radius-pill) bg-white/10 px-5 py-2.5 text-sm font-medium"
+        >
+          Modifier ma carte
+        </button>
+      )}
 
       {/* LA NOTE MOYENNE. Elle n'apparaît que si quelqu'un a noté : « 0,0 »
           à côté du nom de quelqu'un qui vient d'arriver serait faux, et

@@ -45,6 +45,7 @@ const ROUTES = [
   { nom: 'club', hash: '#/club' },
   { nom: 'classement', hash: '#/classement' },
   { nom: 'profil', hash: '#/profil' },
+  { nom: 'profil-modifier', hash: '#/profil/modifier' },
   { nom: 'detail-match', hash: '#/match/d2' },
   { nom: 'terminer', hash: '#/match/d2/terminer' },
   // Un panneau qui ne s'ouvre qu'au clic n'est jamais mesuré si le harnais
@@ -375,7 +376,18 @@ async function sondeChamps(page) {
     };
     const fautifs = [];
     for (const el of document.querySelectorAll('input, textarea, select')) {
-      if (el.type === 'hidden' || el.type === 'checkbox' || el.type === 'radio') continue;
+      // Seuls les contrôles de SAISIE ont une surface qui peut disparaître :
+      // un champ vide et translucide ne montre plus que la photo derrière.
+      // Un curseur, une case, un bouton n'ont pas d'état vide — ce qu'on voit
+      // est leur piste, leur coche, leur libellé, dessinés par le navigateur.
+      // Les curseurs de « Ma carte » ont été signalés « fond à 0 % » alors
+      // qu'ils étaient parfaitement visibles : la sonde mesurait une surface
+      // qui n'existe pas. On corrige la portée de la sonde, pas l'écran —
+      // rendre opaque le fond d'un curseur pour la satisfaire, ce serait
+      // obéir au chiffre en trahissant son intention.
+      const NON_SAISIE = ['hidden', 'checkbox', 'radio', 'range', 'color', 'file',
+        'button', 'submit', 'reset', 'image'];
+      if (NON_SAISIE.includes(el.type)) continue;
       const r = el.getBoundingClientRect();
       if (r.width < 4 || r.height < 4) continue;
       const a = alpha(getComputedStyle(el).backgroundColor);

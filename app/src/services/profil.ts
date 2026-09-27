@@ -34,9 +34,15 @@ export function ecouterProfil(
 export interface ModifProfil {
   pseudo?: string;
   posteFavori?: string;
-  codePostal?: string | null;
   atouts?: { vitesse: number; dribble: number; frappe: number; defense: number; physique: number };
   profilComplet?: boolean;
+  club?: string | null;
+  /** Le domicile, en centre de commune ou en position floutée à ~2 km —
+   *  jamais en coordonnées exactes : ce document est lisible par tout
+   *  joueur connecté. */
+  domicileLat?: number | null;
+  domicileLon?: number | null;
+  codePostal?: string | null;
 }
 
 export async function majProfil(uid: string, champs: ModifProfil): Promise<void> {

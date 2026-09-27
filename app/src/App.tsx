@@ -9,6 +9,7 @@ import { dejaAccueilli, marquerAccueilli } from './services/premierLancement';
 import type { Connexion, Inscription } from './domaine/auth';
 import { ouAller } from './domaine/entree';
 import { usePush } from './services/usePush';
+import { useRattrapageDomicile } from './services/useRattrapageDomicile';
 import { Icone } from './composants/Icone';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
@@ -21,6 +22,7 @@ const EquipesBranche = lazy(() => import('./conteneurs/EquipesBranche').then((m)
 const MonClubBranche = lazy(() => import('./conteneurs/MonClubBranche').then((m) => ({ default: m.MonClubBranche })));
 const ClassementBranche = lazy(() => import('./conteneurs/ClassementBranche').then((m) => ({ default: m.ClassementBranche })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
+const EditerProfil = lazy(() => import('./conteneurs/EditerProfilBranche').then((m) => ({ default: m.EditerProfilBranche })));
 const DetailMatch = lazy(() => import('./conteneurs/DetailMatchBranche').then((m) => ({ default: m.DetailMatchBranche })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 const Accueillir = lazy(() => import('./ecrans/Accueillir').then((m) => ({ default: m.Accueillir })));
@@ -123,8 +125,9 @@ function Coque() {
   const lieu = useLocation();
   const chemin = lieu.pathname;
   const naviguer = useNavigate();
-  const { uid, fournisseurs, enAttente } = useSession();
+  const { uid, fournisseurs, email, enAttente } = useSession();
   const { profil } = useProfil(uid, profilDemo ?? undefined);
+  useRattrapageDomicile(uid, profil);
   const [accueilli, setAccueilli] = useState(dejaAccueilli);
   const toast = useToast();
   const push = usePush(uid, useCallback((t: string, c: string) => toast(c ? `${t} — ${c}` : t), [toast]));
@@ -208,6 +211,14 @@ function Coque() {
                 }
               />
               <Route
+                path="/profil/modifier"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    {profil && uid && <EditerProfil uid={uid} profil={profil} email={email} />}
+                  </Suspense>
+                }
+              />
+              <Route
                 path="/profil"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
@@ -224,6 +235,7 @@ function Coque() {
                           noteSum: profil.noteSum,
                           noteCount: profil.noteCount,
                         }}
+                        onModifier={() => naviguer('/profil/modifier')}
                       />
                     )}
                   </Suspense>

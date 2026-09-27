@@ -6,6 +6,9 @@ export interface Session {
    *  décide si « changer mon mot de passe » a un sens. Figé en
    *  développement, où Firebase n'est pas joignable. */
   readonly fournisseurs: readonly string[];
+  /** Sert à une seule chose : refuser un pseudo égal à l'e-mail, que les
+   *  règles refusent aussi — il s'afficherait dans le classement de tous. */
+  readonly email: string | null;
   /** Vrai tant qu'on ne SAIT pas encore. C'est la distinction qui compte :
    *  « pas encore chargé » n'est pas « déconnecté ». Les confondre fait
    *  clignoter l'écran de connexion devant quelqu'un qui est connecté. */
@@ -14,7 +17,7 @@ export interface Session {
 
 export function useSession(): Session {
   const [session, setSession] = useState<Session>({
-    uid: null, fournisseurs: [], enAttente: true,
+    uid: null, fournisseurs: [], email: null, enAttente: true,
   });
 
   useEffect(() => {
@@ -23,7 +26,7 @@ export function useSession(): Session {
     // `import.meta.env.DEV` est une constante à la compilation — ce bloc
     // n'existe pas dans le bundle de production.
     if (import.meta.env.DEV) {
-      setSession({ uid: 'u1', fournisseurs: ['password'], enAttente: false });
+      setSession({ uid: 'u1', fournisseurs: ['password'], email: 'sam@exemple.fr', enAttente: false });
       return;
     }
     // IMPORT DYNAMIQUE, et ce n'est pas un détail de style : importer
@@ -40,6 +43,7 @@ export function useSession(): Session {
         setSession({
           uid: u?.uid ?? null,
           fournisseurs: u?.providerData.map((p) => p.providerId) ?? [],
+          email: u?.email ?? null,
           enAttente: false,
         }),
       );
