@@ -47,7 +47,7 @@ service cloud.firestore {
     // est une règle distincte, et un document neuf n'a rien à gonfler.
     function champsDeJeu() {
       return ['xp', 'badges', 'stats', 'noteSum', 'noteCount',
-              'presences', 'lapins', 'streak'];
+              'presences', 'lapins', 'streak', '_gains'];
     }
     // Ce qu'un AUTRE joueur peut modifier : uniquement le social.
     // Une demande d'ami s'écrit forcément chez quelqu'un d'autre.
@@ -56,10 +56,31 @@ service cloud.firestore {
         .hasOnly(['friends', 'friendRequestsSent', 'friendRequestsReceived']);
     }
 
+    // Un compte NAÎT à zéro. `create` est une règle distincte d'`update` :
+    // sans cette garde, supprimer son profil (permis) puis le recréer avec
+    // `xp: 999999` contournait `champsDeJeu()` en deux écritures. Les
+    // statistiques sont une table : on nomme ses clés et on exige zéro sur
+    // chacune, les règles ne savent pas itérer une table.
+    function compteNeuf() {
+      let d = request.resource.data;
+      let st = d.get('stats', {});
+      return d.get('xp', 0) == 0
+        && d.get('badges', []).size() == 0
+        && d.get('noteSum', 0) == 0 && d.get('noteCount', 0) == 0
+        && d.get('presences', 0) == 0 && d.get('lapins', 0) == 0
+        && d.get('streak', 0) == 0
+        && !('_gains' in d)
+        && st is map
+        && st.keys().hasOnly(['matchsJoues', 'victoires', 'hommeDuMatch', 'buts', 'passes'])
+        && st.get('matchsJoues', 0) == 0 && st.get('victoires', 0) == 0
+        && st.get('hommeDuMatch', 0) == 0 && st.get('buts', 0) == 0
+        && st.get('passes', 0) == 0;
+    }
+
     // Utilisateurs : lecture pour les connectés (classement).
     match /users/{uid} {
       allow read: if isSignedIn();
-      allow create: if isOwner(uid) && validUserData();
+      allow create: if isOwner(uid) && validUserData() && compteNeuf();
       // Le propriétaire modifie son profil — mais pas son score.
       allow update: if isOwner(uid) && validUserData()
         && !request.resource.data.diff(resource.data).affectedKeys().hasAny(champsDeJeu());
@@ -102,6 +123,38 @@ service cloud.firestore {
                  .affectedKeys().hasOnly([request.auth.uid]));
     }
 
+    // Une table { uid: valeur } écrite par le créateur (buts, passes,
+    // présences) : une table, et pas plus d'entrées qu'un match n'a de
+    // places. Les règles ne savent pas parcourir ses valeurs ; c'est
+    // `gainsFinDeMatch` qui refuse un total de buts supérieur au score.
+    function tableBornee(champ) {
+      let d = request.resource.data;
+      return d.get(champ, null) == null
+        || (d[champ] is map && d[champ].size() <= 40);
+    }
+    function scoreBorne(champ) {
+      let d = request.resource.data;
+      return d.get(champ, null) == null
+        || (d[champ] is int && d[champ] >= 0 && d[champ] <= 99);
+    }
+    // Ce que tout document match doit respecter, qui qu'en soit l'auteur.
+    // Les listes fermées sont les MÊMES que `MatchSchema` côté client
+    // (app/src/domaine/schemas.ts) : en changer une sans l'autre, et la
+    // création échoue en « permission denied ».
+    function champsMatchValides() {
+      let d = request.resource.data;
+      return (!('duree' in d)
+               || (d.duree is int && d.duree >= 30 && d.duree <= 240))
+        && (!('niveau' in d)
+               || d.niveau in ['tous', 'debutant', 'intermediaire', 'confirme'])
+        // Effectif : borné. Sans plafond, un match à 10 000 places ferait
+        // exploser les listes et les notifications côté serveur.
+        && (!('joueursMax' in d)
+               || (d.joueursMax is int && d.joueursMax >= 2 && d.joueursMax <= 40))
+        && scoreBorne('scoreA') && scoreBorne('scoreB')
+        && tableBornee('buts') && tableBornee('passes') && tableBornee('attendance');
+    }
+
     match /matchs/{matchId} {
       // Lecture d'UN match par son identifiant : tout connecté.
       // C'est ce qui fait marcher le lien d'invitation — un match « sur
@@ -132,12 +185,16 @@ service cloud.firestore {
                 && request.resource.data.message.size() <= 200))
         // Visibilité : uniquement les deux valeurs que le produit connaît.
         && request.resource.data.get('visibilite', 'public') in ['public', 'prive']
-        // Effectif : borné. Sans plafond, un match à 10 000 places ferait
-        // exploser les listes et les notifications côté serveur.
-        && (!('joueursMax' in request.resource.data)
-            || (request.resource.data.joueursMax is int
-                && request.resource.data.joueursMax >= 2
-                && request.resource.data.joueursMax <= 40))
+        && champsMatchValides()
+        // Un match naît SANS résultat. La v1 posait ces champs à `null`,
+        // ce qui reste permis ; une valeur, non — ce serait un match
+        // terminé avant d'avoir été joué.
+        && request.resource.data.get('scoreA', null) == null
+        && request.resource.data.get('scoreB', null) == null
+        && request.resource.data.get('buts', null) == null
+        && request.resource.data.get('passes', null) == null
+        && request.resource.data.get('attendance', null) == null
+        && request.resource.data.get('hommeDuMatchUid', null) == null
         // Créneaux : au plus dix. Les règles ne savent pas parcourir une
         // liste pour borner le nom de chaque lieu ; ce nom vient d'un
         // géocodeur tiers et s'affiche à tous les participants, sa
@@ -161,7 +218,8 @@ service cloud.firestore {
       allow update: if isSignedIn() && managesMatch() && pasDeMarqueurs()
         && request.resource.data.get('createurUid', null)
              == resource.data.get('createurUid', null)
-        && request.resource.data.statut in ['sondage', 'confirmé', 'terminé'];
+        && request.resource.data.statut in ['sondage', 'confirmé', 'terminé']
+        && champsMatchValides();
       // Participation par les autres joueurs.
       allow update: if isSignedIn() && onlyParticipation();
       // Suppression : le créateur, l'admin (maintenance), ou tout connecté

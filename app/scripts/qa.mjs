@@ -47,6 +47,7 @@ const ROUTES = [
   { nom: 'profil', hash: '#/profil' },
   { nom: 'profil-modifier', hash: '#/profil/modifier' },
   { nom: 'detail-match', hash: '#/match/d2' },
+  { nom: 'detail-confirme', hash: '#/match/d3' },
   { nom: 'terminer', hash: '#/match/d2/terminer' },
   // Un panneau qui ne s'ouvre qu'au clic n'est jamais mesuré si le harnais
   // ne sait que naviguer. `ouvrir` lui dit quoi cliquer avant de mesurer.

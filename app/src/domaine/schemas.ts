@@ -58,8 +58,8 @@ export const MatchSchema = z.object({
    *  décoratif — « 5 km » affichait des matchs à n'importe quelle distance. */
   lieuCoords: CoordsSchema.nullish(),
   /** Durée en minutes. `catch` plutôt que `nullish` : un document ancien n'en
-   *  porte pas, et un client bricolé peut y mettre n'importe quoi — la borne
-   *  est ici parce que les règles ne la posent pas. */
+   *  porte pas. Les règles bornent désormais l'écriture (30–240) ; la borne
+   *  reste ici pour les documents écrits avant elles. */
   duree: z.number().int().min(30).max(240).catch(60),
   /** Niveau attendu. Borné À LA LECTURE : sans ça, un client bricolé pourrait
    *  écrire une chaîne de dix kilo-octets qui s'afficherait dans le fil de
@@ -67,6 +67,13 @@ export const MatchSchema = z.object({
   niveau: z.enum(['tous', 'debutant', 'intermediaire', 'confirme']).catch('tous'),
   /** Le mot du créateur. Les règles le bornent déjà à 200 à l'écriture. */
   message: z.string().max(200).catch(''),
+  /** Le grand livre du serveur. On n'en garde QU'UNE clé : `refus`, la raison
+   *  pour laquelle `gainsFinDeMatch` n'a rien payé. Le reste (qui a été payé,
+   *  combien) ne regarde pas l'écran, et Zod le supprime. */
+  _xp: z
+    .object({ refus: z.enum(['date', 'avance', 'antidate', 'effectif']).optional().catch(undefined) })
+    .optional()
+    .catch(undefined),
 });
 export type Match = z.infer<typeof MatchSchema>;
 

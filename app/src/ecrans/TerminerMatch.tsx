@@ -5,12 +5,16 @@ import {
   SCORE_MAX, totalCompteur, validerResultat, type Compteurs, type Resultat,
 } from '../domaine/fin';
 import { initiales } from '../domaine/joueur';
+import { avertissementEffectif } from '../domaine/garde';
 import type { Camp } from '../domaine/composition';
 
 export function TerminerMatch({
-  inscrits, pseudos, camps, onValider, occupe = false,
+  inscrits, joueursMax = 10, pseudos, camps, onValider, occupe = false,
 }: {
   inscrits: readonly string[];
+  /** L'effectif prévu : c'est lui qui fixe le minimum de présents pour que
+   *  le match rapporte quelque chose. */
+  joueursMax?: number;
   pseudos: Record<string, string>;
   camps?: readonly Camp[];
   onValider(r: Resultat): void;
@@ -184,6 +188,16 @@ export function TerminerMatch({
           })}
         </ul>
       </Plaque>
+
+      {/* Trop peu de présents : on n'interdit pas — le match a peut-être
+          vraiment eu lieu, et son score mérite d'être gardé — mais on dit
+          AVANT de valider qu'il ne rapportera rien. Le découvrir après, sur
+          un compteur d'XP qui n'a pas bougé, ressemble à une panne. */}
+      {v.ok && avertissementEffectif({ joueursMax }, bilan.presents.length) && (
+        <p className="mt-3 text-center text-sm text-(--color-or)">
+          {avertissementEffectif({ joueursMax }, bilan.presents.length)}
+        </p>
+      )}
 
       {/* On dit POURQUOI c'est bloqué plutôt que de griser en silence. */}
       {!v.ok && (

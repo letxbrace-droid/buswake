@@ -21,6 +21,10 @@ const ETAPES = [
   ['sondes du site construit', 'node', ['scripts/qa.mjs'], APP],
   ['racine publiée', 'node', ['scripts/verifier-racine.mjs'], APP],
   ['XP côté serveur', process.execPath, [path.join(ICI, 'functions.mjs')], RACINE],
+  // Les règles Firestore contre le vrai moteur (émulateur Java). C'est le
+  // seul contrôle qui dit si une triche est REFUSÉE — les autres ne voient
+  // que ce que le client choisit d'écrire.
+  ['règles Firestore', 'node', ['scripts/regles.mjs'], APP],
 ];
 
 let ko = 0;

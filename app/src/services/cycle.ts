@@ -3,7 +3,8 @@ import { db } from '../firebase/client';
 import { lireMatch, CreerMatchSchema, type CreerMatch, type Match } from '../domaine/schemas';
 import { basculerVote, finVisibleApres, peutConfirmer, quitter, rejoindre, type Votes } from '../domaine/cycle';
 import { versDate } from '../domaine/match';
-import { peutTerminer, validerResultat, type Resultat } from '../domaine/fin';
+import { validerResultat, type Resultat } from '../domaine/fin';
+import { terminableMaintenant } from '../domaine/garde';
 import type { Camp } from '../domaine/composition';
 
 /** Écritures du cycle de vie. Cette couche fait TROIS choses et rien d'autre :
@@ -151,7 +152,10 @@ export async function creer(saisie: CreerMatch, uid: string): Promise<string> {
  *  créateur le pouvoir de distribuer l'XP des autres. */
 export async function terminer(matchId: string, r: Resultat): Promise<void> {
   const m = await relire(matchId);
-  if (!peutTerminer(m)) throw new Error('Seul un match confirmé peut être terminé.');
+  // Terminer trop tôt ne se rattrape pas : le serveur clôt le match sans
+  // payer, et ne repaiera pas une fois l'heure venue.
+  const t = terminableMaintenant(m);
+  if (!t.peut) throw new Error(t.pourquoi);
 
   const v = validerResultat(m.joueursInscrits ?? [], r);
   if (!v.ok) throw new Error(v.probleme);

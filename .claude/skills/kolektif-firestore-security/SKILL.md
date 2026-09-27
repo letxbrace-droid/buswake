@@ -92,16 +92,6 @@ finit dans un attribut SVG, un `style`, une URL ou un sélecteur n'est pas
 protégée par React. C'est ce que fait la règle 4 — identifiants fermés,
 jamais de chaîne libre.
 
-### 7. Toute chaîne affichée passe par `escapeHtml()`
-
-Y compris — surtout — celles qui viennent d'une API tierce. Le nom d'un
-terrain vient de `photon.komoot.io` : c'est de la donnée OpenStreetMap
-libre, stockée telle quelle dans `creneauxProposes[].lieu`, puis affichée
-à tous les participants du match.
-
-Les règles bornent la **longueur** du pseudo (24 caractères) mais pas son
-**contenu** : `<svg onload=…>` tient dans 24 caractères.
-
 ### 8. Déployer les règles est un acte séparé
 
 Modifier `firestore.rules` dans le dépôt ne change **rien** en
@@ -119,7 +109,9 @@ s'applique — y compris sur les nouveaux champs.
 4. **Vérifier la duplication** : toute liste fermée doit correspondre
    exactement à la constante côté client.
 5. **Tester les deux sens** : l'écriture légitime passe, l'écriture
-   illégitime échoue.
+   illégitime échoue. Dans `app/regles/*.test.mjs`, contre l'émulateur :
+   `cd app && npm run regles`. Écrire le test de la triche AVANT la règle,
+   et le voir échouer : c'est la preuve qu'il mord.
 6. **Déployer**, puis vérifier dans la console Firebase que la version
    publiée est bien la nouvelle.
 
@@ -136,6 +128,17 @@ s'applique — y compris sur les nouveaux champs.
 - **Tester uniquement le cas nominal.**
 
 ## Points ouverts connus (à traiter, non corrigés)
+
+0. ~~**Farm du classement par faux matchs.**~~ **Corrigé** côté serveur :
+   coup d'envoi passé et non antidaté, 4 présents minimum, 3 fins de match
+   et 3 créations payées par joueur et par 24 h (`GARDE`, `_gains`). Et un
+   compte ne peut plus **naître** avec de l'XP (`compteNeuf()`).
+
+   **Reste ouvert :** le créateur écrit `joueursInscrits` et `attendance`.
+   Il peut donc inscrire un joueur réel qui n'a rien demandé et le marquer
+   absent — un lapin (−15 XP) infligé à distance. Le corriger demande de
+   savoir QUI a ajouté chaque inscrit (`onDocumentWrittenWithAuthData`).
+
 
 1. ~~**XP et badges modifiables par n'importe quel joueur connecté.**~~
    **Corrigé.** `champsDeJeu()` — `xp`, `badges`, `stats`, `noteSum`,

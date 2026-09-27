@@ -80,11 +80,27 @@ if (import.meta.env.DEV) {
   // finissent par diverger — c'est précisément ce qui est arrivé, avec des
   // identifiants d'un côté et des pseudos de l'autre.
   client.setQueryData(['match', 'd2'], { m: parse(d.DETAIL_DEMO.m), votes: d.DETAIL_DEMO.votes });
+  // Le même match, CONFIRMÉ, vu par son créateur avant le coup d'envoi : c'est
+  // là que vivent « Composer » et « Saisir le score » — le second fermé, avec
+  // sa raison. Sans cette variante, aucune sonde ne mesurerait ce bloc.
+  client.setQueryData(['match', 'd3'], {
+    m: parse({
+      ...d.DETAIL_DEMO.m, id: 'd3', statut: 'confirmé',
+      dateFinale: d.DETAIL_DEMO.m.creneauxProposes[0].date,
+      lieuFinal: d.DETAIL_DEMO.m.creneauxProposes[0].lieu,
+    }),
+    votes: d.DETAIL_DEMO.votes,
+  });
   client.setQueryData(['apres', 'd2'], {
     inscrits: d.APRES_DEMO.inscrits, ratings: {}, votes: d.APRES_DEMO.votes,
   });
   client.setQueryData(['terminer', 'd2'], {
-    m: parse({ ...d.DETAIL_DEMO.m, statut: 'confirmé', joueursInscrits: d.TERMINER_DEMO.inscrits }),
+    // Coup d'envoi il y a deux heures : avant lui, l'écran refuse — à raison —
+    // de saisir un score, et le harnais ne mesurerait qu'un message.
+    m: parse({
+      ...d.DETAIL_DEMO.m, statut: 'confirmé', joueursInscrits: d.TERMINER_DEMO.inscrits,
+      dateFinale: new Date(Date.now() - 2 * 3600_000),
+    }),
     camps: d.TERMINER_DEMO.camps,
   });
   client.setQueryData(['composer', 'd2'], {

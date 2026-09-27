@@ -6,7 +6,8 @@ import { TerminerMatch } from '../ecrans/TerminerMatch';
 import { Plaque } from '../composants/Plaque';
 import { useAction } from '../services/useAction';
 import { terminer } from '../services/cycle';
-import { peutTerminer, type Resultat } from '../domaine/fin';
+import type { Resultat } from '../domaine/fin';
+import { terminableMaintenant } from '../domaine/garde';
 import { lireMatch } from '../domaine/schemas';
 import type { Camp } from '../domaine/composition';
 import { usePseudos } from '../services/usePseudos';
@@ -42,15 +43,12 @@ export function TerminerMatchBranche({ uid }: { uid: string }) {
 
   if (isPending) return null;
   if (!data) return <Message titre="Match introuvable" />;
-  if (!peutTerminer(data.m)) {
+  const t = terminableMaintenant(data.m);
+  if (!t.peut) {
     return (
       <Message
         titre="Ce match ne peut pas être terminé"
-        sous={
-          data.m.statut === 'terminé'
-            ? 'Il est déjà terminé.'
-            : 'Seul un match confirmé se termine — celui-ci cherche encore son créneau.'
-        }
+        sous={data.m.statut === 'terminé' ? 'Il est déjà terminé.' : t.pourquoi}
       />
     );
   }
@@ -58,6 +56,7 @@ export function TerminerMatchBranche({ uid }: { uid: string }) {
   return (
     <TerminerMatch
       inscrits={data.m.joueursInscrits ?? []}
+      joueursMax={data.m.joueursMax}
       pseudos={pseudos}
       camps={data.camps.length ? data.camps : undefined}
       occupe={action.occupe}

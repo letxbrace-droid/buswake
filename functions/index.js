@@ -134,6 +134,68 @@ async function send(map, { title, body, matchId }) {
 // l'après, donc une écriture rejouée à l'identique ne donne rien.
 const XP = { participer: 100, voter: 10, creer: 50, hdm: 200, noter: 10, motm: 15, lapin: -15 };
 
+// ---------- Garde-fous contre le farm ----------
+// Le grand livre `_xp` empêche d'être payé DEUX FOIS par le même match. Il
+// n'empêche pas de fabriquer des matchs : créer, confirmer, s'inscrire avec
+// quelques comptes et terminer dans la minute rapportait 100 XP par tête et
+// 200 au « meilleur joueur », à volonté. Trois gardes, toutes lues sur des
+// données que le client ne peut pas forger :
+//
+//  1. Le match a eu lieu : son coup d'envoi est passé (heure de Paris), et
+//     il était prévu APRÈS la création du document. `createTime` est posé
+//     par Firestore lui-même ; un match antidaté ne paie pas.
+//  2. Il y avait du monde : au moins `presentsMin` présents (ou l'effectif
+//     complet d'un match plus petit que ça).
+//  3. Un joueur n'encaisse pas plus de `parJour` fins de match — ni plus de
+//     `parJour` créations — sur vingt-quatre heures glissantes. C'est le
+//     plafond qui borne ce que les deux premières gardes laissent passer :
+//     un tricheur patient qui attend le coup d'envoi de ses faux matchs.
+//
+// Ces constantes sont recopiées dans `app/src/domaine/garde.ts`, et un test
+// vérifie que les deux côtés concordent : l'écran prévient avec les MÊMES
+// seuils que ceux que le serveur applique.
+const GARDE = { presentsMin: 4, parJour: 3 };
+const JOUR_MS = 24 * 3600000;
+
+function presentsMin(m) {
+  return Math.min(maxJoueurs(m), GARDE.presentsMin);
+}
+
+// Pourquoi une fin de match ne paie pas — ou `null` si elle paie.
+function refusFinDeMatch(m, maintenant, creeMs) {
+  const coup = matchWhen(m).ms;
+  if (!coup) return 'date';
+  if (maintenant < coup) return 'avance';
+  if (creeMs && coup < creeMs) return 'antidate';
+  const att = m.attendance || {};
+  const presents = (m.joueursInscrits || []).filter(u => att[u] !== false);
+  if (presents.length < presentsMin(m)) return 'effectif';
+  return null;
+}
+
+// Les horodatages de gains d'un joueur encore dans la fenêtre de 24 h.
+function recents(liste, maintenant) {
+  return (Array.isArray(liste) ? liste : [])
+    .filter(t => typeof t === 'number' && maintenant - t < JOUR_MS);
+}
+
+// Sépare les joueurs qui peuvent encore encaisser ce type de gain de ceux
+// qui ont atteint le plafond, et réserve la place des premiers. `_gains`
+// est un champ de jeu : les règles le refusent à tout client.
+async function plafonner(uids, type, maintenant) {
+  const libres = [];
+  await Promise.all([...new Set(uids)].filter(Boolean).map(async (uid) => {
+    const ref = db.doc('users/' + uid);
+    const snap = await ref.get().catch(() => null);
+    const d = (snap && snap.exists && snap.data()) || {};
+    const liste = recents((d._gains || {})[type], maintenant);
+    if (liste.length >= GARDE.parJour) return;
+    libres.push(uid);
+    await ref.update({ ['_gains.' + type]: [...liste, maintenant] }).catch(() => {});
+  }));
+  return new Set(libres);
+}
+
 // Accumulateur : un seul update par joueur, même s'il gagne sur deux motifs.
 function ajout(acc, uid, champs) {
   if (!uid) return;
@@ -233,7 +295,7 @@ async function majBadges(uids) {
 // classement se farme en cliquant. Comparer l'avant et l'après ne suffit
 // pas : il faut se souvenir de qui a déjà été payé. C'est le rôle de `_xp`,
 // écrit par l'Admin SDK sur le document match, comme les marqueurs `_notifs`.
-async function gainsCourants(before, after, ref) {
+async function gainsCourants(before, after, ref, maintenant = Date.now()) {
   const acc = new Map();
   const paye = after._xp || {};
   const nouveaux = { votes: [], motm: [], notes: [], creation: [] };
@@ -241,7 +303,8 @@ async function gainsCourants(before, after, ref) {
     || nouveaux[cle].includes(uid);
 
   // Création : +50 au créateur, et le badge organisateur.
-  if (!before && after.createurUid && !(paye.creation || []).includes(after.createurUid)) {
+  if (!before && after.createurUid && !(paye.creation || []).includes(after.createurUid)
+      && (await plafonner([after.createurUid], 'creation', maintenant)).size) {
     ajout(acc, after.createurUid, { xp: XP.creer });
     nouveaux.creation.push(after.createurUid);
     await db.doc('users/' + after.createurUid)
@@ -289,20 +352,34 @@ async function gainsCourants(before, after, ref) {
 
 // Fin de match : présents, absents, homme du match. Protégé par le marqueur
 // `termine`, donc compté une seule fois même si le document est réécrit.
-async function gainsFinDeMatch(m, ref) {
+async function gainsFinDeMatch(m, ref, maintenant = Date.now(), creeMs = 0) {
+  // Un match qui n'a pas eu lieu — ou pas avec assez de monde — ne paie
+  // rien, ni XP, ni statistiques, ni lapin. On note pourquoi sur le match :
+  // l'écran peut l'expliquer au lieu de laisser croire à une panne.
+  const refus = refusFinDeMatch(m, maintenant, creeMs);
+  if (refus) {
+    if (ref) await ref.update({ '_xp.refus': refus }).catch(() => {});
+    return;
+  }
+
   const acc = new Map();
   const inscrits = m.joueursInscrits || [];
   const att = m.attendance || {};
   const presents = inscrits.filter(u => att[u] !== false);
   const absents = inscrits.filter(u => att[u] === false);
+  // Les présents qui ont déjà encaissé leur quota du jour jouent pour rien :
+  // pas d'XP, pas de statistique. Le malus, lui, n'est jamais plafonné.
+  const payes = await plafonner(presents, 'participation', maintenant);
 
-  presents.forEach(u => ajout(acc, u, {
+  presents.filter(u => payes.has(u)).forEach(u => ajout(acc, u, {
     xp: XP.participer, 'stats.matchsJoues': 1, presences: 1, streak: 1,
   }));
   // Le lapin coûte. C'est le seul malus du jeu, et il tient le produit :
   // sans lui, s'inscrire puis ne pas venir est gratuit.
   absents.forEach(u => ajout(acc, u, { xp: XP.lapin, lapins: 1, streak: 0 }));
-  if (m.hommeDuMatchUid) ajout(acc, m.hommeDuMatchUid, { xp: XP.hdm, 'stats.hommeDuMatch': 1 });
+  if (m.hommeDuMatchUid && payes.has(m.hommeDuMatchUid)) {
+    ajout(acc, m.hommeDuMatchUid, { xp: XP.hdm, 'stats.hommeDuMatch': 1 });
+  }
 
   // BUTS ET PASSES. Le créateur les saisit sur le match ; c'est ICI qu'ils
   // deviennent des statistiques de joueur, parce que les règles Firestore
@@ -316,16 +393,28 @@ async function gainsFinDeMatch(m, ref) {
   //
   // Le grand livre `_xp` retient chaque `stats.*` crédité : la suppression
   // du match les reprend donc automatiquement, sans une ligne de plus.
+  //
+  // Les règles bornent la TAILLE de la table, pas ses valeurs : le langage
+  // des règles ne sait pas les additionner. C'est donc ici qu'on refuse une
+  // table qui attribue plus de buts qu'il n'y en a eu au score — toute la
+  // table, pas seulement l'excédent : on ne sait pas quelle ligne est
+  // fausse, et répartir le reste serait inventer.
+  const score = [m.scoreA, m.scoreB]
+    .map(n => Math.floor(Number(n)))
+    .reduce((t, n) => t + (Number.isFinite(n) && n > 0 ? n : 0), 0);
   const compte = (table, champ) => {
+    const lignes = [];
     for (const [uid, n] of Object.entries(table || {})) {
       // Un absent ne peut pas avoir marqué. Le client le refuse déjà, mais
       // ce trigger ne fait confiance à personne : il lit un document que
       // n'importe quel créateur a pu écrire.
-      if (!presents.includes(uid)) continue;
+      if (!presents.includes(uid) || !payes.has(uid)) continue;
       const v = Math.floor(Number(n));
       if (!Number.isFinite(v) || v <= 0) continue;
-      ajout(acc, uid, { [champ]: Math.min(20, v) });
+      lignes.push([uid, v]);
     }
+    if (lignes.reduce((t, [, v]) => t + v, 0) > score) return;
+    lignes.forEach(([uid, v]) => ajout(acc, uid, { [champ]: Math.min(20, v) }));
   };
   compte(m.buts, 'stats.buts');
   compte(m.passes, 'stats.passes');
@@ -362,6 +451,10 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   // L'XP d'abord : les branches de notification se terminent par `return`,
   // et une écriture qui déclenche une notif donne souvent aussi de l'XP.
   await gainsCourants(before, after, ref).catch(() => {});
+  // Date de création du document, posée par Firestore : le client ne peut
+  // pas la forger, contrairement à un champ `creeLe` qu'il écrirait.
+  const cree = event.data.after.createTime;
+  const creeMs = (cree && typeof cree.toMillis === 'function') ? cree.toMillis() : 0;
 
   // 1. Nouveau sondage → tout le monde sauf le créateur.
   if (!before && after.statut === 'sondage') {
@@ -428,7 +521,7 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
     // garantit aussi qu'on ne compte le match qu'UNE fois, même si le
     // document est réécrit ensuite.
     await majBilanEquipes(after);
-    await gainsFinDeMatch(after, ref);
+    await gainsFinDeMatch(after, ref, Date.now(), creeMs);
     const map = await collectTokens(after.joueursInscrits || []);
     await send(map, {
       title: 'Match terminé 🏁',

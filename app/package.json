@@ -15,7 +15,8 @@
     "qa": "vite build && node scripts/qa.mjs",
     "check:all": "tsc -b && oxlint src && vitest run && vite build && node scripts/qa.mjs",
     "deployer": "vite build && node scripts/deployer.mjs && node scripts/verifier-racine.mjs",
-    "verifier-racine": "node scripts/verifier-racine.mjs"
+    "verifier-racine": "node scripts/verifier-racine.mjs",
+    "regles": "node scripts/regles.mjs"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.9.1",
@@ -30,6 +31,7 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^5.0.2",
     "@tailwindcss/vite": "^4.3.3",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",

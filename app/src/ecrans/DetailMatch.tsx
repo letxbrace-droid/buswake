@@ -10,6 +10,7 @@ import { Icone } from '../composants/Icone';
 import { YAller } from '../composants/YAller';
 import { Avatar, RangeeJoueurs } from '../composants/Avatar';
 import { LIBELLES_NIVEAU } from '../domaine/assistant';
+import { EXPLICATION_REFUS, terminableMaintenant } from '../domaine/garde';
 import {
   ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, nomDuLieu,
   type Ambiance,
@@ -41,6 +42,9 @@ export interface ActionsMatch {
   onConfirmer(index: number): void;
   onSupprimer(): void;
   onPartager(): void;
+  onComposer(): void;
+  onTerminer(): void;
+  onNoter(): void;
 }
 
 export function DetailMatch({
@@ -63,6 +67,9 @@ export function DetailMatch({
   const place = placeEnRejoignant(m, uid);
   const dedans = place === 'deja-titulaire' || place === 'deja-banc';
   const createur = m.createurUid === uid;
+  const joue = inscrits.includes(uid);
+  const terminable = terminableMaintenant(m);
+  const refus = m._xp?.refus;
   const [confirme, setConfirme] = useState(false);
   // Rejouer le geste quand l'effectif change : quelqu'un vient d'arriver.
   const entree = useEntree(inscrits.length);
@@ -262,6 +269,61 @@ export function DetailMatch({
                 </p>
               )}
             </>
+          )}
+        </Plaque>
+      )}
+
+      {/* LA SUITE DU MATCH. Composer, terminer et noter avaient chacun leur
+          écran — et aucun bouton n'y menait. Un match confirmé ne pouvait
+          donc jamais être terminé depuis l'app, et personne n'était payé. */}
+      {m.statut === 'confirmé' && createur && (
+        <Plaque className="mb-3 p-4">
+          <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            Organisation
+          </p>
+          <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              disabled={occupe}
+              onClick={actions.onComposer}
+              className="w-full rounded-(--radius-pill) bg-black/30 py-3 text-sm font-medium disabled:opacity-50"
+            >
+              Composer les équipes
+            </button>
+            <button
+              type="button"
+              disabled={occupe || !terminable.peut}
+              onClick={actions.onTerminer}
+              className="w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+            >
+              Saisir le score
+            </button>
+          </div>
+          {/* Terminer trop tôt ne se rattrape pas : le serveur clôt le match
+              sans payer. On ferme le bouton, et on dit jusqu'à quand. */}
+          {!terminable.peut && (
+            <p className="mt-2 text-center text-xs text-(--color-encre-faible)">
+              {terminable.pourquoi}
+            </p>
+          )}
+        </Plaque>
+      )}
+
+      {m.statut === 'terminé' && (joue || refus) && (
+        <Plaque className="mb-3 p-4">
+          {refus && (
+            <p className="mb-3 text-sm text-(--color-encre-sec)">
+              Ce match n’a rapporté ni XP ni statistiques : {EXPLICATION_REFUS[refus]}.
+            </p>
+          )}
+          {joue && (
+            <button
+              type="button"
+              onClick={actions.onNoter}
+              className="w-full rounded-(--radius-pill) bg-(--color-or) py-3 font-semibold text-(--color-fond)"
+            >
+              Noter les joueurs
+            </button>
           )}
         </Plaque>
       )}

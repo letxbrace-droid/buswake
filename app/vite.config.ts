@@ -102,5 +102,8 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: './src/test-setup.ts',
+    // `regles/` se joue contre l'émulateur Firestore (scripts/regles.mjs),
+    // avec le lanceur de Node : sans émulateur, Vitest ne peut que s'y casser.
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 });

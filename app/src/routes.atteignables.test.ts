@@ -47,10 +47,18 @@ describe('routes atteignables', () => {
   });
 
   it.each(routes)('on peut arriver sur %s depuis l’app', (route) => {
-    // Une route paramétrée se rejoint par un gabarit : `/match/:id` se
-    // construit avec `/match/${id}`. On compare sur le préfixe stable.
-    const base = route.split('/:')[0];
-    const echappe = base.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    // Une route paramétrée se rejoint par un gabarit : `/match/:id/terminer`
+    // se construit avec `/match/${id}/terminer`. On compare le chemin ENTIER,
+    // chaque paramètre remplacé par une interpolation. Comparer le seul
+    // préfixe (`/match`) laissait passer trois écrans — composer, terminer,
+    // noter — vers lesquels aucun bouton ne menait : le moindre lien vers la
+    // fiche d'un match suffisait à les déclarer tous atteignables.
+    const motif = route
+      .split(/(:[a-zA-Z]+)/)
+      .map((morceau) =>
+        morceau.startsWith(':') ? '\\$\\{[^}]+\\}' : morceau.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      )
+      .join('');
 
     // Le critère : le chemin apparaît QUELQUE PART AILLEURS que dans sa
     // propre déclaration `path="…"`. Un lien direct (`to="/x"`), une
@@ -58,8 +66,8 @@ describe('routes atteignables', () => {
     // ce chemin (`ouAller` rend '/bienvenue') comptent toutes — viser les
     // seules formes littérales rejetait `/bienvenue`, qui est pourtant
     // parfaitement atteignable.
-    const toutes = tout.match(new RegExp(`["'\`]${echappe}(?=["'\`/])`, 'g')) ?? [];
-    const declarations = app.match(new RegExp(`path="${echappe}(?=["/])`, 'g')) ?? [];
+    const toutes = tout.match(new RegExp(`["'\`]${motif}(?=["'\`?#])`, 'g')) ?? [];
+    const declarations = route.includes(':') ? [] : (app.match(new RegExp(`path="${motif}"`, 'g')) ?? []);
 
     expect(
       toutes.length - declarations.length,

@@ -120,6 +120,9 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
         onConfirmer: confirmer.lancer,
         onSupprimer: supprimer.lancer,
         onPartager: partager.lancer,
+        onComposer: () => aller(`/match/${id}/composer`),
+        onTerminer: () => aller(`/match/${id}/terminer`),
+        onNoter: () => aller(`/match/${id}/apres`),
       }}
     />
   );

@@ -49,11 +49,17 @@ Créé à l'inscription, complété par l'onboarding.
 | `codePostal`, `lat`, `lon` | — | Pour trier les terrains par distance |
 | `xp` | number | Expérience cumulée → rang (voir plus bas) |
 | `badges` | array | Identifiants des badges obtenus |
-| `stats` | objet | `{ matchsJoues, victoires, hommeDuMatch }` |
+| `stats` | objet | `{ matchsJoues, victoires, hommeDuMatch, buts, passes }` — **serveur uniquement** |
 | `streak`, `lapins` | number | Série de présences ; nombre d'absences après inscription |
 | `fcmTokens` | array | Jetons de notification (un par appareil) |
 | `friends` | array | UID des amis (+ `friendRequestsSent` / `friendRequestsReceived`) |
 | `profilComplet` | bool | Onboarding terminé ou non |
+| `_gains` | objet | `{ participation: [ms], creation: [ms] }` — horodatages des gains des dernières 24 h, pour le plafond anti-farm. **Serveur uniquement** |
+
+Un compte **naît à zéro** : la règle `compteNeuf()` refuse une création
+avec de l'XP, des badges, une statistique non nulle ou un `_gains`. Sans
+elle, supprimer son profil (permis) puis le recréer avec `xp: 999999`
+contournait l'interdiction d'écrire son score.
 
 **La note générale (« overall ») n'est pas stockée** — elle est calculée
 à la volée depuis `atouts`, avec les poids d'un milieu de terrain :
@@ -166,14 +172,23 @@ Le cœur du produit.
 |---|---|---|
 | `createurUid` | string | Seul habilité à confirmer / composer / terminer / annuler |
 | `statut` | string | `sondage` → `confirmé` → `terminé` (**accentués** — les règles n'acceptent que ces trois valeurs) |
-| `message` | string \| null | Mot du créateur, visible de tous (140 car. max) |
+| `message` | string \| null | Mot du créateur, visible de tous (200 car. max) |
+| `duree` | int | Minutes, **30 à 240** (règle et schéma) |
+| `niveau` | string | `tous` \| `debutant` \| `intermediaire` \| `confirme` — liste fermée, identique dans `schemas.ts` et `firestore.rules` |
+| `joueursMax` | int | 2 à 40 |
 | `creneauxProposes` | array | `[{ id, date, lieu, lat, lon, votants: [uid] }]` |
 | `joueursInscrits` | array | UID des joueurs engagés |
 | `lieuFinal`, `dateFinale` | — | Renseignés à la confirmation |
 | `equipes` | array | Composition des deux équipes |
-| `scoreA`, `scoreB` | number \| null | Renseignés à la fin |
-| `hommeDuMatchUid` | string \| null | Résultat du vote communautaire |
+| `scoreA`, `scoreB` | int \| null | Renseignés à la fin, **0 à 99** |
+| `hommeDuMatchUid` | string \| null | Désigné par le créateur à la fin |
+| `attendance` | objet | `{ uid: false }` pour un absent ; ≤ 40 entrées |
+| `buts`, `passes` | objet | `{ uid: n }` ; ≤ 40 entrées. Le serveur refuse la table entière si son total dépasse le score |
 | `_notifs` | objet | Marqueurs anti-spam, **écrits par les Functions uniquement** |
+| `_xp` | objet | Grand livre des gains (qui a été payé, combien) et `refus` : pourquoi une fin de match n'a rien payé. **Functions uniquement** |
+
+Un match **naît sans résultat** : score, buts, passes, présences et homme
+du match doivent être absents (ou `null`, forme de la v1) à la création.
 
 ### `matchs/{matchId}/messages/{msgId}`
 
@@ -205,13 +220,15 @@ jouer.
 inscrits** (`MIN_CONFIRM`, aligné client et serveur). Elle fige
 `lieuFinal` et `dateFinale`.
 
-**Terminé.** Le créateur saisit le score. S'ouvrent alors la notation
-entre joueurs (qui fait évoluer les `atouts`) et le vote « homme du
-match ».
+**Terminé.** Le créateur saisit le score depuis la fiche du match
+(« Saisir le score »), **une fois le coup d'envoi passé** — avant, le
+bouton est fermé et dit pourquoi : le serveur refuserait de payer et ne
+repaierait pas plus tard. S'ouvre alors la notation entre joueurs
+(« Noter les joueurs » sur la fiche).
 
-**Règle d'unicité :** un joueur ne peut être inscrit qu'à **un seul
-match actif** à la fois. Vérifié côté client *et* re-vérifié au moment
-de la création.
+**Règle d'unicité :** écrite (`peutCreerUnMatch`, testée) mais **pas
+appliquée** — aucun écran ne l'appelle aujourd'hui. L'appliquer est une
+décision produit en attente.
 
 ---
 
@@ -300,13 +317,21 @@ peut écrire que ce qui le concerne**.
     confirmer, ni annuler.
 - **`messages`** — un message appartient à son auteur.
 
-**Injection.** Toute chaîne venue d'un utilisateur *ou d'une API tierce*
-passe par `escapeHtml()` avant d'atteindre un `innerHTML`. Le cas le
-moins évident est le nom d'un terrain : il vient du géocodeur
-`photon.komoot.io`, c'est de la donnée OpenStreetMap libre, stockée telle
-quelle puis affichée à tous les participants du match. Les règles bornent
-la **longueur** d'un pseudo (24 caractères) mais pas son **contenu**, et
-`<svg onload=…>` tient dans 24 caractères.
+- **Champs d'un match** — `champsMatchValides()` borne, à la création
+  comme à chaque modification par le créateur : `duree`, `niveau` (liste
+  fermée), `joueursMax`, les scores (0–99), et la taille des tables
+  `buts`, `passes`, `attendance` (≤ 40).
+
+**Éprouvées, pas relues.** `app/regles/*.test.mjs` joue chaque règle
+dans les deux sens — l'écriture légitime passe, la triche est refusée —
+contre l'émulateur Firestore officiel (`npm run regles`, lancé par
+`tout.mjs`). Java est requis ; le jar (~65 Mo) est mis en cache dans
+`~/.cache/kolektif` au premier lancement.
+
+**Injection.** React échappe `{expression}` par construction, et
+`app/src/` ne contient aucun `dangerouslySetInnerHTML`. Ce qui reste à
+surveiller : une chaîne venue d'un joueur ou d'un tiers qui finirait dans
+un attribut SVG, un `style` ou une URL — d'où les listes fermées.
 
 > ⚠️ Les règles ne s'appliquent **qu'une fois déployées**
 > (`firebase deploy --only firestore:rules`). Le fichier dans le dépôt
@@ -347,6 +372,22 @@ la **longueur** d'un pseudo (24 caractères) mais pas son **contenu**, et
 | 4 000 | Légende |
 
 Le passage d'un palier déclenche un toast « Level up ! ».
+
+**Garde-fous contre le farm** (`gainsFinDeMatch`, `gainsCourants`).
+Le grand livre `_xp` empêche d'être payé deux fois par le même match ; il
+n'empêche pas de *fabriquer* des matchs. Une fin de match ne paie donc —
+ni XP, ni statistiques, ni lapin — que si :
+
+1. son **coup d'envoi est passé**, et il était prévu **après** la création
+   du document (`createTime`, posé par Firestore, infalsifiable) ;
+2. au moins **4 présents** (ou l'effectif complet d'un match plus petit) ;
+3. et chaque joueur n'encaisse que **3 fins de match** et **3 créations**
+   par 24 h glissantes (`users/{uid}._gains`). Le lapin, lui, n'est jamais
+   plafonné.
+
+Un refus est noté dans `_xp.refus` et expliqué sur la fiche du match.
+Les seuils (`GARDE`) sont recopiés dans `app/src/domaine/garde.ts` ; un
+test échoue si les deux côtés divergent.
 
 **Badges** — six paliers : 1er match, 5 matchs, 10 matchs, homme du
 match, organisateur, assidu. Attribués par `majBadges()` dans la Cloud

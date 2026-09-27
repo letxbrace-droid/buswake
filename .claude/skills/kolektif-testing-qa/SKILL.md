@@ -20,6 +20,7 @@ critère qui justifie son existence.
 | unité | `npm test` | la règle métier, sans navigateur |
 | sondes | `npm run qa` | ce qui ne se voit qu'une fois **construit et peint** |
 | racine | `npm run verifier-racine` | ce qui ne se voit qu'une fois **publié** |
+| règles | `npm run regles` | une triche que Firestore **accepterait** — contre l'émulateur officiel (Java requis) |
 
 `tout.mjs` les enchaîne, ajoute l'XP serveur, et renvoie un code de sortie
 unique.
@@ -205,6 +206,7 @@ npm run qa                 # sondes sur le site construit
 npm run qa contraste       # une seule sonde
 npm run verifier-racine    # conformité de la racine publiée
 npm run deployer           # build + publication + vérification
+npm run regles             # règles Firestore contre l'émulateur (Java)
 
 cd ~/buswake
 node .claude/skills/kolektif-testing-qa/scripts/functions.mjs   # XP serveur
