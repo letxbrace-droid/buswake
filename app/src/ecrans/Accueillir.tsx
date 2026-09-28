@@ -44,7 +44,7 @@ export function Accueillir({ onCommencer }: { onCommencer(): void }) {
         <button
           type="button"
           onClick={onCommencer}
-          className="mt-8 w-full rounded-(--radius-pill) bg-(--color-vert) py-4 text-base font-semibold text-(--color-fond) transition-transform duration-(--duration-doigt) active:scale-[0.98]"
+          className="btn btn-vert mt-8 w-full"
         >
           Commencer
         </button>

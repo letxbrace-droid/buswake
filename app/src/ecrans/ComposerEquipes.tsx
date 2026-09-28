@@ -33,7 +33,7 @@ export function ComposerEquipes({
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-1 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-1">
         Composer
       </h1>
       <p className="mb-4 text-xs text-(--color-encre-faible)">
@@ -117,11 +117,7 @@ export function ComposerEquipes({
                 type="button"
                 onClick={() => setChoisi(choisi === u ? null : u)}
                 aria-pressed={choisi === u}
-                className={`rounded-(--radius-pill) px-3 py-1.5 text-sm ${
-                  choisi === u
-                    ? 'bg-(--color-encre) font-semibold text-(--color-fond)'
-                    : 'bg-black/30 text-(--color-encre-sec)'
-                }`}
+                className="puce px-3 py-1.5 text-sm"
               >
                 {nom(u)}
               </button>
@@ -142,7 +138,7 @@ export function ComposerEquipes({
         type="button"
         disabled={occupe}
         onClick={() => onEnregistrer(camps)}
-        className="w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:opacity-60"
+        className="btn btn-vert w-full"
       >
         Enregistrer les équipes
       </button>

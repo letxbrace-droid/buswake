@@ -1,0 +1,30 @@
+import { describe, it, expect } from 'vitest';
+/**
+ * UNE APPARENCE PAR RÔLE.
+ *
+ * Avant la matière commune (styles/verre.css), chaque écran recopiait son
+ * bouton vert : `rounded-pill bg-vert py-3`, puis `py-3.5`, puis `py-4`, avec
+ * trois façons différentes de dire « désactivé ». Trente variantes qui
+ * divergeaient déjà. Ce test empêche la trente et unième.
+ */
+const SOURCES = import.meta.glob('./{ecrans,composants,conteneurs}/*.tsx', {
+  query: '?raw', import: 'default', eager: true,
+}) as Record<string, string>;
+
+const classes = Object.entries(SOURCES).flatMap(([f, src]) =>
+  [...src.matchAll(/className=(?:"([^"]*)"|\{`([^`]*)`\})/g)].map((m) => [f, m[1] ?? m[2]] as const),
+);
+
+describe('matière commune', () => {
+  it('aucun bouton d’action recopié à la main', () => {
+    const fautifs = classes.filter(
+      ([, c]) => /rounded-\(--radius-pill\)/.test(c) && /\bpy-(2\.5|3|3\.5|4)\b/.test(c)
+        && /bg-\(--color-(vert|or|rouge-fond)\)/.test(c),
+    );
+    expect(fautifs.map(([f]) => f), 'utiliser .btn .btn-vert / .btn-or / .btn-danger-plein').toEqual([]);
+  });
+  it('aucune puce sélectionnée en aplat vert plein', () => {
+    const fautifs = classes.filter(([, c]) => /'bg-\(--color-vert\) font-semibold text-\(--color-fond\)'/.test(c));
+    expect(fautifs.map(([f]) => f), 'utiliser .puce et aria-pressed').toEqual([]);
+  });
+});

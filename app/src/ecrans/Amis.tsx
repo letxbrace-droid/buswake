@@ -34,7 +34,7 @@ export function Amis({
 
   return (
     <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-4">
         Joueurs
       </h1>
 

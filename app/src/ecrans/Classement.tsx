@@ -31,7 +31,7 @@ export function Classement({
   return (
     <div className="terrain terrain-classement h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <header className="mb-3">
-        <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+        <h1 className="titre-ecran">
           Classement
         </h1>
         {/* Ni « cette semaine » ni « par sport » : l'XP est un total sans

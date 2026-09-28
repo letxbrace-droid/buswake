@@ -14,6 +14,7 @@
 @import './styles/plaques.css';
 @import './styles/ecrans.css';
 @import './styles/mouvement.css';
+@import './styles/verre.css';
 @import './styles/dock.css';
 
 @layer base {

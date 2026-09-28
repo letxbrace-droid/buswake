@@ -80,7 +80,7 @@ export function Accueil({
                 ? actions.onOuvrirMatch(vedette.match.id)
                 : actions.onRejoindre(vedette.match.id)
             }
-            className="mt-4 w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond) transition-transform duration-(--duration-doigt) active:scale-[0.98]"
+            className="btn btn-vert mt-4 w-full"
           >
             {vedette.dedans ? 'Voir le match' : 'Je viens'}
           </button>
@@ -98,7 +98,7 @@ export function Accueil({
           <button
             type="button"
             onClick={actions.onProposer}
-            className="mt-4 w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond) transition-transform duration-(--duration-doigt) active:scale-[0.98]"
+            className="btn btn-vert mt-4 w-full"
           >
             Proposer un match
           </button>

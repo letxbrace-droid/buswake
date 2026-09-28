@@ -29,7 +29,7 @@ export function EditerProfil({
 
   return (
     <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-4">
         Ma carte
       </h1>
 
@@ -66,11 +66,7 @@ export function EditerProfil({
               type="button"
               onClick={() => maj('poste', p.id)}
               aria-pressed={e.poste === p.id}
-              className={`rounded-(--radius-pill) py-2 text-sm transition-colors duration-(--duration-doigt) ${
-                e.poste === p.id
-                  ? 'bg-(--color-vert) font-semibold text-(--color-fond)'
-                  : 'bg-black/30 text-(--color-encre-sec)'
-              }`}
+              className="puce py-2 text-sm"
             >
               {p.abbr}
             </button>
@@ -132,7 +128,7 @@ export function EditerProfil({
           type="button"
           onClick={actions.onMaPosition}
           disabled={localisationEnCours}
-          className="mt-2 w-full rounded-(--radius-pill) bg-white/10 py-2.5 text-sm font-medium disabled:opacity-50"
+          className="btn btn-verre mt-2 w-full"
         >
           {localisationEnCours ? 'Localisation…' : 'Utiliser ma position'}
         </button>
@@ -149,7 +145,7 @@ export function EditerProfil({
         <button
           type="button"
           onClick={actions.onAnnuler}
-          className="rounded-(--radius-pill) bg-white/10 px-5 py-3.5 text-sm font-medium"
+          className="btn btn-verre px-5"
         >
           Annuler
         </button>
@@ -157,7 +153,7 @@ export function EditerProfil({
           type="button"
           disabled={occupe || !!probleme}
           onClick={() => actions.onEnregistrer(e)}
-          className="flex-1 rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+          className="btn btn-vert flex-1"
         >
           Enregistrer
         </button>

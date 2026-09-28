@@ -25,7 +25,7 @@ export function ApresMatch({
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-4">
         Après le match
       </h1>
 
@@ -133,7 +133,7 @@ function Notation({
             type="button"
             disabled={!v.ok}
             onClick={() => onValider(notes)}
-            className="mt-3 w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+            className="btn btn-vert mt-3 w-full"
           >
             Valider mes notes
           </button>

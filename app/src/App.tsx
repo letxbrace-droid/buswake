@@ -376,7 +376,7 @@ function Coque() {
               <button
                 onClick={() => setReglages(true)}
                 aria-label="Réglages"
-                className="fixed top-3 right-3 z-30 grid size-11 place-items-center rounded-full border border-white/5 border-t-white/14 bg-(--color-surface)/88 text-(--color-encre) shadow-[0_6px_18px_rgba(0,0,0,.5)] backdrop-blur-xl transition-transform duration-(--duration-doigt) active:scale-90"
+                className="verre fixed top-3 right-3 z-30 grid size-11 place-items-center rounded-full text-(--color-encre) transition-transform duration-(--duration-doigt) active:scale-90"
                 style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
               >
                 <span aria-hidden className="text-lg leading-none">⋯</span>

@@ -53,7 +53,7 @@ export function CreerMatch({
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-4">
         Créer un match
       </h1>
 
@@ -136,7 +136,7 @@ export function CreerMatch({
                 type="button"
                 disabled={!jour}
                 onClick={ajouter}
-                className="rounded-(--radius-pill) bg-(--color-vert) px-5 py-2.5 text-sm font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+                className="btn btn-vert px-5"
               >
                 Ajouter
               </button>
@@ -248,11 +248,7 @@ export function CreerMatch({
                   type="button"
                   onClick={() => maj('niveau', n)}
                   aria-pressed={b.niveau === n}
-                  className={`rounded-(--radius-pill) px-3 py-1.5 text-sm transition-colors duration-(--duration-doigt) ${
-                    b.niveau === n
-                      ? 'bg-(--color-vert) font-semibold text-(--color-fond)'
-                      : 'bg-black/30 text-(--color-encre-sec)'
-                  }`}
+                  className="puce px-3 py-1.5 text-sm"
                 >
                   {LIBELLES_NIVEAU[n]}
                 </button>
@@ -323,7 +319,7 @@ export function CreerMatch({
           <button
             type="button"
             onClick={() => setEtape(retour)}
-            className="rounded-(--radius-pill) bg-white/10 px-5 py-3.5 text-sm font-medium"
+            className="btn btn-verre px-5"
           >
             Retour
           </button>
@@ -333,7 +329,7 @@ export function CreerMatch({
             type="button"
             disabled={!etapeComplete(etape, b)}
             onClick={() => setEtape(suite)}
-            className="flex-1 rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+            className="btn btn-vert flex-1"
           >
             Suivant
           </button>
@@ -355,7 +351,7 @@ export function CreerMatch({
                 })),
               })
             }
-            className="flex-1 rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+            className="btn btn-vert flex-1"
           >
             Proposer le match
           </button>
@@ -381,11 +377,7 @@ function Choix<T extends string | number>({
           type="button"
           onClick={() => onChange(o.cle)}
           aria-pressed={valeur === o.cle}
-          className={`min-w-0 flex-1 rounded-(--radius-pill) px-2 py-2 text-sm transition-colors duration-(--duration-doigt) ${
-            valeur === o.cle
-              ? 'bg-(--color-vert) font-semibold text-(--color-fond)'
-              : 'bg-black/30 text-(--color-encre-sec)'
-          }`}
+          className="puce min-w-0 flex-1 px-2 py-2 text-sm"
         >
           {o.label}
         </button>

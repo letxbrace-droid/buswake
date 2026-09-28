@@ -38,7 +38,7 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <Plaque className="mb-4 p-4">
         <div className="mb-3 flex items-baseline justify-between">
-          <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+          <h1 className="titre-ecran">
             Matchs
           </h1>
           <Telemetrie ouverts={c.sondage + c.confirme} places={c.places} enCours={isPending} />
@@ -61,11 +61,7 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
                 key={k}
                 onClick={() => setKm(k)}
                 aria-pressed={km === k}
-                className={`min-w-0 flex-1 rounded-(--radius-pill) px-1 py-1.5 text-xs whitespace-nowrap transition-colors duration-(--duration-doigt) ${
-                  km === k
-                    ? 'bg-(--color-vert) font-semibold text-(--color-fond)'
-                    : 'bg-white/8 text-(--color-encre-sec)'
-                }`}
+                className="puce min-w-0 flex-1 px-1 py-1.5 text-xs whitespace-nowrap"
               >
                 {libelleRayon(k)}
               </button>
@@ -166,7 +162,7 @@ function EtatVide({ onglet, km }: { onglet: Onglet; km: number }) {
       <p className="font-[family-name:var(--font-titre)] text-xl">{texte.titre}</p>
       <p className="mt-2 text-sm text-(--color-encre-sec)">{texte.sous}</p>
       {onglet !== 'termine' && (
-        <button className="mt-5 w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond)">
+        <button className="btn btn-vert mt-5 w-full">
           Proposer un match
         </button>
       )}

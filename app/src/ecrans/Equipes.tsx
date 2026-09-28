@@ -22,7 +22,7 @@ export function Equipes({ equipes }: { equipes: readonly Equipe[] }) {
   return (
     <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <header className="mb-4 flex items-baseline justify-between">
-        <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+        <h1 className="titre-ecran">
           Équipes
         </h1>
         <span className="text-xs text-(--color-encre-sec)">{equipes.length}</span>
@@ -34,7 +34,7 @@ export function Equipes({ equipes }: { equipes: readonly Equipe[] }) {
           <p className="mt-2 text-sm text-(--color-encre-sec)">
             Crée la tienne : un nom, une couleur, un emblème.
           </p>
-          <button className="mt-5 w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond)">
+          <button className="btn btn-vert mt-5 w-full">
             Créer une équipe
           </button>
         </Plaque>

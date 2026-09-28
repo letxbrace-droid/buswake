@@ -23,7 +23,7 @@ export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => 
 
   return (
     <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-4">
         Profil
       </h1>
 
@@ -38,7 +38,7 @@ export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => 
         <button
           type="button"
           onClick={onModifier}
-          className="mx-auto mb-5 block rounded-(--radius-pill) bg-white/10 px-5 py-2.5 text-sm font-medium"
+          className="btn btn-verre mx-auto mb-5 flex px-5 w-fit"
         >
           Modifier ma carte
         </button>

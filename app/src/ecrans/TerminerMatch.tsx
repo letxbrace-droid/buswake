@@ -47,7 +47,7 @@ export function TerminerMatch({
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-4">
         Terminer
       </h1>
 
@@ -86,11 +86,7 @@ export function TerminerMatch({
               type="button"
               onClick={() => setHdm(hdm === u ? null : u)}
               aria-pressed={hdm === u}
-              className={`rounded-(--radius-pill) px-3 py-1.5 text-sm transition-colors duration-(--duration-doigt) ${
-                hdm === u
-                  ? 'bg-(--color-or) font-semibold text-(--color-fond)'
-                  : 'bg-black/30 text-(--color-encre-sec)'
-              }`}
+              className="puce puce-or px-3 py-1.5 text-sm"
             >
               {nom(u)}
             </button>
@@ -217,7 +213,7 @@ export function TerminerMatch({
             passes,
           })
         }
-        className="mt-4 w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+        className="btn btn-vert mt-4 w-full"
       >
         Valider le résultat
       </button>

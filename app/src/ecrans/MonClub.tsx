@@ -32,7 +32,7 @@ export function MonClub({
   if (!club || !bilan) {
     return (
       <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-        <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+        <h1 className="titre-ecran mb-4">
           Mon club
         </h1>
         <Plaque className="p-8 text-center">
@@ -43,14 +43,14 @@ export function MonClub({
           <button
             type="button"
             onClick={actions.onCreer}
-            className="mt-4 w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond)"
+            className="btn btn-vert mt-4 w-full"
           >
             Créer une équipe
           </button>
           <button
             type="button"
             onClick={actions.onVoirEquipes}
-            className="mt-2 w-full rounded-(--radius-pill) bg-white/10 py-3 text-sm font-medium"
+            className="btn btn-verre mt-2 w-full"
           >
             Voir les équipes
           </button>
@@ -151,7 +151,7 @@ export function MonClub({
           <button
             type="button"
             onClick={actions.onInviter}
-            className="mt-2 flex w-full items-center justify-center gap-2 rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond)"
+            className="btn btn-vert mt-2 flex w-full items-center justify-center gap-2"
           >
             <Icone nom="partage" taille={17} />
             Inviter un joueur

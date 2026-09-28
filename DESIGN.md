@@ -289,6 +289,33 @@ graisse variable répond.
 
 ## Règles de composants
 
+### La matière commune (`styles/verre.css`)
+
+Le dock a posé une matière ; elle est devenue celle de toute l'interface.
+Une classe par rôle, au lieu d'une trentaine de variantes Tailwind
+recopiées écran par écran (`py-3`, `py-3.5`, `py-4`, trois façons de dire
+« désactivé »). `src/coherence.test.ts` refuse la réintroduction d'un
+bouton d'action fait main.
+
+| Classe | Rôle |
+|---|---|
+| `.verre` | verre fumé à arête éclairée : dock, « ⋯ », capsule du chat, toasts |
+| `.btn` + `.btn-vert` | l'action ; 48 px mini, arête claire en haut, halo vert |
+| `.btn-verre` | le second choix, dans la matière du dock |
+| `.btn-or` | noter les joueurs — la récompense |
+| `.btn-danger` / `.btn-danger-plein` | geste sans retour : contour, puis confirmation pleine |
+| `.puce` (+ `.puce-or`) | un choix parmi plusieurs ; actif = `aria-pressed`, pastille teintée comme le dock |
+| `.titre-ecran` | titre Anton 30 px, trait vert dessous, marge pour « ⋯ » |
+
+**Un seul « actif » dans l'app** : teinte verte à 15 %, liseré à 32 %, texte
+vert — onglet du dock, onglet segmenté, puce. L'aplat vert plein est réservé
+à l'ACTION (`.btn-vert`) : quand une puce sélectionnée avait la même
+apparence qu'un bouton, deux rôles se confondaient.
+
+Tous les boutons et puces se tassent sous le doigt (`scale .97`), coupé
+sous `prefers-reduced-motion`. Contraste mesuré : `npm run qa contraste`
+passe sur les 23 routes.
+
 ### Le dock (navigation du bas)
 
 `composants/Dock.tsx` + `styles/dock.css`. Une barre **détachée** des bords

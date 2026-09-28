@@ -26,7 +26,7 @@ export function Chat({
   return (
     <div className="terrain terrain-matchs flex h-full flex-col pb-(--reserve-dock)">
       <header className="px-4 pt-6 pb-3">
-        <h1 className="font-[family-name:var(--font-titre)] text-2xl tracking-wide uppercase">
+        <h1 className="titre-ecran">
           Discussion
         </h1>
         <p className="mt-0.5 text-xs text-(--color-encre-faible)">
@@ -85,7 +85,7 @@ export function Chat({
           onEnvoyer(texte.trim());
           setTexte('');
         }}
-        className="mx-3 flex gap-2 rounded-(--radius-xl) border border-white/8 border-t-white/14 bg-(--color-surface)/92 p-2 shadow-[0_10px_28px_rgba(0,0,0,.5)] backdrop-blur-xl"
+        className="verre mx-3 flex gap-2 rounded-(--radius-xl) p-2"
       >
         <label htmlFor="chat-texte" className="sr-only">
           Message

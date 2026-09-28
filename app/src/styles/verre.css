@@ -1,0 +1,175 @@
+/* ===== LA MATIÈRE COMMUNE — verre fumé, boutons, puces, titres =====
+   Le dock a posé une matière ; elle devient celle de toute l'interface. Une
+   application où la barre du bas est en verre et les boutons en aplats
+   ressemble à deux applications collées. Ici, UNE définition par rôle, et
+   plus trente variantes de `rounded-pill bg-… py-…` recopiées écran par
+   écran — trente variantes qui divergeaient déjà (py-3, py-3.5, py-4 ;
+   `disabled:opacity-50` ici, `disabled:bg-white/12` là).
+
+   Même physique que les plaques : le relief vient de la LUMIÈRE. Une arête
+   haute éclairée, une arête basse noire — jamais une bordure uniforme. */
+
+@layer composants {
+  /* — Le verre : dock, bouton « ⋯ », capsule du chat, toasts, boutons
+     secondaires. Assez opaque pour tenir l'AA sur n'importe quelle photo,
+     assez translucide pour qu'on sache que le terrain continue. */
+  .verre {
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-carte2) 88%, transparent),
+      color-mix(in srgb, var(--color-surface) 92%, transparent)
+    );
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgb(255 255 255 / 0.05);
+    border-top-color: rgb(255 255 255 / 0.14);
+    border-bottom-color: rgb(0 0 0 / 0.6);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 2px 4px rgb(0 0 0 / 0.5),
+      0 14px 34px rgb(0 0 0 / 0.55);
+  }
+
+  /* — Les boutons. 48 px de haut au minimum : la cible du pouce. — */
+  .btn {
+    display: inline-flex;
+    min-height: 48px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding-inline: 20px;
+    border-radius: var(--radius-pill);
+    font-size: 15px;
+    font-weight: 600;
+    line-height: 1.2;
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      transform var(--duration-doigt) var(--ease-kolektif),
+      background-color var(--duration-interface) var(--ease-kolektif),
+      box-shadow var(--duration-interface) var(--ease-kolektif);
+  }
+
+  /* L'action. Le vert porte une arête claire en haut et un halo vert
+     dessous : un bouton plat sur une plaque sombre se lit comme une
+     étiquette, pas comme une chose qu'on enfonce. */
+  .btn-vert {
+    color: var(--color-fond);
+    background: linear-gradient(180deg, var(--color-vert-clair) -40%, var(--color-vert) 55%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.35),
+      inset 0 -2px 0 rgb(0 0 0 / 0.14),
+      0 6px 18px color-mix(in srgb, var(--color-vert) 28%, transparent);
+  }
+  .btn-or {
+    color: var(--color-fond);
+    background: linear-gradient(180deg, var(--color-or-clair) -60%, var(--color-or) 55%);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.4),
+      0 6px 18px color-mix(in srgb, var(--color-or) 24%, transparent);
+  }
+  /* Le second choix : la matière du dock. */
+  .btn-verre {
+    color: var(--color-encre);
+    font-weight: 500;
+    background: rgb(255 255 255 / 0.07);
+    border: 1px solid rgb(255 255 255 / 0.06);
+    border-top-color: rgb(255 255 255 / 0.14);
+    border-bottom-color: rgb(0 0 0 / 0.45);
+  }
+  /* Le geste sans retour : contour rouge, jamais un aplat qui attire. */
+  .btn-danger {
+    color: var(--color-rouge);
+    font-weight: 500;
+    background: color-mix(in srgb, var(--color-rouge) 6%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-rouge) 40%, transparent);
+  }
+  .btn-danger-plein {
+    color: var(--color-encre);
+    background: var(--color-rouge-fond);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+  }
+
+  /* — Les puces : un choix parmi plusieurs (rayon, poste, niveau…).
+     Le même état actif que le dock : une pastille teintée de vert, liserée,
+     texte vert. Un aplat vert plein pour « sélectionné » faisait concurrence
+     aux vrais boutons d'action — deux choses différentes, même apparence. */
+  .puce {
+    display: inline-flex;
+    min-height: 36px;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-pill);
+    color: var(--color-encre-sec);
+    background: rgb(255 255 255 / 0.07);
+    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+    -webkit-tap-highlight-color: transparent;
+    transition:
+      color var(--duration-interface) var(--ease-kolektif),
+      background-color var(--duration-interface) var(--ease-kolektif),
+      box-shadow var(--duration-interface) var(--ease-kolektif),
+      transform var(--duration-doigt) var(--ease-kolektif);
+  }
+
+  /* — Le titre d'écran. La marge droite laisse la place au bouton « ⋯ »,
+     fixé en haut à droite : sans elle, un titre long passait dessous. — */
+  .titre-ecran {
+    font-family: var(--font-titre);
+    font-size: 30px;
+    line-height: 1.1;
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+    padding-right: 52px;
+  }
+  /* Le trait vert sous le titre : la même signature que la pastille active,
+     en plus discret. Il dit « tu es ici ». */
+  .titre-ecran::after {
+    content: '';
+    display: block;
+    width: 28px;
+    height: 3px;
+    margin-top: 6px;
+    border-radius: var(--radius-pill);
+    background: var(--color-vert);
+  }
+}
+
+@layer etats {
+  .puce[aria-pressed='true'],
+  .puce[aria-selected='true'] {
+    color: var(--color-vert);
+    font-weight: 600;
+    background: color-mix(in srgb, var(--color-vert) 15%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-vert) 32%, transparent);
+  }
+
+  /* L'homme du match : le même geste, en or — la couleur de la récompense. */
+  .puce-or[aria-pressed='true'] {
+    color: var(--color-or);
+    background: color-mix(in srgb, var(--color-or) 14%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-or) 34%, transparent);
+  }
+
+  .btn:not(:disabled):active,
+  .puce:not(:disabled):active { transform: scale(0.97); }
+
+  .btn:focus-visible,
+  .puce:focus-visible {
+    outline: 2px solid var(--color-vert);
+    outline-offset: 2px;
+  }
+
+  /* Un bouton fermé l'est franchement — et reste lisible : l'écran dit
+     toujours pourquoi juste en dessous. */
+  .btn:disabled {
+    color: var(--color-encre-sec);
+    background: rgb(255 255 255 / 0.1);
+    border-color: transparent;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .btn:not(:disabled):active,
+    .puce:not(:disabled):active { transform: none; }
+  }
+}

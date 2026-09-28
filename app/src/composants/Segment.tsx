@@ -22,7 +22,7 @@ export function Segment<T extends string>({
   return (
     <div
       role="tablist"
-      className="relative flex gap-1 rounded-(--radius-pill) bg-black/35 p-1"
+      className="relative flex gap-1 rounded-(--radius-pill) bg-black/40 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,.5)]"
     >
       {options.map((o) => {
         const actif = o.cle === valeur;
@@ -32,17 +32,17 @@ export function Segment<T extends string>({
             role="tab"
             aria-selected={actif}
             onClick={() => onChange(o.cle)}
-            className="relative flex-1 rounded-(--radius-pill) px-2 py-2 text-sm font-medium whitespace-nowrap"
+            className="relative min-h-10 flex-1 rounded-(--radius-pill) px-2 py-2 text-sm font-medium whitespace-nowrap transition-transform duration-(--duration-doigt) active:scale-95"
           >
             {actif && (
               <motion.span
                 layoutId="curseur-segment"
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                className="absolute inset-0 rounded-(--radius-pill) bg-white/12"
+                className="absolute inset-0 rounded-(--radius-pill) bg-(--color-vert)/15 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-vert)_32%,transparent)]"
               />
             )}
             <span
-              className={`relative ${actif ? 'text-(--color-encre)' : 'text-(--color-encre-sec)'}`}
+              className={`relative ${actif ? 'font-semibold text-(--color-vert)' : 'text-(--color-encre-sec)'}`}
             >
               {o.label}
               {o.compte !== undefined && (

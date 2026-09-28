@@ -56,14 +56,20 @@ export function FournisseurToasts({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             data-sortant={t.sortant || undefined}
-            className={`toast max-w-sm rounded-(--radius-pill) px-4 py-2.5 text-sm font-medium shadow-[0_14px_28px_-10px_rgba(0,0,0,.8)] ${
-              t.ton === 'succes'
-                ? 'bg-(--color-vert) text-(--color-fond)'
-                : t.ton === 'erreur'
-                  ? 'bg-(--color-rouge) text-white'
-                  : 'bg-(--color-carte2) text-(--color-encre)'
-            }`}
+            className="toast verre flex max-w-sm items-center gap-2.5 rounded-(--radius-pill) px-4 py-2.5 text-sm font-medium text-(--color-encre)"
           >
+            {/* La même matière que le dock ; le TON se dit par une pastille,
+                pas par un aplat de couleur qui couvrirait l'écran. */}
+            <span
+              aria-hidden
+              className={`size-2 shrink-0 rounded-full ${
+                t.ton === 'succes'
+                  ? 'bg-(--color-vert) shadow-[0_0_10px_var(--color-vert)]'
+                  : t.ton === 'erreur'
+                    ? 'bg-(--color-rouge) shadow-[0_0_10px_var(--color-rouge)]'
+                    : 'bg-(--color-encre-sec)'
+              }`}
+            />
             {t.texte}
           </div>
         ))}

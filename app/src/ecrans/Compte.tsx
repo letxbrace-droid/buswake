@@ -79,7 +79,7 @@ export function MotDePasse({
         <button
           type="submit"
           disabled={f.formState.isSubmitting}
-          className="mt-1 w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) disabled:opacity-60"
+          className="btn btn-vert mt-1 w-full"
         >
           {f.formState.isSubmitting ? 'Un instant…' : 'Changer mon mot de passe'}
         </button>
@@ -159,14 +159,14 @@ export function SupprimerCompte({
               setEnCours(false);
             }
           }}
-          className="mt-1 w-full rounded-(--radius-pill) bg-(--color-rouge-fond) py-3.5 font-semibold text-white disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+          className="btn btn-danger-plein mt-1 w-full"
         >
           {enCours ? 'Suppression…' : 'Supprimer définitivement'}
         </button>
         <button
           type="button"
           onClick={onRetour}
-          className="w-full rounded-(--radius-pill) border border-white/15 py-3 text-sm"
+          className="btn btn-verre w-full"
         >
           Annuler
         </button>
@@ -191,7 +191,7 @@ function Coque({
       >
         ← Retour
       </button>
-      <h1 className="mb-5 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-5">
         {titre}
       </h1>
       {children}

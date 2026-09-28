@@ -15,7 +15,7 @@ export function Dock() {
 
   return (
     <nav aria-label="Navigation principale" className="dock">
-      <div className="dock-corps">
+      <div className="dock-corps verre">
         {/* Une seule pastille, déplacée — pas cinq qui s'allument et
             s'éteignent : le regard suit le mouvement jusqu'à la destination.
             Masquée hors des onglets (fiche d'un match, réglages…). */}

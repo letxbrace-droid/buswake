@@ -47,11 +47,7 @@ export function Reglages({
               key={k}
               onClick={() => setKm(k)}
               aria-pressed={km === k}
-              className={`min-w-0 flex-1 rounded-(--radius-pill) px-1 py-1.5 text-xs whitespace-nowrap ${
-                km === k
-                  ? 'bg-(--color-vert) font-semibold text-(--color-fond)'
-                  : 'bg-black/30 text-(--color-encre-sec)'
-              }`}
+              className="puce min-w-0 flex-1 px-1 py-1.5 text-xs whitespace-nowrap"
             >
               {libelleRayon(k)}
             </button>

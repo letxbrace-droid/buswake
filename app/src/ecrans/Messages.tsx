@@ -26,7 +26,7 @@ export function Messages({
 
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <h1 className="mb-1 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+      <h1 className="titre-ecran mb-1">
         Messages
       </h1>
       <p className="mb-4 text-xs text-(--color-encre-faible)">

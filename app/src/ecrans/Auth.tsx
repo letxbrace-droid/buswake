@@ -75,7 +75,7 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
         <button
           type="button"
           onClick={() => actions.avecGoogle().catch((e) => setErreur(messageErreur(e)))}
-          className="w-full rounded-(--radius-pill) border border-white/15 bg-black/30 py-3 font-medium"
+          className="btn btn-verre w-full"
         >
           Continuer avec Google
         </button>
@@ -231,7 +231,7 @@ function Valider({ enCours, children }: { enCours: boolean; children: React.Reac
     <button
       type="submit"
       disabled={enCours}
-      className="mt-1 w-full rounded-(--radius-pill) bg-(--color-vert) py-3.5 font-semibold text-(--color-fond) transition-transform duration-(--duration-doigt) active:scale-[0.98] disabled:opacity-60"
+      className="btn btn-vert mt-1 w-full"
     >
       {enCours ? 'Un instant…' : children}
     </button>

@@ -176,11 +176,7 @@ export function DetailMatch({
           type="button"
           disabled={occupe}
           onClick={dedans ? actions.onQuitter : actions.onRejoindre}
-          className={`mt-4 w-full rounded-(--radius-pill) py-3 font-semibold transition-transform duration-(--duration-doigt) active:scale-[0.98] disabled:opacity-50 ${
-            dedans
-              ? 'bg-white/10 text-(--color-encre)'
-              : 'bg-(--color-vert) text-(--color-fond)'
-          }`}
+          className={`btn mt-4 w-full ${dedans ? 'btn-verre' : 'btn-vert'}`}
         >
           {dedans
             ? place === 'deja-banc'
@@ -251,7 +247,7 @@ export function DetailMatch({
                 type="button"
                 disabled={occupe || !conf.peut || !gagnant}
                 onClick={() => gagnant && actions.onConfirmer(gagnant.index)}
-                className="mt-4 w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+                className="btn btn-vert mt-4 w-full"
               >
                 Confirmer le créneau en tête
               </button>
@@ -286,7 +282,7 @@ export function DetailMatch({
               type="button"
               disabled={occupe}
               onClick={actions.onComposer}
-              className="w-full rounded-(--radius-pill) bg-black/30 py-3 text-sm font-medium disabled:opacity-50"
+              className="btn btn-verre w-full"
             >
               Composer les équipes
             </button>
@@ -294,7 +290,7 @@ export function DetailMatch({
               type="button"
               disabled={occupe || !terminable.peut}
               onClick={actions.onTerminer}
-              className="w-full rounded-(--radius-pill) bg-(--color-vert) py-3 font-semibold text-(--color-fond) disabled:bg-white/12 disabled:text-(--color-encre-sec)"
+              className="btn btn-vert w-full"
             >
               Saisir le score
             </button>
@@ -320,7 +316,7 @@ export function DetailMatch({
             <button
               type="button"
               onClick={actions.onNoter}
-              className="w-full rounded-(--radius-pill) bg-(--color-or) py-3 font-semibold text-(--color-fond)"
+              className="btn btn-or w-full"
             >
               Noter les joueurs
             </button>
@@ -374,7 +370,7 @@ export function DetailMatch({
               type="button"
               disabled={occupe}
               onClick={() => setConfirme(true)}
-              className="w-full rounded-(--radius-pill) border border-(--color-rouge)/40 py-3 text-sm font-medium text-(--color-rouge) disabled:opacity-50"
+              className="btn btn-danger w-full"
             >
               Supprimer le match
             </button>
@@ -388,7 +384,7 @@ export function DetailMatch({
                 <button
                   type="button"
                   onClick={() => setConfirme(false)}
-                  className="flex-1 rounded-(--radius-pill) bg-black/30 py-3 text-sm font-medium"
+                  className="btn btn-verre flex-1"
                 >
                   Garder
                 </button>
@@ -396,7 +392,7 @@ export function DetailMatch({
                   type="button"
                   disabled={occupe}
                   onClick={actions.onSupprimer}
-                  className="flex-1 rounded-(--radius-pill) bg-(--color-rouge-fond) py-3 text-sm font-semibold text-white disabled:opacity-50"
+                  className="btn btn-danger-plein flex-1"
                 >
                   Supprimer
                 </button>
@@ -413,7 +409,7 @@ export function DetailMatch({
         <button
           type="button"
           onClick={actions.onPartager}
-          className="flex flex-1 items-center justify-center gap-2 rounded-(--radius-pill) bg-white/10 py-3 text-sm font-medium"
+          className="btn btn-verre flex flex-1 items-center justify-center gap-2"
         >
           <Icone nom="partage" taille={17} />
           Partager

@@ -27,7 +27,7 @@ export function Terrains({ domicile }: { domicile: Position | null }) {
   return (
     <div className="terrain terrain-matchs h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <header className="mb-1">
-        <h1 className="font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
+        <h1 className="titre-ecran">
           Terrains
         </h1>
       </header>
