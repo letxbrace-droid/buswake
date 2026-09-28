@@ -1,0 +1,1 @@
+import{a as e}from"./DetailMatchBranche-DXuAgfvN.js";export{e as nomDuLieu};

@@ -17,9 +17,7 @@ export function YAller({ lieu, compact = false }: { lieu: Lieu; compact?: boolea
         onClick={() => setOuvert((o) => !o)}
         aria-expanded={ouvert}
         aria-label={compact ? `Aller à ${lieu.n}` : undefined}
-        className={`flex items-center justify-center gap-1.5 rounded-(--radius-pill) bg-(--color-vert) font-semibold text-(--color-fond) ${
-          compact ? 'size-10' : 'w-full py-3'
-        }`}
+        className={`btn btn-vert gap-1.5 ${compact ? 'size-12 px-0' : 'w-full'}`}
       >
         <svg viewBox="0 0 24 24" className="size-4 shrink-0" fill="currentColor" aria-hidden>
           <path d="M21.3 3.3 3.6 10.6c-.9.4-.8 1.7.2 1.9l7 1.6 1.6 7c.2 1 1.5 1.1 1.9.2l7.3-17.7c.3-.7-.4-1.5-1.3-1.3z" />
