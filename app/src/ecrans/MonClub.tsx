@@ -31,7 +31,7 @@ export function MonClub({
 
   if (!club || !bilan) {
     return (
-      <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-28">
+      <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
         <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
           Mon club
         </h1>
@@ -60,7 +60,7 @@ export function MonClub({
   }
 
   return (
-    <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <Plaque className="mb-4 p-4">
         <div className="flex items-center gap-3.5">
           <Blason e={club} taille={54} />

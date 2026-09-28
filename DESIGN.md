@@ -289,6 +289,33 @@ graisse variable répond.
 
 ## Règles de composants
 
+### Le dock (navigation du bas)
+
+`composants/Dock.tsx` + `styles/dock.css`. Une barre **détachée** des bords
+(12 px de marge, au-dessus de l'encoche) et flottante : la barre pleine
+largeur arrêtait la photo du terrain sur un bandeau noir, le dock la laisse
+courir jusqu'au bord de l'écran.
+
+- **Cinq onglets, pas un de plus** — sous ce nombre chaque cible garde ses
+  48 × 48 px. Un test (`domaine/navigation.test.ts`) le fige : la pastille
+  mesure un cinquième de la barre, un sixième onglet la décalerait.
+- **L'état actif se lit trois fois** : pastille verte (vert à 15 %, liseré
+  à 28 %) qui *glisse* d'un onglet à l'autre (`translateX`, courbe ressort,
+  450 ms), icône pleine, libellé vert. Hors onglet (fiche d'un match), la
+  pastille s'efface.
+- **Relief par la lumière**, comme les plaques : arête haute à 14 % de
+  blanc, arête basse noire, verre fumé à 88–92 % d'opacité — assez pour
+  que les libellés inactifs (encre à 0,70) tiennent l'AA sur n'importe
+  quelle photo ; mesuré par `npm run qa contraste`.
+- **Micro-interactions** : l'icône se tasse sous le doigt (`scale .86`) et
+  rebondit en arrivant ; tout est coupé sous `prefers-reduced-motion`.
+- Un écran qui défile réserve `pb-(--reserve-dock)` en bas (dock + marge +
+  encoche + 20 px d'air) ; le chat pose son champ au-dessus, en capsule du
+  même verre. Le bouton « ⋯ » et les toasts suivent la même matière.
+- Écarté : le « + » central surélevé. Il coûtait une place sur cinq, et
+  « Créer un match » se lit en toutes lettres sur l'accueil.
+
+
 **Cible tactile : 44 px minimum.** C'est le minimum d'Apple. Un bouton
 plus petit ment sur sa taille : l'utilisateur croit avoir mal visé alors
 que c'est le design qui a menti.

@@ -1,0 +1,116 @@
+/* ===== LE DOCK — navigation flottante =====
+   Même physique que les plaques (plaques.css) : le relief vient de la
+   LUMIÈRE, pas de l'ombre. Sur un fond à 0,001 de luminance, une ombre noire
+   seule ne décolle rien ; c'est l'arête haute éclairée qui fait flotter. */
+
+:root {
+  --h-dock: 64px;
+  --marge-dock: 12px;
+  /* Ce qu'un écran qui défile doit laisser libre en bas pour que son dernier
+     élément ne finisse pas sous le dock : le dock, sa marge, l'encoche du
+     téléphone, et un peu d'air. */
+  --reserve-dock: calc(var(--h-dock) + var(--marge-dock) + env(safe-area-inset-bottom, 0px) + 20px);
+}
+
+@layer composants {
+  .dock {
+    position: fixed;
+    z-index: 20;
+    left: var(--marge-dock);
+    right: var(--marge-dock);
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--marge-dock));
+    max-width: 460px;
+    margin-inline: auto;
+  }
+
+  .dock-corps {
+    position: relative;
+    display: flex;
+    height: var(--h-dock);
+    padding: 6px;
+    border-radius: var(--radius-xl);
+    /* Verre fumé : assez opaque pour que les libellés gardent leur contraste
+       quelle que soit la photo dessous, assez translucide pour qu'on sache
+       que le terrain continue. */
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-carte2) 88%, transparent),
+      color-mix(in srgb, var(--color-surface) 92%, transparent)
+    );
+    backdrop-filter: blur(20px) saturate(1.4);
+    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    border: 1px solid rgb(255 255 255 / 0.05);
+    border-top-color: rgb(255 255 255 / 0.14);
+    border-bottom-color: rgb(0 0 0 / 0.6);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.06),
+      0 2px 4px rgb(0 0 0 / 0.5),
+      0 14px 34px rgb(0 0 0 / 0.55);
+  }
+
+  /* La pastille : un cinquième de la largeur utile, déplacée d'onglet en
+     onglet par `translateX(n × 100 %)` — un pourcentage de SA largeur. */
+  .dock-pastille {
+    position: absolute;
+    top: 6px;
+    bottom: 6px;
+    left: 6px;
+    width: calc((100% - 12px) / 5);
+    border-radius: var(--radius-lg);
+    background: color-mix(in srgb, var(--color-vert) 15%, transparent);
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-vert) 28%, transparent);
+    transition:
+      transform var(--duration-recompense) var(--ease-ressort),
+      opacity var(--duration-interface) var(--ease-kolektif);
+  }
+  .dock-pastille[data-visible='false'] { opacity: 0; }
+
+  .dock-onglet {
+    position: relative;
+    display: flex;
+    flex: 1 1 0;
+    min-width: 48px;
+    min-height: 48px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--color-encre-sec);
+    border-radius: var(--radius-lg);
+    -webkit-tap-highlight-color: transparent;
+    transition: color var(--duration-interface) var(--ease-kolektif);
+  }
+  .dock-onglet svg {
+    transition: transform var(--duration-doigt) var(--ease-kolektif);
+  }
+}
+
+@layer etats {
+  .dock-onglet[aria-current='page'] {
+    color: var(--color-vert);
+    font-weight: 600;
+  }
+  /* L'icône rebondit en arrivant : le geste répond au doigt. */
+  .dock-onglet[aria-current='page'] svg {
+    animation: dockSaut var(--duration-recompense) var(--ease-ressort);
+  }
+  .dock-onglet:active svg { transform: scale(0.86); }
+  .dock-onglet:focus-visible {
+    outline: 2px solid var(--color-vert);
+    outline-offset: -2px;
+  }
+
+  @keyframes dockSaut {
+    0% { transform: translateY(0) scale(1); }
+    40% { transform: translateY(-3px) scale(1.12); }
+    100% { transform: translateY(0) scale(1); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .dock-pastille { transition: none; }
+    .dock-onglet[aria-current='page'] svg { animation: none; }
+    .dock-onglet:active svg { transform: none; }
+  }
+}

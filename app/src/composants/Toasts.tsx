@@ -50,7 +50,7 @@ export function FournisseurToasts({ children }: { children: ReactNode }) {
         role="status"
         aria-live="polite"
         className="pointer-events-none fixed inset-x-0 z-[60] flex flex-col items-center gap-2 px-4"
-        style={{ bottom: 'calc(env(safe-area-inset-bottom, 0px) + 88px)' }}
+        style={{ bottom: 'calc(var(--reserve-dock) + 4px)' }}
       >
         {toasts.map((t) => (
           <div

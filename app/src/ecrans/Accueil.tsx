@@ -40,7 +40,7 @@ export function Accueil({
     : null;
 
   return (
-    <div className="terrain terrain-accueil h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-accueil h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       {/* L'EN-TÊTE MÈNE AU PROFIL. La route `/profil` — et donc la carte
           joueur — n'était liée depuis NULLE PART : ni la barre du bas, ni un
           écran. Elle existait, elle rendait, et personne ne pouvait

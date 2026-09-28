@@ -28,7 +28,7 @@ export function EditerProfil({
   const maj = <K extends keyof Edition>(k: K, v: Edition[K]) => setE((p) => ({ ...p, [k]: v }));
 
   return (
-    <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-28">
+    <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <h1 className="mb-4 font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
         Ma carte
       </h1>

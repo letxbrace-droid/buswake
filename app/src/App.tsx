@@ -1,5 +1,5 @@
 import { lazy, Suspense, useCallback, useState } from 'react';
-import { HashRouter, Routes, Route, Navigate, NavLink, useLocation, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import { useSession } from './services/session';
@@ -10,7 +10,7 @@ import type { Connexion, Inscription } from './domaine/auth';
 import { ouAller } from './domaine/entree';
 import { usePush } from './services/usePush';
 import { useRattrapageDomicile } from './services/useRattrapageDomicile';
-import { Icone } from './composants/Icone';
+import { Dock } from './composants/Dock';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
@@ -376,7 +376,7 @@ function Coque() {
               <button
                 onClick={() => setReglages(true)}
                 aria-label="Réglages"
-                className="fixed top-3 right-3 z-30 grid size-10 place-items-center rounded-full bg-(--color-fond)/92 text-(--color-encre-sec) backdrop-blur-md"
+                className="fixed top-3 right-3 z-30 grid size-11 place-items-center rounded-full border border-white/5 border-t-white/14 bg-(--color-surface)/88 text-(--color-encre) shadow-[0_6px_18px_rgba(0,0,0,.5)] backdrop-blur-xl transition-transform duration-(--duration-doigt) active:scale-90"
                 style={{ top: 'calc(env(safe-area-inset-top, 0px) + 12px)' }}
               >
                 <span aria-hidden className="text-lg leading-none">⋯</span>
@@ -408,59 +408,10 @@ function Coque() {
                   pushEnCours={push.enCours}
                 />
               </Suspense>
-              <BarreBasse />
+              <Dock />
             </>
           )}
         </div>
   );
 }
 
-/** Le « + » central est surélevé et c'est le SEUL élément vert de la barre :
- *  une barre où tout est accentué n'accentue rien. */
-function BarreBasse() {
-  /* CINQ ONGLETS, AVEC ICÔNES — la maquette.
-     Elle abandonne le « + » flottant au profit d'une tuile d'action sur
-     l'accueil. C'est un arbitrage réel : le « + » était plus court d'un
-     geste, mais il coûtait une place dans une barre qui en a cinq à tenir,
-     et « Créer un match » lu en toutes lettres se comprend sans apprendre.
-
-     Profil devient un onglet : jusqu'ici la carte joueur n'était liée depuis
-     nulle part. Joueurs quitte la barre et se rejoint par l'accueil, comme
-     dans la maquette. */
-  const ONGLETS = [
-    { to: '/', nom: 'accueil' as const, label: 'Accueil', exact: true },
-    { to: '/matchs', nom: 'ballon' as const, label: 'Matchs' },
-    { to: '/club', nom: 'blason' as const, label: 'Mon Club' },
-    { to: '/messages', nom: 'message' as const, label: 'Messages' },
-    { to: '/profil', nom: 'joueur' as const, label: 'Profil' },
-  ];
-
-  return (
-    <nav
-      className="relative flex min-h-16 items-stretch border-t border-(--color-bord) bg-(--color-fond)/92 backdrop-blur-xl"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
-    >
-      {ONGLETS.map((o) => (
-        <NavLink
-          key={o.to}
-          to={o.to}
-          end={o.exact}
-          className={({ isActive }) =>
-            `flex min-w-0 flex-1 flex-col items-center justify-center gap-1 py-1.5 text-[11px] transition-colors duration-(--duration-doigt) ${
-              isActive ? 'text-(--color-vert)' : 'text-(--color-encre-faible)'
-            }`
-          }
-        >
-          {({ isActive }) => (
-            <>
-              {/* L'onglet actif se REMPLIT. Un trait qui change juste de
-                  couleur se distingue mal au pouce, en plein soleil. */}
-              <Icone nom={o.nom} taille={22} pleine={isActive} />
-              <span className="max-w-full truncate">{o.label}</span>
-            </>
-          )}
-        </NavLink>
-      ))}
-    </nav>
-  );
-}

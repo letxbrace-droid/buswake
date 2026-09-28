@@ -83,7 +83,7 @@ export function DetailMatch({
     gagnant != null ? versDate((m.creneauxProposes ?? [])[gagnant.index]?.date) : null;
 
   return (
-    <div className="terrain terrain-matchs h-full overflow-y-auto pb-28">
+    <div className="terrain terrain-matchs h-full overflow-y-auto pb-(--reserve-dock)">
       {/* LA PHOTO D'AMBIANCE. Elle est choisie sur le TYPE de terrain, pas par
           lieu : il n'existe pas de photo par centre, et en afficher une prise
           ailleurs ferait croire à une vue du terrain réel. */}
