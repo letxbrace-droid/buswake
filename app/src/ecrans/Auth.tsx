@@ -33,7 +33,7 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
 
       <div
         role="tablist"
-        className="mx-auto mb-5 flex w-full max-w-sm gap-1 rounded-(--radius-pill) bg-black/35 p-1"
+        className="mx-auto mb-5 flex w-full max-w-sm gap-1 rounded-(--radius-pill) bg-(--color-fond) p-1 shadow-[0_0_0_1px_rgba(255,255,255,.06)]"
       >
         {(['connexion', 'inscription'] as const).map((o) => (
           <button

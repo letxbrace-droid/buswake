@@ -172,7 +172,9 @@ function Podium({ trois }: { trois: readonly JoueurClasse[] }) {
               // jour où la palette bouge, et la marche du podium se serait
               // décollée du reste sans que rien ne le signale.
               style={{
-                background: `color-mix(in srgb, ${medaille} 22%, var(--color-carte))`,
+                // La médaille FRANCHE en haut, qui descend vers la carte : à
+                // 22 % uniforme, l'or paraissait kaki et l'argent gris sale.
+                background: `linear-gradient(180deg, color-mix(in srgb, ${medaille} 62%, var(--color-carte)), color-mix(in srgb, ${medaille} 16%, var(--color-carte)))`,
                 borderTop: `2px solid ${medaille}`,
               }}
               initial={{ height: 0 }}

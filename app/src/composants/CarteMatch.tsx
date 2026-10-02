@@ -74,7 +74,7 @@ export function CarteMatch({
           {m.statut === 'sondage' ? 'À caler' : m.statut === 'terminé' ? 'Joué' : 'Confirmé'}
         </p>
         {m.statut !== 'terminé' && manque > 0 && (
-          <span className="shrink-0 rounded-(--radius-pill) bg-(--color-vert)/18 px-2 py-0.5 text-[11px] font-semibold text-(--color-vert)">
+          <span className="shrink-0 rounded-(--radius-pill) bg-[color-mix(in_srgb,var(--color-vert)_16%,var(--color-fond))] px-2 py-0.5 text-[11px] font-semibold text-(--color-vert)">
             {manque} place{manque > 1 ? 's' : ''}
           </span>
         )}

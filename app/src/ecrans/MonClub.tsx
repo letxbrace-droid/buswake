@@ -76,7 +76,7 @@ export function MonClub({
           {/* La place n'apparaît QUE si le club a joué : « 3ᵉ » sur zéro
               match est un rang qui ne veut rien dire. */}
           {bilan.place != null && bilan.joues > 0 && (
-            <span className="shrink-0 rounded-(--radius-pill) bg-(--color-vert)/15 px-2.5 py-1 text-xs font-bold text-(--color-vert)">
+            <span className="shrink-0 rounded-(--radius-pill) bg-[color-mix(in_srgb,var(--color-vert)_16%,var(--color-fond))] px-2.5 py-1 text-xs font-bold text-(--color-vert)">
               {bilan.place}ᵉ
             </span>
           )}

@@ -289,6 +289,27 @@ graisse variable répond.
 
 ## Règles de composants
 
+### Cartes pleines — décision du 2 octobre
+
+Demande : « les cartes super nettes et bien visibles, sans flou ni voile ».
+Les plaques et le verre du dock sont désormais **100 % opaques, sans
+`backdrop-filter`** : dégradé plein `--color-plaque-haut` (#343A31) →
+`--color-plaque-bas` (#1C201A). Le relief vient toujours de la lumière
+(arête haute à 26 %, tranche, ombres). Conséquences mesurées :
+
+- les encres grises remontent à `#C6C6C6` / `#ABABAB` (sept libellés
+  tombaient à 4,32–4,46:1 sur la face plus claire) ;
+- les pastilles teintées (places, rang du club) reposent sur une base
+  sombre pleine, plus sur une teinte translucide qui éclaircissait le fond
+  sous le texte (« 1 place » était à ×1,01) ;
+- marches du podium : médaille franche en haut, plus un aplat à 22 % kaki ;
+- la sonde `plaques` exige maintenant des surfaces PLEINES sur toutes les
+  `.plaque` et `.verre` de l'écran — éprouvée : un flou de 6 px la fait
+  échouer sur toutes les routes.
+
+Contraste : tout passe, marge la plus faible ×1,10. La règle « toute surface
+translucide doit être déclarée » devient sans objet : il n'y en a plus.
+
 ### Netteté — ce qui « embuait » l'interface
 
 Retour utilisateur : « on dirait qu'il y a un flou sur les couleurs ».

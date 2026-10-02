@@ -72,8 +72,8 @@ function CarteEquipe({ e }: { e: Equipe }) {
           etat.cle === 'prete'
             ? 'bg-white/8 text-(--color-encre-sec)'
             : etat.cle === 'incomplete'
-              ? 'bg-(--color-feu)/18 text-(--color-feu)'
-              : 'bg-(--color-vert)/15 text-(--color-vert)'
+              ? 'bg-[color-mix(in_srgb,var(--color-feu)_16%,var(--color-fond))] text-(--color-feu)'
+              : 'bg-[color-mix(in_srgb,var(--color-vert)_16%,var(--color-fond))] text-(--color-vert)'
         }`}
       >
         {etat.cle === 'prete' ? 'Prête' : etat.manque === 1 ? '1 place' : `${etat.manque} places`}

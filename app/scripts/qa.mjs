@@ -345,15 +345,26 @@ async function sondeContraste(page) {
  *  tombe. On lit le style CALCULÉ, pas le CSS source. */
 async function sondePlaques(page) {
   return page.evaluate(() => {
+    // Les cartes sont PLEINES (décision du 2 oct. : « super nettes, sans
+    // flou ni voile »). On vérifie TOUTES les surfaces, pas la première :
+    // une seule carte translucide suffit à refaire l'effet vitre embuée.
     const e = document.querySelector('.plaque');
     if (!e) return { ok: false, pourquoi: 'aucune plaque sur cet écran' };
     const s = getComputedStyle(e);
     const ombres = (s.boxShadow.match(/rgba?\(/g) ?? []).length;
-    const flou = s.backdropFilter !== 'none' && s.backdropFilter !== '';
     const bordsDistincts = s.borderTopColor !== s.borderBottomColor;
+    const translucides = [...document.querySelectorAll('.plaque, .verre')].filter((x) => {
+      const c = getComputedStyle(x);
+      const flou = c.backdropFilter !== 'none' && c.backdropFilter !== '';
+      const fond = c.backgroundImage + ' ' + c.backgroundColor;
+      // Un dégradé plein se lit « rgb(52, 58, 49) » ; une transparence
+      // apparaît en « rgba(… , 0.9) » ou en « / 0.9 ».
+      const alpha = /rgba\([^)]*,\s*0?\.\d+\)|\/\s*0?\.\d/.test(c.backgroundImage);
+      return flou || alpha || (c.backgroundImage === 'none' && !/rgb\(/.test(fond));
+    }).length;
     return {
-      ok: ombres >= 5 && flou && bordsDistincts,
-      pourquoi: `${ombres} ombres · flou ${flou ? 'oui' : 'NON'} · bords ${bordsDistincts ? 'distincts' : 'UNIFORMES'}`,
+      ok: ombres >= 5 && bordsDistincts && translucides === 0,
+      pourquoi: `${ombres} ombres · bords ${bordsDistincts ? 'distincts' : 'UNIFORMES'} · ${translucides ? translucides + ' surface(s) TRANSLUCIDE(S) ou floutée(s)' : 'surfaces pleines'}`,
     };
   });
 }

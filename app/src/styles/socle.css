@@ -30,6 +30,10 @@
   --color-carte2: #262b23;
   --color-bord: #2a2f27;
   --color-bord-clair: #3a4035;
+  /* — La face des cartes, PLEINE : haut éclairé → bas dans l'ombre — */
+  --color-plaque-haut: #343a31;
+  --color-plaque-milieu: #262b24;
+  --color-plaque-bas: #1c201a;
 
   /* — Le texte, hiérarchisé par opacité (logique Apple/HIG sombre) —
      Blanc neutre, pas de teinte décorative : s'adapte au fond et reste AA.
@@ -44,10 +48,11 @@
   /* PLEINES, plus en blanc transparent. Un texte à 70 % d'opacité se
      mélange à ce qu'il y a dessous, pixel de bord compris : sur une photo
      floutée, ses contours prenaient la couleur du terrain et paraissaient
-     mous. Mêmes luminances que 0,70 et 0,58 sur le fond — donc mêmes
-     contrastes mesurés — mais des bords nets. */
-  --color-encre-sec: #bababa;
-  --color-encre-faible: #9c9c9c;
+     mous. Remontés d'un cran quand les cartes sont devenues pleines et
+     plus claires (#343A31 en haut) : à #9C9C9C, sept libellés tombaient à
+     4,32–4,46:1. À #ABABAB, la marge revient au-dessus de 4,5 partout. */
+  --color-encre-sec: #c6c6c6;
+  --color-encre-faible: #ababab;
 
   /* — Signaux — */
   /* DEUX rouges, et c'est nécessaire. #FF1744 sur une plaque tombe à 3.79:1

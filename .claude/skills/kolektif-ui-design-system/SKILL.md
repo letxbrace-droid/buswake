@@ -68,7 +68,12 @@ Les encarts à l'intérieur d'une carte redeviennent plats
 (`.screen .card .stat-box`, etc.). Sans cette règle, les six cases
 d'atouts du profil décollent chacune de leur côté.
 
-### 5. Toute surface translucide au-dessus d'une photo doit être déclarée
+### 5. Les cartes sont PLEINES (depuis le 2 oct.) — plus aucune surface translucide ni floutée
+
+La sonde `plaques` refuse toute `.plaque` ou `.verre` translucide ou floutée.
+L'historique ci-dessous reste pour comprendre pourquoi.
+
+#### (historique) Toute surface translucide au-dessus d'une photo doit être déclarée
 
 Depuis qu'il y a une photo par écran, une carte translucide **non
 inscrite dans la liste des plaques** laisse remonter la pelouse et perd

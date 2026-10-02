@@ -22,7 +22,7 @@ export function Segment<T extends string>({
   return (
     <div
       role="tablist"
-      className="relative flex gap-1 rounded-(--radius-pill) bg-black/40 p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,.5)]"
+      className="relative flex gap-1 rounded-(--radius-pill) bg-(--color-fond) p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,.6),0_0_0_1px_rgba(255,255,255,.06)]"
     >
       {options.map((o) => {
         const actif = o.cle === valeur;

@@ -10,23 +10,23 @@
 
 @layer composants {
   .plaque {
-    /* Opaque à ~90 % et presque neutre. À 70 %, teintée olive et saturée,
-       la plaque laissait remonter une photo floutée : toute l'interface
-       semblait vue à travers une vitre embuée. Le flou reste, faible, pour
-       le peu qui passe encore. */
+    /* PLEINE. Aucune transparence, aucun flou : une carte est un objet posé
+       SUR le terrain, pas une vitre à travers laquelle on le regarde. Toute
+       transparence laissait remonter la photo, floutée, et l'interface
+       paraissait embuée — c'est ce qu'on a entendu, deux fois. Le relief,
+       lui, vient toujours de la lumière : face plus claire en haut, arête
+       haute éclairée, tranche et ombre. */
     background: linear-gradient(
       180deg,
-      rgb(46 50 44 / 0.9) 0%,
-      rgb(31 34 30 / 0.92) 44%,
-      rgb(20 22 19 / 0.94) 100%
+      var(--color-plaque-haut) 0%,
+      var(--color-plaque-milieu) 46%,
+      var(--color-plaque-bas) 100%
     );
-    -webkit-backdrop-filter: blur(8px);
-    backdrop-filter: blur(8px);
 
     /* Quatre bords, quatre traitements. Une bordure uniforme éclaire la
        plaque par tous les côtés à la fois : elle cesse d'être un objet. */
-    border: 1px solid rgb(255 255 255 / 0.075);
-    border-top-color: rgb(255 255 255 / 0.22);
+    border: 1px solid rgb(255 255 255 / 0.09);
+    border-top-color: rgb(255 255 255 / 0.26);
     border-bottom-color: rgb(0 0 0 / 0.62);
     border-radius: var(--radius-lg);
 
@@ -60,13 +60,6 @@
     border-bottom-color: rgb(0 0 0 / 0.4);
   }
 
-  /* Sur les appareils qui ne savent pas flouter, on épaissit le fond :
-     sans le flou, une surface à 70 % laisse lire la photo au travers. */
-  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-    .plaque {
-      background: var(--color-carte2);
-    }
-  }
 }
 
 @layer etats {
