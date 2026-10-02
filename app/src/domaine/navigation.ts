@@ -24,3 +24,24 @@ export function ongletActif(chemin: string): number {
     o.exact ? chemin === o.to : chemin === o.to || chemin.startsWith(o.to + '/'),
   );
 }
+
+/** OÙ MÈNE « RETOUR ».
+ *
+ *  Installée sur l'écran d'accueil, l'app n'a plus de barre de navigateur :
+ *  pas de flèche « précédent ». Depuis Composer, Terminer ou Noter, il ne
+ *  restait que le dock — qui ramène à un onglet, pas à l'écran d'avant.
+ *
+ *  Le bouton remonte l'historique quand il existe. Quand il n'existe pas —
+ *  on est arrivé par un lien partagé, ou par une notification — il remonte
+ *  d'un cran dans l'arborescence : c'est ce chemin-là que rend la fonction.
+ *  `null` : un onglet du dock, ou un écran d'entrée, n'a pas de retour. */
+export function parentDe(chemin: string): string | null {
+  if (ongletActif(chemin) >= 0) return null;
+  if (chemin === '/connexion' || chemin === '/bienvenue') return null;
+  const sousMatch = chemin.match(/^\/match\/([^/]+)\/[^/]+$/);
+  if (sousMatch) return `/match/${sousMatch[1]}`;
+  if (chemin.startsWith('/match/')) return '/matchs';
+  if (chemin === '/equipes') return '/club';
+  if (chemin.startsWith('/compte/')) return '/profil';
+  return '/';
+}

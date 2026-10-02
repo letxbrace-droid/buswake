@@ -204,6 +204,7 @@ npm run build              # types
 npm test                   # unité
 npm run qa                 # sondes sur le site construit
 npm run qa contraste       # une seule sonde
+npm run qa cibles          # tout ce qui se touche fait-il 44 × 44 px ?
 npm run verifier-racine    # conformité de la racine publiée
 npm run deployer           # build + publication + vérification
 npm run regles             # règles Firestore contre l'émulateur (Java)

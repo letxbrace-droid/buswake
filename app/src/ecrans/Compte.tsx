@@ -6,11 +6,10 @@ import { messageErreur } from '../domaine/auth';
 import { ChangementMdpSchema, estCompteGooglePur, type ChangementMdp } from '../domaine/compte';
 
 export function MotDePasse({
-  fournisseurs, onChanger, onRetour,
+  fournisseurs, onChanger,
 }: {
   fournisseurs: readonly string[];
   onChanger(v: ChangementMdp): Promise<void>;
-  onRetour(): void;
 }) {
   const [erreur, setErreur] = useState('');
   const f = useForm<ChangementMdp>({
@@ -23,7 +22,7 @@ export function MotDePasse({
   // remplis.
   if (estCompteGooglePur(fournisseurs)) {
     return (
-      <Coque titre="Mot de passe" onRetour={onRetour}>
+      <Coque titre="Mot de passe">
         <Plaque className="p-5">
           <p className="text-sm text-(--color-encre-sec)">
             Ton compte passe par Google. Ton mot de passe se gère dans ton compte Google,
@@ -35,7 +34,7 @@ export function MotDePasse({
   }
 
   return (
-    <Coque titre="Mot de passe" onRetour={onRetour}>
+    <Coque titre="Mot de passe">
       <Plaque className="p-5">
       <form
         noValidate
@@ -107,7 +106,7 @@ export function SupprimerCompte({
   const pret = confirme.trim().toUpperCase() === 'SUPPRIMER' && (google || mdp.length > 0);
 
   return (
-    <Coque titre="Supprimer mon compte" onRetour={onRetour}>
+    <Coque titre="Supprimer mon compte">
       <Plaque className="mb-4 p-5">
         <p className="text-sm text-(--color-encre)">
           Ton compte, ta carte joueur, tes statistiques et ton XP seront{' '}
@@ -176,21 +175,13 @@ export function SupprimerCompte({
 }
 
 function Coque({
-  titre, onRetour, children,
+  titre, children,
 }: {
   titre: string;
-  onRetour(): void;
   children: React.ReactNode;
 }) {
   return (
     <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
-      <button
-        type="button"
-        onClick={onRetour}
-        className="mb-3 text-sm text-(--color-encre-sec)"
-      >
-        ← Retour
-      </button>
       <h1 className="titre-ecran mb-5">
         {titre}
       </h1>

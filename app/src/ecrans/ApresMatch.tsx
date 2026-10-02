@@ -95,7 +95,7 @@ function Notation({
               {initiales(nom(u))}
             </span>
             <p className="min-w-0 flex-1 truncate text-sm">{nom(u)}</p>
-            <div className="flex shrink-0 gap-0.5" role="group" aria-label={`Note de ${nom(u)}`}>
+            <div className="-my-2 -mr-2 flex shrink-0" role="group" aria-label={`Note de ${nom(u)}`}>
               {Array.from({ length: NOTE_MAX }, (_, i) => i + 1).map((n) => (
                 <button
                   key={n}
@@ -104,7 +104,9 @@ function Notation({
                   aria-label={`${n} sur ${NOTE_MAX}`}
                   aria-pressed={(notes[u] ?? 0) >= n}
                   onClick={() => setNotes((p) => ({ ...p, [u]: n }))}
-                  className={`text-xl leading-none ${
+                  // 44 px de cible pour une étoile de 22 : à 18 × 20 px,
+                  // la note du voisin partait une fois sur trois.
+                  className={`grid size-11 place-items-center transition-transform duration-(--duration-doigt) active:scale-90 ${
                     // Une étoile éteinte doit RESTER VISIBLE : à 22 % on ne
                     // voyait plus combien il y en avait à cliquer, et la
                     // mesure la donnait à 2.05:1. L'écart avec l'or reste
@@ -112,7 +114,9 @@ function Notation({
                     (notes[u] ?? 0) >= n ? 'text-(--color-or)' : 'text-(--color-encre-faible)'
                   }`}
                 >
-                  ★
+                  <svg viewBox="0 0 24 24" className="size-[22px]" fill="currentColor" aria-hidden>
+                    <path d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3-4.6-4.4 6.3-.9L12 2.8z" />
+                  </svg>
                 </button>
               ))}
             </div>

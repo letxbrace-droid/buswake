@@ -64,7 +64,7 @@ export function Calendrier({
                     })
                   : undefined
               }
-              className={`grid aspect-square place-items-center rounded-(--radius-sm) text-sm transition-colors duration-(--duration-doigt) ${
+              className={`grid aspect-square min-h-11 place-items-center rounded-(--radius-sm) text-sm transition-colors duration-(--duration-doigt) ${
                 actif
                   ? 'bg-(--color-vert) font-bold text-(--color-fond)'
                   : j.aujourdhui
@@ -100,7 +100,7 @@ function Fleche({
       disabled={!actif}
       onClick={onClick}
       aria-label={`Mois ${sens}`}
-      className="grid size-8 place-items-center rounded-full bg-white/8 text-(--color-encre-sec) disabled:opacity-25"
+      className="grid size-11 place-items-center rounded-full bg-white/8 text-(--color-encre-sec) disabled:opacity-25"
     >
       <svg viewBox="0 0 24 24" className="size-4" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden>
         <path d={sens === 'précédent' ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'} />

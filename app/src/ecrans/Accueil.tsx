@@ -52,7 +52,7 @@ export function Accueil({
         type="button"
         onClick={actions.onProfil}
         aria-label="Voir ma carte joueur"
-        className="mb-5 flex w-full items-baseline justify-between gap-3 pr-12 text-left"
+        className="mb-5 flex min-h-11 w-full items-center justify-between gap-3 pr-12 text-left"
       >
         <span className="min-w-0 truncate font-[family-name:var(--font-titre)] text-3xl tracking-wide uppercase">
           Salut {pseudo}

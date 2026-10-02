@@ -159,6 +159,8 @@ pâté de 4,2 px — mettre `fill="currentColor" stroke="none"`.
 - [ ] Aucun champ de formulaire vide sous 0,85 d'opacité.
 - [ ] Aucun `!important` introduit.
 - [ ] Les nouvelles icônes sont lisibles à 20 px.
+- [ ] `npm run qa cibles` : aucune cible tactile sous 44 × 44 px.
+- [ ] Un nouvel écran hors dock a son retour (`parentDe` le couvre).
 - [ ] Aucune valeur de rayon ou de durée en dur.
 - [ ] Les fonds ne contiennent ni texte gravé ni bande noire.
 - [ ] Le rendu tient à 320 px de large sans débordement horizontal.

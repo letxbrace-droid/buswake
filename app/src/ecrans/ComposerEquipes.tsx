@@ -47,7 +47,7 @@ export function ComposerEquipes({
               type="button"
               onClick={() => versCamp(i)}
               disabled={!choisi}
-              className="w-full text-left disabled:cursor-default"
+              className="flex min-h-11 w-full items-center text-left disabled:cursor-default"
             >
               {/* Le nom porte sa propre surface sombre : une couleur d'équipe
                   vive posée à nu sur la plaque tombe sous le seuil — mesuré
@@ -74,7 +74,7 @@ export function ComposerEquipes({
                   <button
                     type="button"
                     onClick={() => setCamps((p) => retirer(p, u))}
-                    className="flex w-full items-center gap-2 rounded-(--radius-sm) bg-black/25 p-2 text-left"
+                    className="flex min-h-11 w-full items-center gap-2 rounded-(--radius-sm) bg-black/25 p-2 text-left"
                   >
                     <span
                       className="grid size-6 shrink-0 place-items-center rounded-full text-[10px] font-bold text-(--color-fond)"
@@ -100,7 +100,7 @@ export function ComposerEquipes({
             <button
               type="button"
               onClick={() => setCamps((c) => repartirAlternativement(inscrits, c))}
-              className="text-xs text-(--color-vert) underline underline-offset-2"
+              className="cible -my-3 text-xs text-(--color-vert) underline underline-offset-2"
             >
               Tirer au sort
             </button>

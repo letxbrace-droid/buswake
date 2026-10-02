@@ -358,6 +358,33 @@ async function sondePlaques(page) {
   });
 }
 
+/** Sonde 6 — chaque cible tactile fait-elle 44 × 44 px ?
+ *
+ *  Aucune autre sonde ne regarde la TAILLE de ce qu'on touche. Les étoiles de
+ *  notation faisaient 18 × 20 px — le geste principal après un match — et
+ *  tout passait au vert. 44 px est le minimum d'Apple ; on mesure la boîte
+ *  réellement rendue, pas la classe CSS.
+ *
+ *  Exclus : les curseurs (leur piste se touche sur toute sa longueur) et ce
+ *  qui est masqué ou hors écran. */
+async function sondeCibles(page) {
+  return page.evaluate(() => {
+    const fautifs = [];
+    for (const el of document.querySelectorAll('button, a[href], [role="tab"], [role="button"], input, select, textarea')) {
+      if (el.type === 'range' || el.type === 'hidden') continue;
+      const z = el.getBoundingClientRect();
+      if (!z.width || !z.height) continue;
+      if (z.bottom < 0 || z.top > innerHeight * 4) continue;
+      if (getComputedStyle(el).visibility === 'hidden') continue;
+      if (z.width < 44 - 0.5 || z.height < 44 - 0.5) {
+        const nom = (el.getAttribute('aria-label') || el.textContent || el.tagName).trim().replace(/\s+/g, ' ').slice(0, 30);
+        fautifs.push(`${Math.round(z.width)}×${Math.round(z.height)} « ${nom} »`);
+      }
+    }
+    return [...new Set(fautifs)];
+  });
+}
+
 /** Sonde 5 — les champs de saisie sont-ils opaques ?
  *
  *  La sonde de contraste ne mesure que du TEXTE, donc un champ vide lui est
@@ -570,6 +597,15 @@ try {
         if (f.length) {
           echecs++;
           for (const x of f) console.log(`  ✗ champ translucide — ${x}`);
+        }
+      }
+
+      if (!seulement || seulement === 'cibles') {
+        const t = await sondeCibles(pb);
+        if (t.length) {
+          echecs++;
+          for (const x of t.slice(0, 6)) console.log(`  ✗ cible sous 44 px — ${x}`);
+          if (t.length > 6) console.log(`    … et ${t.length - 6} autres`);
         }
       }
 

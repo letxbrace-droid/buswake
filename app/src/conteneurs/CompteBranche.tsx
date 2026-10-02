@@ -17,7 +17,6 @@ export function MotDePasseBranche({ fournisseurs }: { fournisseurs: readonly str
   return (
     <MotDePasse
       fournisseurs={fournisseurs}
-      onRetour={() => aller(-1)}
       onChanger={async (v: ChangementMdp) => {
         const { changerMotDePasse } = await import('../services/compte');
         await changerMotDePasse(v);

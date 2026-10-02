@@ -72,7 +72,7 @@ function CarteTerrain({ t, km }: { t: TerrainVerifie; km: number | null }) {
             href={t.url}
             target="_blank"
             rel="noopener noreferrer"
-            className="underline underline-offset-2"
+            className="cible -my-3 min-w-11 justify-center underline underline-offset-2"
           >
             source
           </a>

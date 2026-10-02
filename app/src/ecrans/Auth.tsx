@@ -44,9 +44,8 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
               setOnglet(o);
               setErreur('');
             }}
-            className={`flex-1 rounded-(--radius-pill) py-2 text-sm font-medium transition-colors duration-(--duration-doigt) ${
-              onglet === o ? 'bg-white/12 text-(--color-encre)' : 'text-(--color-encre-sec)'
-            }`}
+            // Le même « actif » que partout ailleurs : la pastille du dock.
+            className="puce flex-1 bg-transparent text-sm font-medium shadow-none"
           >
             {o === 'connexion' ? 'Connexion' : 'Inscription'}
           </button>

@@ -95,7 +95,7 @@
      aux vrais boutons d'action — deux choses différentes, même apparence. */
   .puce {
     display: inline-flex;
-    min-height: 36px;
+    min-height: 44px;
     align-items: center;
     justify-content: center;
     border-radius: var(--radius-pill);
@@ -108,6 +108,18 @@
       background-color var(--duration-interface) var(--ease-kolektif),
       box-shadow var(--duration-interface) var(--ease-kolektif),
       transform var(--duration-doigt) var(--ease-kolektif);
+  }
+
+  /* Le bouton retour est fixé en haut à gauche : le titre se décale. */
+  .avec-retour .titre-ecran { padding-left: 52px; }
+  .avec-retour .titre-ecran::after { margin-left: 0; }
+
+  /* — Une cible tactile pour un lien de texte : 44 px de haut sans changer
+     la ligne visible (le parent compense par une marge négative). — */
+  .cible {
+    display: inline-flex;
+    min-height: 44px;
+    align-items: center;
   }
 
   /* — Le titre d'écran. La marge droite laisse la place au bouton « ⋯ »,

@@ -62,10 +62,10 @@ export function MonClub({
   return (
     <div className="terrain terrain-equipes h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
       <Plaque className="mb-4 p-4">
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-3.5 pr-10">
           <Blason e={club} taille={54} />
           <div className="min-w-0 flex-1">
-            <h1 className="truncate font-[family-name:var(--font-titre)] text-2xl tracking-wide uppercase">
+            <h1 className="line-clamp-2 font-[family-name:var(--font-titre)] text-2xl leading-tight tracking-wide uppercase">
               {club.nom}
             </h1>
             <p className="mt-0.5 text-xs text-(--color-encre-sec)">

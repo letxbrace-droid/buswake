@@ -443,7 +443,7 @@ export function DetailMatch({
                   href={d.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="min-w-0 flex-1 truncate text-sm text-(--color-vert) underline underline-offset-2"
+                  className="cible -my-3 min-w-0 flex-1 truncate text-sm text-(--color-vert) underline underline-offset-2"
                 >
                   {d.texte}
                 </a>

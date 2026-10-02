@@ -32,7 +32,7 @@ export function Segment<T extends string>({
             role="tab"
             aria-selected={actif}
             onClick={() => onChange(o.cle)}
-            className="relative min-h-10 flex-1 rounded-(--radius-pill) px-2 py-2 text-sm font-medium whitespace-nowrap transition-transform duration-(--duration-doigt) active:scale-95"
+            className="relative min-h-11 flex-1 rounded-(--radius-pill) px-2 py-2 text-sm font-medium whitespace-nowrap transition-transform duration-(--duration-doigt) active:scale-95"
           >
             {actif && (
               <motion.span

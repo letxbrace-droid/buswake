@@ -167,7 +167,7 @@ function LigneJoueur({
         <button
           type="button"
           onClick={onAction}
-          className={`shrink-0 rounded-(--radius-pill) px-3 py-1.5 text-xs font-medium ${
+          className={`min-h-11 shrink-0 rounded-(--radius-pill) px-4 text-xs font-medium ${
             action === 'retirer'
               ? // Fond noir sous le rouge : posé à nu sur la plaque il tombait
                 // à 4.09:1. Le même piège que la pastille de tier et « EN TÊTE ».

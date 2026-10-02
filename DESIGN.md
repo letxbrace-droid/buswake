@@ -289,6 +289,23 @@ graisse variable répond.
 
 ## Règles de composants
 
+### Cibles tactiles et retour
+
+- **44 × 44 px minimum** pour tout ce qui se touche, mesuré sur la boîte
+  rendue par la sonde `cibles` de `npm run qa` (23 routes). Elle a été
+  écrite après l'audit : les étoiles de notation faisaient 18 × 20 px, les
+  flèches du calendrier 32 px, « Retour » 20 px de haut — et toutes les
+  autres sondes étaient vertes. Un lien dans du texte reçoit `.cible`
+  (44 px de haut, marge négative pour ne pas changer la ligne).
+- **Retour** : `composants/Retour.tsx`, en haut à gauche, même verre et
+  même taille que « ⋯ » en face. Présent sur tout écran qui n'est pas un
+  onglet du dock — l'app installée n'a pas de flèche de navigateur. Il
+  recule dans l'historique, ou remonte à `parentDe()` (domaine/navigation)
+  quand on est arrivé par un lien ou une notification. Le titre se décale
+  (`.avec-retour .titre-ecran`).
+- Les étoiles sont un tracé SVG, plus le glyphe « ★ » qui dépendait de la
+  police du téléphone.
+
 ### La matière commune (`styles/verre.css`)
 
 Le dock a posé une matière ; elle est devenue celle de toute l'interface.

@@ -73,7 +73,7 @@ export function CreerMatch({
                 disabled={!ouverte}
                 onClick={() => ouverte && setEtape(e)}
                 aria-current={courante ? 'step' : undefined}
-                className="flex min-w-0 flex-col items-center gap-1 disabled:opacity-40"
+                className="flex min-h-12 min-w-12 flex-col items-center gap-1 disabled:opacity-40"
               >
                 <span
                   className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold transition-colors duration-(--duration-doigt) ${

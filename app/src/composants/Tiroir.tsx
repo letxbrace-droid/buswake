@@ -94,7 +94,7 @@ export function Tiroir({
               <button
                 onClick={onFermer}
                 aria-label="Fermer"
-                className="grid size-9 place-items-center rounded-full bg-white/8 text-(--color-encre-sec)"
+                className="grid size-11 place-items-center rounded-full bg-white/8 text-(--color-encre-sec)"
               >
                 ✕
               </button>
@@ -130,7 +130,7 @@ export function Ligne({
     <button
       type="button"
       onClick={onClick}
-      className={`mb-1.5 w-full rounded-(--radius-sm) bg-black/25 px-3.5 py-3 text-left text-sm ${
+      className={`mb-1.5 min-h-12 w-full rounded-(--radius-sm) bg-black/25 px-3.5 py-3 text-left text-sm ${
         danger ? 'text-(--color-rouge)' : 'text-(--color-encre)'
       }`}
     >

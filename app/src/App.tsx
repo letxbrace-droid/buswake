@@ -11,6 +11,8 @@ import { ouAller } from './domaine/entree';
 import { usePush } from './services/usePush';
 import { useRattrapageDomicile } from './services/useRattrapageDomicile';
 import { Dock } from './composants/Dock';
+import { Retour } from './composants/Retour';
+import { parentDe } from './domaine/navigation';
 
 // Chargement par route. Firebase pèse à lui seul plus que toute l'app v1 :
 // tant qu'il est importé par l'écran d'accueil, on le fait payer à la
@@ -179,7 +181,7 @@ function Coque() {
 
   return (
         <div className="flex h-full flex-col">
-          <main className="min-h-0 flex-1">
+          <main className={`min-h-0 flex-1 ${parentDe(chemin) ? 'avec-retour' : ''}`}>
             <Routes>
               <Route
                 path="/"
@@ -373,6 +375,7 @@ function Coque() {
               ou Classement à quelqu'un de déconnecté ne mène nulle part. */}
           {!surEcranAuth && (
             <>
+              <Retour />
               <button
                 onClick={() => setReglages(true)}
                 aria-label="Réglages"
