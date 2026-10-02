@@ -1,1 +1,0 @@
-import{a as e}from"./DetailMatchBranche-jSLrcBWR.js";export{e as nomDuLieu};

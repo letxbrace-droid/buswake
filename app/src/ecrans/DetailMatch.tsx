@@ -98,13 +98,13 @@ export function DetailMatch({
         <div className="absolute inset-0 bg-gradient-to-t from-(--color-fond) via-(--color-fond)/35 to-(--color-fond)/55" />
 
         <div className="absolute inset-x-0 bottom-0 flex flex-wrap items-center gap-1.5 px-4 pb-3">
-          <span className="rounded-(--radius-pill) bg-black/55 px-2.5 py-1 text-[11px] font-semibold backdrop-blur-sm">
+          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold">
             {formatDuMatch(m)}
           </span>
-          <span className="rounded-(--radius-pill) bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec) backdrop-blur-sm">
+          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec)">
             {LIBELLES_NIVEAU[m.niveau]}
           </span>
-          <span className="rounded-(--radius-pill) bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec) backdrop-blur-sm">
+          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec)">
             {m.statut === 'sondage' ? 'À caler' : m.statut === 'confirmé' ? 'Confirmé' : m.statut}
           </span>
           {conf.manque > 0 ? (
@@ -112,7 +112,7 @@ export function DetailMatch({
               {conf.manque} place{conf.manque > 1 ? 's' : ''}
             </span>
           ) : (
-            <span className="rounded-(--radius-pill) bg-black/55 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-faible) backdrop-blur-sm">
+            <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-faible)">
               Complet
             </span>
           )}

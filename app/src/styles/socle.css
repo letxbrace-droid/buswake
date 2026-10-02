@@ -41,8 +41,13 @@
      pour que les trois niveaux restent distinguables — sans quoi 0,58 et 0,62
      se confondent et la hiérarchie s'effondre. */
   --color-encre: #f8f8f8;
-  --color-encre-sec: rgb(255 255 255 / 0.7);
-  --color-encre-faible: rgb(255 255 255 / 0.58);
+  /* PLEINES, plus en blanc transparent. Un texte à 70 % d'opacité se
+     mélange à ce qu'il y a dessous, pixel de bord compris : sur une photo
+     floutée, ses contours prenaient la couleur du terrain et paraissaient
+     mous. Mêmes luminances que 0,70 et 0,58 sur le fond — donc mêmes
+     contrastes mesurés — mais des bords nets. */
+  --color-encre-sec: #bababa;
+  --color-encre-faible: #9c9c9c;
 
   /* — Signaux — */
   /* DEUX rouges, et c'est nécessaire. #FF1744 sur une plaque tombe à 3.79:1
@@ -53,7 +58,6 @@
   --color-rouge-fond: #b3001b;
   --color-bleu: #00b0ff;
   --color-or: #ffd700;
-  --color-or-clair: #fff1a6;
   --color-argent: #90a4ae;
   --color-bronze: #a05000;
 

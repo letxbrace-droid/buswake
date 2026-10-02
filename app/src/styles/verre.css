@@ -16,11 +16,11 @@
   .verre {
     background: linear-gradient(
       180deg,
-      color-mix(in srgb, var(--color-carte2) 88%, transparent),
-      color-mix(in srgb, var(--color-surface) 92%, transparent)
+      color-mix(in srgb, var(--color-carte2) 94%, transparent),
+      color-mix(in srgb, var(--color-surface) 96%, transparent)
     );
-    backdrop-filter: blur(20px) saturate(1.4);
-    -webkit-backdrop-filter: blur(20px) saturate(1.4);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
     border: 1px solid rgb(255 255 255 / 0.05);
     border-top-color: rgb(255 255 255 / 0.14);
     border-bottom-color: rgb(0 0 0 / 0.6);
@@ -54,18 +54,21 @@
      étiquette, pas comme une chose qu'on enfonce. */
   .btn-vert {
     color: var(--color-fond);
-    background: linear-gradient(180deg, var(--color-vert-clair) -40%, var(--color-vert) 55%);
+    /* Aplat franc et tranche dure : le halo vert qui l'entourait « bavait »
+       sur la plaque et rendait le bord du bouton indécis. */
+    background: var(--color-vert);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.35),
-      inset 0 -2px 0 rgb(0 0 0 / 0.14),
-      0 6px 18px color-mix(in srgb, var(--color-vert) 28%, transparent);
+      inset 0 1px 0 rgb(255 255 255 / 0.32),
+      0 3px 0 var(--color-vert-sombre),
+      0 6px 12px -4px rgb(0 0 0 / 0.6);
   }
   .btn-or {
     color: var(--color-fond);
-    background: linear-gradient(180deg, var(--color-or-clair) -60%, var(--color-or) 55%);
+    background: var(--color-or);
     box-shadow:
       inset 0 1px 0 rgb(255 255 255 / 0.4),
-      0 6px 18px color-mix(in srgb, var(--color-or) 24%, transparent);
+      0 3px 0 var(--color-bronze),
+      0 6px 12px -4px rgb(0 0 0 / 0.6);
   }
   /* Le second choix : la matière du dock. */
   .btn-verre {

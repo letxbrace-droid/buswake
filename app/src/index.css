@@ -34,6 +34,11 @@
     color: var(--color-encre);
     font-family: var(--font-texte);
     overscroll-behavior-y: none;
+    /* Texte clair sur fond sombre : le lissage sous-pixel l'épaissit et le
+       frange de couleur. En niveaux de gris, les lettres restent fines. */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
   }
 }
 

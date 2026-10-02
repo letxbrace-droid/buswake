@@ -289,6 +289,22 @@ graisse variable répond.
 
 ## Règles de composants
 
+### Netteté — ce qui « embuait » l'interface
+
+Retour utilisateur : « on dirait qu'il y a un flou sur les couleurs ».
+Quatre causes cumulées, toutes corrigées :
+
+| Avant | Après | Pourquoi |
+|---|---|---|
+| Plaques à ~70 %, teintées olive, `blur(16px) saturate(1.15)` | ~90–94 %, presque neutres, `blur(8px)` | la photo floutée remontait au travers : effet vitre embuée |
+| Voile gris `#0F0F0F` + lueur verte radiale à 10 % | voile noir pur, sans lueur | un gris délave la photo ; un halo plein écran se lit comme un flou |
+| `encre-sec` / `encre-faible` en blanc à 70 % / 58 % | pleins `#BABABA` / `#9C9C9C` | un texte transparent prend la couleur du fond sur ses bords |
+| Boutons en dégradé + halo vert de 18 px | aplat + tranche dure de 3 px | le halo « bavait » et rendait le bord indécis |
+
+S'y ajoutent le lissage en niveaux de gris (`-webkit-font-smoothing:
+antialiased`) et des étiquettes pleines (`bg-black/80`) sur la photo du
+match. Contraste : `npm run qa` passe partout, marge la plus faible ×1,13.
+
 ### Cibles tactiles et retour
 
 - **44 × 44 px minimum** pour tout ce qui se touche, mesuré sur la boîte
