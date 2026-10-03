@@ -1,0 +1,1 @@
+import{o as e}from"./DetailMatchBranche-CLTl_tin.js";export{e as nomDuLieu};

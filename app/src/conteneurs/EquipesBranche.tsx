@@ -29,6 +29,7 @@ export function EquipesBranche({ uid }: { uid: string | null }) {
       occupe={rejoindre.occupe}
       onCreer={() => aller('/club/creer')}
       onRejoindre={rejoindre.lancer}
+      onVoirMonClub={() => aller('/club')}
     />
   );
 }

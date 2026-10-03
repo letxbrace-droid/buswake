@@ -89,3 +89,27 @@ export function peutRejoindre(e: Equipe, equipes: readonly Equipe[], uid: string
   if ((e.membres ?? []).length >= MEMBRES_MAX) return { peut: false, pourquoi: 'Ce club est complet.' };
   return { peut: true };
 }
+
+/** QUITTER SON CLUB — le chemin qui manquait.
+ *
+ *  Sans lui, un club créé par erreur (un appui de trop sur « Créer ») vous
+ *  enfermait : on ne pouvait plus ni créer ni rejoindre, et rien ne disait
+ *  pourquoi. Trois cas, selon qui part :
+ *    - un membre s'en va ;
+ *    - le capitaine part et d'autres restent : il transmet le brassard au
+ *      membre le plus ancien après lui (l'ordre du tableau) ;
+ *    - le capitaine est seul : le club est supprimé, il n'a plus de sens. */
+export type Sortie =
+  | { readonly type: 'quitter' }
+  | { readonly type: 'transmettre'; readonly vers: string }
+  | { readonly type: 'supprimer' }
+  | { readonly type: 'aucune' };
+
+export function sortieDuClub(e: Equipe, uid: string | null): Sortie {
+  if (!uid) return { type: 'aucune' };
+  const membres = e.membres ?? [];
+  const capitaine = e.capitaineUid === uid;
+  if (!capitaine) return membres.includes(uid) ? { type: 'quitter' } : { type: 'aucune' };
+  const autres = membres.filter((m) => m !== uid);
+  return autres.length ? { type: 'transmettre', vers: autres[0] } : { type: 'supprimer' };
+}

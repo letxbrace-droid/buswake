@@ -56,6 +56,14 @@ export function MonClubBranche({ uid }: { uid: string | null }) {
     { succes: (r) => (r === 'copie' ? 'Lien copié — colle-le dans ta conversation.' : '') },
   );
 
+  const quitter = useAction(
+    async (c: NonNullable<typeof club>) => (await import('../services/equipes')).sortirDuClub(c, uid ?? ''),
+    {
+      succes: (r) => (r === 'supprime' ? 'Club supprimé.' : 'Tu as quitté le club.'),
+      invalider: [['equipes']],
+    },
+  );
+
   return (
     <MonClub
       club={club}
@@ -67,6 +75,7 @@ export function MonClubBranche({ uid }: { uid: string | null }) {
         onInviter: inviter.lancer,
         onVoirEquipes: () => aller('/equipes'),
         onCreer: () => aller('/club/creer'),
+        onQuitter: () => club && quitter.lancer(club),
       }}
     />
   );

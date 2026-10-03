@@ -1,1 +1,0 @@
-import{o as e}from"./DetailMatchBranche-DBTK-g0e.js";export{e as nomDuLieu};

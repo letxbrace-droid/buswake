@@ -7,6 +7,7 @@ import { Icone } from '../composants/Icone';
 import { useEntree } from '../services/useEntree';
 import { NIVEAUX, type Equipe } from '../domaine/equipe';
 import type { BilanClub, Membre } from '../domaine/club';
+import { sortieDuClub } from '../domaine/creationClub';
 
 type Onglet = 'equipe' | 'stats' | 'classement';
 
@@ -14,6 +15,7 @@ export interface ActionsClub {
   onInviter(): void;
   onVoirEquipes(): void;
   onCreer(): void;
+  onQuitter(): void;
 }
 
 export function MonClub({
@@ -27,6 +29,7 @@ export function MonClub({
   actions: ActionsClub;
 }) {
   const [onglet, setOnglet] = useState<Onglet>('equipe');
+  const [quitter, setQuitter] = useState(false);
   const entree = useEntree(onglet);
 
   if (!club || !bilan) {
@@ -219,6 +222,42 @@ export function MonClub({
           })}
         </div>
       )}
+
+      {/* QUITTER — en bas, en deux temps. Sans ce chemin, un club créé par
+          erreur enfermait son créateur : plus moyen de créer ni de rejoindre
+          un autre club, et rien ne disait pourquoi. */}
+      {(() => {
+        const s = sortieDuClub(club, monUid);
+        if (s.type === 'aucune') return null;
+        const libelle = s.type === 'supprimer' ? 'Supprimer le club' : 'Quitter le club';
+        const consequence =
+          s.type === 'supprimer'
+            ? `Tu es le seul membre : ${club.nom} sera supprimé définitivement.`
+            : s.type === 'transmettre'
+              ? `Tu es capitaine : le brassard passera à ${membres.find((m) => m.uid === s.vers)?.pseudo ?? 'un autre membre'}.`
+              : `Tu ne feras plus partie de ${club.nom}.`;
+        return (
+          <div className="mt-6">
+            {!quitter ? (
+              <button type="button" onClick={() => setQuitter(true)} className="btn btn-danger w-full">
+                {libelle}
+              </button>
+            ) : (
+              <Plaque className="p-4">
+                <p className="mb-3 text-center text-sm text-(--color-encre-sec)">{consequence}</p>
+                <div className="flex gap-2">
+                  <button type="button" onClick={() => setQuitter(false)} className="btn btn-verre flex-1">
+                    Rester
+                  </button>
+                  <button type="button" onClick={actions.onQuitter} className="btn btn-danger-plein flex-1">
+                    {libelle}
+                  </button>
+                </div>
+              </Plaque>
+            )}
+          </div>
+        );
+      })()}
     </div>
   );
 }

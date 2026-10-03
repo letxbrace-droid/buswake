@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import regles from '../../../firestore.rules?raw';
 import { COULEURS_EQUIPE, type Equipe } from './equipe';
 import {
-  CLUB_VIDE, documentClub, NOMS_EMBLEMES, peutCreerUnClub, peutRejoindre, problemeClub,
+  CLUB_VIDE, documentClub, NOMS_EMBLEMES, peutCreerUnClub, peutRejoindre, problemeClub, sortieDuClub,
 } from './creationClub';
 
 /** Les valeurs que la règle accepte, lues dans firestore.rules. */
@@ -72,5 +72,24 @@ describe('un joueur, un club', () => {
   it('un club plein ne se rejoint pas', () => {
     const plein: Equipe = { id: 'p', nom: 'P', membres: Array.from({ length: 20 }, (_, i) => 'm' + i) };
     expect(peutRejoindre(plein, [plein], 'u9')).toMatchObject({ peut: false, pourquoi: 'Ce club est complet.' });
+  });
+});
+
+describe('quitter son club', () => {
+  const club: Equipe = { id: 'c', nom: 'C', capitaineUid: 'cap', membres: ['cap', 'a', 'b'] };
+  it('un membre s’en va', () => {
+    expect(sortieDuClub(club, 'a')).toEqual({ type: 'quitter' });
+  });
+  it('le capitaine transmet le brassard au plus ancien', () => {
+    expect(sortieDuClub(club, 'cap')).toEqual({ type: 'transmettre', vers: 'a' });
+  });
+  it('le capitaine seul supprime le club', () => {
+    expect(sortieDuClub({ ...club, membres: ['cap'] }, 'cap')).toEqual({ type: 'supprimer' });
+  });
+  it('un capitaine absent de membres (club de la v1) le supprime aussi', () => {
+    expect(sortieDuClub({ ...club, membres: [] }, 'cap')).toEqual({ type: 'supprimer' });
+  });
+  it('un étranger n’a rien à quitter', () => {
+    expect(sortieDuClub(club, 'zz')).toEqual({ type: 'aucune' });
   });
 });

@@ -61,3 +61,22 @@ describe('rejoindre et quitter', () => {
     await refuse(db('moi').doc('equipes/e1').update({ membres: ['cap', 'moi'], 'stats.victoires': 5 }));
   });
 });
+
+describe('quitter son club', () => {
+  beforeEach(async () => { await poser(env, 'equipes/e1', club('cap', { membres: ['cap', 'a'] })); });
+  it('passe : un membre se retire', async () => {
+    await passe(db('a').doc('equipes/e1').update({ membres: ['cap'] }));
+  });
+  it('passe : le capitaine transmet le brassard et part, en une écriture', async () => {
+    await passe(db('cap').doc('equipes/e1').update({ capitaineUid: 'a', membres: ['a'] }));
+  });
+  it('refuse : un membre se proclame capitaine', async () => {
+    await refuse(db('a').doc('equipes/e1').update({ capitaineUid: 'a' }));
+  });
+  it('passe : le capitaine supprime son club', async () => {
+    await passe(db('cap').doc('equipes/e1').delete());
+  });
+  it('refuse : un membre supprime le club', async () => {
+    await refuse(db('a').doc('equipes/e1').delete());
+  });
+});

@@ -5,13 +5,14 @@ import { Blason } from '../composants/Blason';
 import { bilanEquipe, etatEquipe, NIVEAUX, type Equipe } from '../domaine/equipe';
 
 export function Equipes({
-  equipes, uid = null, occupe = false, onCreer = () => {}, onRejoindre = () => {},
+  equipes, uid = null, occupe = false, onCreer = () => {}, onRejoindre = () => {}, onVoirMonClub = () => {},
 }: {
   equipes: readonly Equipe[];
   uid?: string | null;
   occupe?: boolean;
   onCreer?(): void;
   onRejoindre?(id: string): void;
+  onVoirMonClub?(): void;
 }) {
   const [ouverte, setOuverte] = useState<string | null>(null);
   const creation = peutCreerUnClub(equipes, uid);
@@ -27,6 +28,12 @@ export function Equipes({
     // comparaison à trois termes alors que c'en est un OU EXCLUSIF entre
     // deux booléens. Même résultat, mais l'intention se lisait mal.
     const complete = (n: number) => n === 0;
+    // Mon club d'abord, toujours : c'est lui qu'on cherche des yeux, et le
+    // perdre au milieu de la liste faisait croire à un club « déjà créé »
+    // par quelqu'un d'autre.
+    const moiA = !!uid && (a.capitaineUid === uid || (a.membres ?? []).includes(uid));
+    const moiB = !!uid && (b.capitaineUid === uid || (b.membres ?? []).includes(uid));
+    if (moiA !== moiB) return moiA ? -1 : 1;
     if (complete(ma) !== complete(mb)) return complete(ma) ? 1 : -1; // les prêtes en bas
     return ma - mb;
   });
@@ -54,16 +61,29 @@ export function Equipes({
         <>
           {/* Créer reste à portée même quand la liste est pleine : avant, ce
               chemin n'existait que sur une liste vide. */}
-          {creation.peut && (
+          {creation.peut ? (
             <button type="button" onClick={onCreer} className="btn btn-vert mb-4 w-full">
               Créer mon club
             </button>
-          )}
+          ) : creation.club ? (
+            // POURQUOI on ne peut ni créer ni rejoindre — dit en haut, une
+            // fois, au lieu d'un bouton absent sans explication.
+            <Plaque className="mb-4 flex items-center gap-3 p-3.5">
+              <Blason e={creation.club} taille={36} />
+              <p className="min-w-0 flex-1 text-sm">
+                Tu fais partie de <b>{creation.club.nom}</b>. Un joueur, un club : quitte-le pour en créer ou en rejoindre un autre.
+              </p>
+              <button type="button" onClick={onVoirMonClub} className="btn btn-verre shrink-0 px-4 text-sm">
+                Voir
+              </button>
+            </Plaque>
+          ) : null}
           <div className="flex flex-col gap-3">
             {triees.map((e) => (
               <CarteEquipe
                 key={e.id}
                 e={e}
+                moi={!!uid && (e.capitaineUid === uid || (e.membres ?? []).includes(uid))}
                 ouverte={ouverte === e.id}
                 onBasculer={() => setOuverte(ouverte === e.id ? null : e.id)}
                 adhesion={peutRejoindre(e, equipes, uid)}
@@ -79,9 +99,11 @@ export function Equipes({
 }
 
 function CarteEquipe({
-  e, ouverte, onBasculer, adhesion, occupe, onRejoindre,
+  e, moi, ouverte, onBasculer, adhesion, occupe, onRejoindre,
 }: {
   e: Equipe;
+  /** C'est le club du joueur connecté. */
+  moi: boolean;
   ouverte: boolean;
   onBasculer(): void;
   adhesion: ReturnType<typeof peutRejoindre>;
@@ -104,7 +126,14 @@ function CarteEquipe({
       <Blason e={e} taille={46} />
 
       <div className="min-w-0 flex-1">
-        <p className="truncate font-semibold">{e.nom}</p>
+        <p className="flex items-center gap-2 font-semibold">
+          <span className="truncate">{e.nom}</span>
+          {moi && (
+            <span className="shrink-0 rounded-(--radius-pill) bg-(--color-vert) px-2 py-0.5 text-[10px] font-bold text-(--color-fond) uppercase">
+              Ton club
+            </span>
+          )}
+        </p>
         <p className="truncate text-xs text-(--color-encre-sec)">
           {e.niveau ? NIVEAUX[e.niveau] : 'Tous niveaux'} · {b.v}V {b.n}N {b.d}D
           {b.serie >= 3 && <span className="text-(--color-feu)"> · {b.serie} d’affilée</span>}
@@ -122,7 +151,9 @@ function CarteEquipe({
               : 'bg-[color-mix(in_srgb,var(--color-vert)_16%,var(--color-fond))] text-(--color-vert)'
         }`}
       >
-        {etat.cle === 'prete' ? 'Prête' : etat.manque === 1 ? '1 place' : `${etat.manque} places`}
+        {/* « 4 places » se lisait comme une limite ; c'est ce qui manque
+            pour aligner un cinq complet. */}
+        {etat.cle === 'prete' ? 'Complète' : etat.manque === 1 ? '1 place libre' : `${etat.manque} places libres`}
       </span>
     </button>
 
@@ -136,6 +167,8 @@ function CarteEquipe({
           <button type="button" disabled={occupe} onClick={onRejoindre} className="btn btn-vert w-full">
             Rejoindre {e.nom}
           </button>
+        ) : moi ? (
+          <p className="text-center text-xs text-(--color-encre-sec)">C’est ton club — gère-le depuis l’onglet Mon Club.</p>
         ) : (
           <p className="text-center text-xs text-(--color-encre-faible)">{adhesion.pourquoi}</p>
         )}
