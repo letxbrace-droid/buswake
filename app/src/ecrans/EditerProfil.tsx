@@ -44,7 +44,7 @@ export function EditerProfil({
 
       <Plaque className="mb-3 p-4">
         <label className="block">
-          <span className="mb-1.5 block text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+          <span className="mb-1.5 block etiquette">
             Pseudo
           </span>
           <input
@@ -54,11 +54,11 @@ export function EditerProfil({
             className="champ px-3 py-2.5"
           />
         </label>
-        <p className="mt-1 text-[11px] text-(--color-encre-faible)">Visible par tous les joueurs.</p>
+        <p className="mt-1 text-xs text-(--color-encre-faible)">Visible par tous les joueurs.</p>
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-2 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Poste</p>
+        <p className="mb-2 etiquette">Poste</p>
         <div className="grid grid-cols-4 gap-1.5">
           {POSTES.map((p) => (
             <button
@@ -75,7 +75,7 @@ export function EditerProfil({
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Atouts</p>
+        <p className="mb-1 etiquette">Atouts</p>
         <p className="mb-3 text-xs text-(--color-encre-sec)">
           Ton auto-évaluation. Les notes que te donnent les autres après un match, elles, ne se
           règlent pas ici.
@@ -99,7 +99,7 @@ export function EditerProfil({
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <p className="mb-1 etiquette">
           Où tu joues
         </p>
         {/* DIRE OÙ L'APP TE PLACE. Sans cette ligne, un joueur placé à tort
@@ -134,7 +134,7 @@ export function EditerProfil({
         </button>
         {/* Le document profil est lisible par tous les joueurs connectés :
             on dit ce qu'on en fait avant qu'ils appuient. */}
-        <p className="mt-1.5 text-[11px] text-(--color-encre-faible)">
+        <p className="mt-1.5 text-xs text-(--color-encre-faible)">
           Arrondie à environ 2 km avant d’être enregistrée — jamais ton adresse exacte.
         </p>
       </Plaque>

@@ -52,7 +52,7 @@ export function TerminerMatch({
       </h1>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <p className="mb-3 etiquette">
           Score final
         </p>
         <div className="grid grid-cols-[1fr_auto_1fr] items-center gap-3">
@@ -75,7 +75,7 @@ export function TerminerMatch({
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <p className="mb-1 etiquette">
           Homme du match
         </p>
         <p className="mb-3 text-xs text-(--color-encre-sec)">Facultatif — vaut 200 XP.</p>
@@ -100,7 +100,7 @@ export function TerminerMatch({
           refuse, pas le manque. */}
       {totalScore > 0 && bilan.presents.length > 0 && (
         <Plaque className="mb-3 p-4">
-          <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+          <p className="mb-1 etiquette">
             Buts et passes
           </p>
           <p className="mb-3 text-xs text-(--color-encre-sec)">
@@ -112,7 +112,7 @@ export function TerminerMatch({
                 : ''}
           </p>
 
-          <div className="mb-2 flex items-center gap-2 pr-1 text-[10px] tracking-wide text-(--color-encre-faible) uppercase">
+          <div className="mb-2 flex items-center gap-2 pr-1 text-xs tracking-wide text-(--color-encre-faible) uppercase">
             <span className="flex-1" />
             <span className="w-[86px] text-center">Buts</span>
             <span className="w-[86px] text-center">Passes</span>
@@ -139,7 +139,7 @@ export function TerminerMatch({
       )}
 
       <Plaque className="p-4">
-        <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <p className="mb-1 etiquette">
           Présences
         </p>
         {/* Présent par défaut : on demande de signaler les ABSENTS. Cocher dix
@@ -160,7 +160,7 @@ export function TerminerMatch({
                   className="flex w-full items-center gap-2.5 rounded-(--radius-sm) bg-black/25 p-2.5 text-left"
                 >
                   <span
-                    className={`grid size-7 shrink-0 place-items-center rounded-full text-[11px] font-bold ${
+                    className={`grid size-7 shrink-0 place-items-center rounded-full text-xs font-bold ${
                       absent
                         ? 'bg-white/8 text-(--color-encre-faible)'
                         : 'bg-(--color-vert) text-(--color-fond)'

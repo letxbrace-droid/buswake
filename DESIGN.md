@@ -289,6 +289,20 @@ graisse variable répond.
 
 ## Règles de composants
 
+### Lisibilité des gris — retour du 3 octobre
+
+« Les écritures en gris ne sont pas bien lisibles » (Emblème, Le prochain,
+Ton rang…). Elles passaient le seuil AA ; le seuil est un minimum, pas un
+confort.
+
+- `.etiquette` : 13 px, gras, espacement 0,08 em, encre secondaire —
+  au lieu de 12 px, normal, 0,14 em, encre faible. Contraste sur la face
+  des cartes : 9,2:1 (contre 6,0:1).
+- encres grises remontées : `#D4D4D4` / `#B3B3B3` ;
+- plus aucun texte gris sous 12 px (le compteur 0/28, la version…).
+- `coherence.test.ts` refuse le retour d'un libellé gris en petites
+  capitales ou d'un texte gris sous 12 px.
+
 ### Système tactile — octobre 2026
 
 Inspiré d'une planche « neo-skeuomorphic tactile system » fournie par le

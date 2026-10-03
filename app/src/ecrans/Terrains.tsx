@@ -56,7 +56,7 @@ function CarteTerrain({ t, km }: { t: TerrainVerifie; km: number | null }) {
             Gagner une ligne ici coûte un trajet au joueur. */}
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
           <p className="font-semibold">{t.n}</p>
-          <span className="shrink-0 rounded-(--radius-pill) bg-black/35 px-2 py-0.5 text-[10px] tracking-wide text-(--color-encre-sec) uppercase">
+          <span className="shrink-0 rounded-(--radius-pill) bg-black/35 px-2 py-0.5 text-xs tracking-wide text-(--color-encre-sec) uppercase">
             {TYPES[t.t]}
           </span>
         </div>

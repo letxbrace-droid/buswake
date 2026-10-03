@@ -44,4 +44,14 @@ describe('matière commune', () => {
       .map(([f]) => f);
     expect(fautifs, 'utiliser la classe .champ').toEqual([]);
   });
+  it('aucun libellé gris illisible', () => {
+    // Retour utilisateur : « les écritures en gris ne sont pas bien
+    // lisibles ». Les étiquettes de section passent par `.etiquette`, et
+    // aucun texte gris ne descend sous 12 px.
+    const fautifs = classes.filter(([, c]) =>
+      (/uppercase/.test(c) && /text-\(--color-encre-faible\)/.test(c) && /\btext-(xs|\[1[01]px\])\b/.test(c))
+      || (/text-\(--color-encre-(faible|sec)\)/.test(c) && /text-\[(9|10|11)px\]/.test(c)),
+    );
+    expect(fautifs.map(([f, c]) => `${f} : ${c}`)).toEqual([]);
+  });
 });

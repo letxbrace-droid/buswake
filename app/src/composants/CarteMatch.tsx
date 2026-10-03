@@ -70,7 +70,7 @@ export function CarteMatch({
           Le badge de places est la première chose qu'on cherche en balayant
           une liste — « est-ce que je peux entrer ? ». */}
       <div className="flex items-start justify-between gap-2">
-        <p className="text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <p className="etiquette">
           {m.statut === 'sondage' ? 'À caler' : m.statut === 'terminé' ? 'Joué' : 'Confirmé'}
         </p>
         {m.statut !== 'terminé' && manque > 0 && (
@@ -79,7 +79,7 @@ export function CarteMatch({
           </span>
         )}
         {manque === 0 && (
-          <span className="shrink-0 rounded-(--radius-pill) bg-black/35 px-2 py-0.5 text-[11px] font-semibold text-(--color-encre-faible)">
+          <span className="shrink-0 rounded-(--radius-pill) bg-black/35 px-2 py-0.5 text-xs font-semibold text-(--color-encre-faible)">
             Complet
           </span>
         )}

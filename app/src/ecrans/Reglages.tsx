@@ -72,7 +72,7 @@ export function Reglages({
               style={{ width: `${Math.round(p.fraction * 100)}%` }}
             />
           </span>
-          <span className="mt-1 block text-[11px] text-(--color-encre-faible)">
+          <span className="mt-1 block text-xs text-(--color-encre-faible)">
             {p.suivant ? `${p.restant} XP avant ${p.suivant.label}` : 'Rang maximal atteint'}
           </span>
         </span>
@@ -168,7 +168,7 @@ export function Reglages({
 
       {/* Sans ce repère, « le correctif ne marche pas » et « je n'ai pas
           encore la version qui le contient » se ressemblent exactement. */}
-      <p className="mt-6 text-center text-[11px] text-(--color-encre-faible)">
+      <p className="mt-6 text-center text-xs text-(--color-encre-faible)">
         KOLEKTIF · version {__VERSION__}
       </p>
     </Tiroir>
@@ -195,7 +195,7 @@ function Pastille({ icone, teinte }: { icone: NomIcone; teinte: Teinte }) {
 function Groupe({ titre, children }: { titre: string; children: ReactNode }) {
   return (
     <section className="mb-5">
-      <h3 className="mb-2 px-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">{titre}</h3>
+      <h3 className="mb-2 px-1 etiquette">{titre}</h3>
       {/* Une seule surface par groupe, des séparateurs fins entre les lignes :
           on lit un bloc, pas une pile de boutons. */}
       <div className="overflow-hidden rounded-(--radius-md) border border-white/8 bg-(--color-carte) [&>*+*]:border-t [&>*+*]:border-white/6">

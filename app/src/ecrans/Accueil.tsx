@@ -62,7 +62,7 @@ export function Accueil({
 
       {vedette ? (
         <Plaque variante="heros" className="mb-4 p-5">
-          <p className="text-xs tracking-[0.18em] text-(--color-encre-faible) uppercase">
+          <p className="etiquette">
             {vedette.dedans ? 'Le prochain' : 'À caler près de toi'}
           </p>
           <p className="mt-2 font-[family-name:var(--font-titre)] text-4xl first-letter:uppercase">
@@ -88,7 +88,7 @@ export function Accueil({
       ) : (
         // « Rien » se dit. Un héros vide vaut mieux qu'un héros inventé.
         <Plaque variante="heros" className="mb-4 p-5">
-          <p className="text-xs tracking-[0.18em] text-(--color-encre-faible) uppercase">
+          <p className="etiquette">
             Le prochain
           </p>
           <p className="mt-2 font-[family-name:var(--font-titre)] text-3xl">Aucun match en vue</p>
@@ -124,7 +124,7 @@ export function Accueil({
               <span className="grid size-9 place-items-center rounded-full bg-(--color-vert)/15 text-(--color-vert)">
                 <Icone nom={t.nom} taille={19} />
               </span>
-              <span className="text-center text-[11px] leading-tight whitespace-pre-line text-(--color-encre-sec)">
+              <span className="text-center text-xs leading-tight whitespace-pre-line text-(--color-encre-sec)">
                 {t.label}
               </span>
             </button>
@@ -135,7 +135,7 @@ export function Accueil({
       <div className="grid grid-cols-2 gap-3">
         <Plaque action className="p-0">
           <button type="button" onClick={actions.onRang} className="w-full p-4 text-left">
-            <p className="text-xs text-(--color-encre-faible) uppercase">Ton rang</p>
+            <p className="etiquette">Ton rang</p>
             <p className="mt-1 text-xl font-semibold" style={{ color: p.rang.couleur }}>
               {p.rang.label}
             </p>
@@ -149,7 +149,7 @@ export function Accueil({
 
         <Plaque action className="p-0">
           <button type="button" onClick={actions.onTerrains} className="w-full p-4 text-left">
-            <p className="text-xs text-(--color-encre-faible) uppercase">Autour de toi</p>
+            <p className="etiquette">Autour de toi</p>
             <p className="mt-1 text-xl font-semibold">
               {terrains} terrain{terrains > 1 ? 's' : ''}
             </p>

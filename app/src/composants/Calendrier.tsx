@@ -41,7 +41,7 @@ export function Calendrier({
           <span
             key={i}
             aria-hidden
-            className="py-1 text-center text-[11px] font-semibold text-(--color-encre-faible)"
+            className="py-1 text-center text-xs font-semibold text-(--color-encre-faible)"
           >
             {j}
           </span>

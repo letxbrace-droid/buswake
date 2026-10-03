@@ -68,7 +68,7 @@ export function Messages({
               {/* On dit pourquoi un fil est éteint. « Fermé » sans raison se
                   lit comme une panne. */}
               {!f.ouvert && (
-                <span className="shrink-0 rounded-(--radius-pill) bg-black/35 px-2 py-0.5 text-[10px] text-(--color-encre-faible)">
+                <span className="shrink-0 rounded-(--radius-pill) bg-black/35 px-2 py-0.5 text-xs text-(--color-encre-faible)">
                   Terminé
                 </span>
               )}

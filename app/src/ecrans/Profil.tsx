@@ -53,7 +53,7 @@ export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => 
             {note.toFixed(1)}
           </span>
           <span className="min-w-0 flex-1">
-            <span className="block text-xs text-(--color-encre-faible) uppercase">Note moyenne</span>
+            <span className="block etiquette">Note moyenne</span>
             <span className="block text-xs text-(--color-encre-sec)">
               sur {j.noteCount} match{(j.noteCount ?? 0) > 1 ? 's' : ''} noté
               {(j.noteCount ?? 0) > 1 ? 's' : ''}
@@ -103,7 +103,7 @@ export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => 
 
       {j.badges && j.badges.length > 0 && (
         <Plaque className="mt-3 p-4">
-          <p className="text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Badges</p>
+          <p className="etiquette">Badges</p>
           <div className="mt-2.5 flex flex-wrap gap-2">
             {j.badges.map((b) => (
               <span
@@ -130,7 +130,7 @@ function Stat({
 }) {
   return (
     <Plaque className="p-4">
-      <p className="text-xs text-(--color-encre-faible) uppercase">{label}</p>
+      <p className="etiquette">{label}</p>
       <p
         className={`mt-1 font-[family-name:var(--font-titre)] text-3xl tabular-nums ${
           accent ? 'text-(--color-feu)' : malus ? 'text-(--color-encre-sec)' : ''

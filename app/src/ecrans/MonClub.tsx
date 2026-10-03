@@ -135,7 +135,7 @@ export function MonClub({
                   {m.note.toFixed(1)}
                 </span>
               ) : (
-                <span className="shrink-0 text-[11px] text-(--color-encre-faible)">
+                <span className="shrink-0 text-xs text-(--color-encre-faible)">
                   pas encore noté
                 </span>
               )}
@@ -176,7 +176,7 @@ export function MonClub({
             { label: 'Buts encaissés', valeur: String(bilan.butsContre) },
           ].map((s) => (
             <Plaque key={s.label} className="mc p-4">
-              <p className="text-xs text-(--color-encre-faible) uppercase">{s.label}</p>
+              <p className="etiquette">{s.label}</p>
               <p className="mt-1 font-[family-name:var(--font-titre)] text-2xl">{s.valeur}</p>
             </Plaque>
           ))}
@@ -189,7 +189,7 @@ export function MonClub({
 
           {bilan.serie > 0 && (
             <Plaque className="col-span-2 p-4">
-              <p className="text-xs text-(--color-encre-faible) uppercase">Série en cours</p>
+              <p className="etiquette">Série en cours</p>
               <p className="mt-1 font-[family-name:var(--font-titre)] text-2xl text-(--color-vert)">
                 {bilan.serie} victoire{bilan.serie > 1 ? 's' : ''} d’affilée
               </p>

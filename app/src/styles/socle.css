@@ -56,9 +56,13 @@
      floutée, ses contours prenaient la couleur du terrain et paraissaient
      mous. Remontés d'un cran quand les cartes sont devenues pleines et
      plus claires (#343A31 en haut) : à #9C9C9C, sept libellés tombaient à
-     4,32–4,46:1. À #ABABAB, la marge revient au-dessus de 4,5 partout. */
-  --color-encre-sec: #c6c6c6;
-  --color-encre-faible: #ababab;
+     4,32–4,46:1. À #ABABAB, la marge revient au-dessus de 4,5 partout.
+     Remontés encore (#D4D4D4 / #B3B3B3) sur retour utilisateur : « les
+     écritures en gris ne sont pas bien lisibles ». Le seuil AA est un
+     minimum, pas un confort ; la hiérarchie tient toujours, l'encre
+     principale restant à #F8F8F8. */
+  --color-encre-sec: #d4d4d4;
+  --color-encre-faible: #b3b3b3;
 
   /* — Signaux — */
   /* DEUX rouges, et c'est nécessaire. #FF1744 sur une plaque tombe à 3.79:1

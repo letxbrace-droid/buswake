@@ -62,7 +62,7 @@ export function Chat({
                     }`}
                   >
                     {!mien && (
-                      <p className="mb-0.5 text-[11px] font-semibold text-(--color-encre-sec)">
+                      <p className="mb-0.5 text-xs font-semibold text-(--color-encre-sec)">
                         {nom(m.auteur)}
                       </p>
                     )}

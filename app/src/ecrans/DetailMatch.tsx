@@ -102,10 +102,10 @@ export function DetailMatch({
           <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold">
             {formatDuMatch(m)}
           </span>
-          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec)">
+          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-xs font-semibold text-(--color-encre-sec)">
             {LIBELLES_NIVEAU[m.niveau]}
           </span>
-          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-sec)">
+          <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-xs font-semibold text-(--color-encre-sec)">
             {m.statut === 'sondage' ? 'À caler' : m.statut === 'confirmé' ? 'Confirmé' : m.statut}
           </span>
           {conf.manque > 0 ? (
@@ -113,7 +113,7 @@ export function DetailMatch({
               {conf.manque} place{conf.manque > 1 ? 's' : ''}
             </span>
           ) : (
-            <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-[11px] font-semibold text-(--color-encre-faible)">
+            <span className="rounded-(--radius-pill) bg-black/80 px-2.5 py-1 text-xs font-semibold text-(--color-encre-faible)">
               Complet
             </span>
           )}
@@ -199,7 +199,7 @@ export function DetailMatch({
 
       {m.statut === 'sondage' && (m.creneauxProposes ?? []).length > 0 && (
         <Plaque className="mb-4 p-4">
-          <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+          <p className="mb-3 etiquette">
             Quel créneau ?
           </p>
 
@@ -275,7 +275,7 @@ export function DetailMatch({
           donc jamais être terminé depuis l'app, et personne n'était payé. */}
       {m.statut === 'confirmé' && createur && (
         <Plaque className="mb-3 p-4">
-          <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+          <p className="mb-3 etiquette">
             Organisation
           </p>
           <div className="flex flex-col gap-2">
@@ -326,7 +326,7 @@ export function DetailMatch({
       )}
 
       <Plaque className="p-4">
-        <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <p className="mb-3 etiquette">
           Sur le terrain · {inscrits.length}
         </p>
         {/* AVEC LES VISAGES, et surtout avec les NOMS : cette liste rendait
@@ -345,7 +345,7 @@ export function DetailMatch({
 
         {banc.length > 0 && (
           <>
-            <p className="mt-4 mb-2 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            <p className="mt-4 mb-2 etiquette">
               Sur le banc · {banc.length}
             </p>
             <ul className="flex flex-col gap-1.5">
@@ -430,7 +430,7 @@ export function DetailMatch({
           retournée contre lui. Le jour où on veut les annoncer, il faudra les
           relever lieu par lieu. */}
       <section className="mt-5">
-        <h2 className="mb-2 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+        <h2 className="mb-2 etiquette">
           Détails
         </h2>
         <Plaque className="divide-y divide-white/6 p-0">

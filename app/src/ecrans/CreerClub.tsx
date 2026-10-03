@@ -53,7 +53,7 @@ export function CreerClub({
 
       <Plaque className="mb-3 p-4">
         <label className="block">
-          <span className="mb-1 block text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Nom</span>
+          <span className="mb-1 block etiquette">Nom</span>
           <input
             value={s.nom}
             maxLength={NOM_CLUB_MAX}
@@ -63,11 +63,11 @@ export function CreerClub({
             className="champ  px-3.5 py-3 text-base"
           />
         </label>
-        <p className="mt-1 text-right text-[11px] text-(--color-encre-faible)">{s.nom.length}/{NOM_CLUB_MAX}</p>
+        <p className="mt-1 text-right text-xs text-(--color-encre-faible)">{s.nom.length}/{NOM_CLUB_MAX}</p>
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Couleur</p>
+        <p className="mb-3 etiquette">Couleur</p>
         <div className="flex flex-wrap gap-2.5" role="radiogroup" aria-label="Couleur du club">
           {COULEURS_EQUIPE.map((c) => (
             <button
@@ -87,7 +87,7 @@ export function CreerClub({
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Emblème</p>
+        <p className="mb-3 etiquette">Emblème</p>
         <div className="grid grid-cols-6 gap-2" role="radiogroup" aria-label="Emblème du club">
           {NOMS_EMBLEMES.map((n) => (
             <button
@@ -111,7 +111,7 @@ export function CreerClub({
       </Plaque>
 
       <Plaque className="mb-3 p-4">
-        <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Niveau</p>
+        <p className="mb-3 etiquette">Niveau</p>
         <div className="flex gap-1.5">
           {(Object.keys(NIVEAUX) as Niveau[]).map((n) => (
             <button
@@ -129,7 +129,7 @@ export function CreerClub({
 
       <Plaque className="mb-3 p-4">
         <label className="block">
-          <span className="mb-1 block text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">Ton appel</span>
+          <span className="mb-1 block etiquette">Ton appel</span>
           <span className="mb-2 block text-xs text-(--color-encre-sec)">Facultatif — affiché à ceux qui cherchent un club.</span>
           <textarea
             value={s.appel}
@@ -140,7 +140,7 @@ export function CreerClub({
             className="champ resize-none  px-3.5 py-3 text-base"
           />
         </label>
-        <p className="mt-1 text-right text-[11px] text-(--color-encre-faible)">{s.appel.length}/{APPEL_MAX}</p>
+        <p className="mt-1 text-right text-xs text-(--color-encre-faible)">{s.appel.length}/{APPEL_MAX}</p>
       </Plaque>
 
       {probleme && s.nom.length > 0 && (

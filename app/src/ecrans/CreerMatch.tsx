@@ -94,7 +94,7 @@ export function CreerMatch({
                   {faite ? '✓' : i + 1}
                 </span>
                 <span
-                  className={`max-w-full truncate text-[11px] ${
+                  className={`max-w-full truncate text-xs ${
                     courante ? 'text-(--color-encre)' : 'text-(--color-encre-faible)'
                   }`}
                 >
@@ -115,7 +115,7 @@ export function CreerMatch({
       {etape === 'infos' && (
         <>
           <Plaque className="mb-3 p-4">
-            <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            <p className="mb-1 etiquette">
               Quand
             </p>
             {/* ON EN PROPOSE PLUSIEURS, et c'est le vote qui tranche. Le
@@ -178,7 +178,7 @@ export function CreerMatch({
           </Plaque>
 
           <Plaque className="p-4">
-            <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            <p className="mb-3 etiquette">
               Durée
             </p>
             <Choix
@@ -192,7 +192,7 @@ export function CreerMatch({
 
       {etape === 'lieu' && (
         <Plaque className="p-4">
-          <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+          <p className="mb-1 etiquette">
             Où
           </p>
           <p className="mb-3 text-xs text-(--color-encre-sec)">
@@ -262,7 +262,7 @@ export function CreerMatch({
       {etape === 'joueurs' && (
         <>
           <Plaque className="mb-3 p-4">
-            <p className="mb-3 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            <p className="mb-3 etiquette">
               Combien de joueurs
             </p>
             <Choix
@@ -273,7 +273,7 @@ export function CreerMatch({
           </Plaque>
 
           <Plaque className="p-4">
-            <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            <p className="mb-1 etiquette">
               Niveau
             </p>
             {/* « Tous niveaux » se DIT. Un match sans niveau déclaré ne dit
@@ -301,7 +301,7 @@ export function CreerMatch({
       {etape === 'publier' && (
         <>
           <Plaque className="mb-3 p-4">
-            <p className="mb-1 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+            <p className="mb-1 etiquette">
               Un mot
             </p>
             <p className="mb-3 text-xs text-(--color-encre-sec)">
@@ -316,7 +316,7 @@ export function CreerMatch({
               className="champ resize-none p-3 text-sm"
               placeholder="Match chill, bon esprit, venez motivés !"
             />
-            <p className="mt-1 text-right text-[11px] text-(--color-encre-faible) tabular-nums">
+            <p className="mt-1 text-right text-xs text-(--color-encre-faible) tabular-nums">
               {b.message.length}/{MESSAGE_MAX}
             </p>
           </Plaque>

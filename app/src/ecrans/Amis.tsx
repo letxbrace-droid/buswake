@@ -121,7 +121,7 @@ export function Amis({
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <section className="mb-5">
-      <h2 className="mb-2 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+      <h2 className="mb-2 etiquette">
         {titre}
       </h2>
       <div className="flex flex-col gap-2">{children}</div>

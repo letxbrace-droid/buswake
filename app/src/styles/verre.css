@@ -137,6 +137,20 @@
     align-items: center;
   }
 
+  /* — L'ÉTIQUETTE de section (« Le prochain », « Emblème », « Ton rang »…).
+     Elle était en 12 px, gris faible, capitales espacées de 0,14 em : conforme
+     au seuil de contraste, mais pénible à lire au téléphone. Retour
+     utilisateur explicite. Plus grande, en gras, plus claire, moins
+     espacée — elle reste en capitales pour se distinguer du texte courant. */
+  .etiquette {
+    font-size: 13px;
+    line-height: 1.3;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-encre-sec);
+  }
+
   /* — Le titre d'écran. La marge droite laisse la place au bouton « ⋯ »,
      fixé en haut à droite : sans elle, un titre long passait dessous. — */
   .titre-ecran {

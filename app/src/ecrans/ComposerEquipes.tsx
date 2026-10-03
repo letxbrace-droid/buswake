@@ -93,7 +93,7 @@ export function ComposerEquipes({
 
       <Plaque className="mb-4 p-4">
         <div className="mb-2 flex items-baseline justify-between">
-          <p className="text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
+          <p className="etiquette">
             Banc · {restants.length}
           </p>
           {restants.length > 0 && (
