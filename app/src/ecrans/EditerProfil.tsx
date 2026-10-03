@@ -51,7 +51,7 @@ export function EditerProfil({
             value={e.pseudo}
             maxLength={PSEUDO_MAX}
             onChange={(ev) => maj('pseudo', ev.target.value)}
-            className="w-full rounded-(--radius-sm) bg-(--color-fond)/92 px-3 py-2.5 text-(--color-encre) outline-none focus:ring-1 focus:ring-(--color-vert)"
+            className="champ px-3 py-2.5"
           />
         </label>
         <p className="mt-1 text-[11px] text-(--color-encre-faible)">Visible par tous les joueurs.</p>
@@ -121,7 +121,7 @@ export function EditerProfil({
             value={e.codePostal}
             onChange={(ev) => maj('codePostal', ev.target.value.replace(/\D/g, ''))}
             placeholder="Code postal"
-            className="w-full rounded-(--radius-sm) bg-(--color-fond)/92 px-3 py-2.5 text-(--color-encre) outline-none focus:ring-1 focus:ring-(--color-vert)"
+            className="champ px-3 py-2.5"
           />
         </label>
         <button

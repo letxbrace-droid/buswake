@@ -96,7 +96,7 @@ export function Chat({
           onChange={(e) => setTexte(e.target.value.slice(0, MESSAGE_MAX))}
           disabled={!ouvert}
           placeholder={ouvert ? 'Écris un message' : 'Fil fermé'}
-          className="min-w-0 flex-1 rounded-(--radius-pill) border border-white/12 bg-(--color-carte) px-4 py-2.5 text-base disabled:opacity-50"
+          className="min-w-0 flex-1 champ rounded-(--radius-pill) px-4 py-2.5 text-base disabled:opacity-50"
         />
         <button
           type="submit"

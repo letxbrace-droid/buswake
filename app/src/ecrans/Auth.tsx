@@ -33,7 +33,7 @@ export function Auth({ actions }: { actions: ActionsAuth }) {
 
       <div
         role="tablist"
-        className="mx-auto mb-5 flex w-full max-w-sm gap-1 rounded-(--radius-pill) bg-(--color-fond) p-1 shadow-[0_0_0_1px_rgba(255,255,255,.06)]"
+        className="mx-auto mb-5 flex w-full max-w-sm gap-1 rounded-(--radius-pill) bg-(--color-creux) p-1 shadow-(--creux)"
       >
         {(['connexion', 'inscription'] as const).map((o) => (
           <button
@@ -207,9 +207,8 @@ function Champ({
         // translucide : à 35 % de noir, les projecteurs du terrain passaient au
         // travers et le champ devenait illisible. La sonde de contraste ne l'a
         // pas vu — un champ vide n'a aucun texte à mesurer.
-        className={`w-full rounded-(--radius-sm) border bg-(--color-carte) px-3.5 py-3 text-base text-(--color-encre) placeholder:text-(--color-encre-faible) ${
-          erreur ? 'border-(--color-feu)' : 'border-white/12'
-        }`}
+        // Le bord orange d'erreur vient de `aria-invalid` (styles/verre.css).
+        className="champ px-3.5 py-3 text-base"
         {...reste}
       />
       {erreur ? (

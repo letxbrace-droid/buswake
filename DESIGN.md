@@ -289,6 +289,27 @@ graisse variable répond.
 
 ## Règles de composants
 
+### Système tactile — octobre 2026
+
+Inspiré d'une planche « neo-skeuomorphic tactile system » fournie par le
+produit. Repris : la MATIÈRE. Écarté : l'accent cuivre — le vert reste la
+couleur de KOLEKTIF.
+
+| Élément | Traitement |
+|---|---|
+| Surfaces | graphite **neutre** (`#303030 → #1B1B1B`), plus de teinte olive |
+| Élévation | `--relief-1`, `--relief-2`, `--relief-4` : arête haute éclairée + ombre de contact + ombre portée |
+| Champs | `.champ` : creusés (`--creux`, fond `--color-creux`), halo vert au focus, bord orange si `aria-invalid` |
+| Boutons | biseau (face éclairée en haut, tranche de 3 px) ; **appuyé = descend de 2 px**, plus de `scale` |
+| Puces | touche en relief au repos, **enfoncée** quand choisie (ombre intérieure + vert) |
+| Onglets, dock | curseur graphite en relief dans une piste creusée ; le vert reste sur l'icône et le libellé |
+| Interrupteur | piste creusée, bouton métal |
+
+Mesures : contraste, tout passe, marge la plus faible ×1,19 (contre ×1,10
+avant : les surfaces neutres sont plus sombres). `coherence.test.ts`
+refuse un `<input>` / `<textarea>` sans `.champ` — vérifié qu'il voit les
+14 champs (une première regex n'en voyait que 2).
+
 ### Cartes pleines — décision du 2 octobre
 
 Demande : « les cartes super nettes et bien visibles, sans flou ni voile ».

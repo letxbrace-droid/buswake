@@ -136,7 +136,7 @@ export function CreerMatch({
                   step={900}
                   value={heure}
                   onChange={(e) => { setHeure(e.target.value); setRefus(null); }}
-                  className="w-full rounded-(--radius-sm) bg-(--color-fond)/92 px-3 py-2.5 text-center text-base font-semibold text-(--color-encre) outline-none focus:ring-1 focus:ring-(--color-vert)"
+                  className="champ px-3 py-2.5 text-center text-base font-semibold"
                 />
               </label>
               <button
@@ -313,7 +313,7 @@ export function CreerMatch({
               rows={3}
               maxLength={MESSAGE_MAX}
               aria-label="Un mot sur le match"
-              className="w-full resize-none rounded-(--radius-sm) bg-(--color-fond)/92 p-3 text-sm text-(--color-encre) outline-none placeholder:text-(--color-encre-faible) focus:ring-1 focus:ring-(--color-vert)"
+              className="champ resize-none p-3 text-sm"
               placeholder="Match chill, bon esprit, venez motivés !"
             />
             <p className="mt-1 text-right text-[11px] text-(--color-encre-faible) tabular-nums">
@@ -488,7 +488,7 @@ function LieuLibre({
           onChange={(e) => setNom(e.target.value)}
           placeholder="Ex. Five Massy, gymnase Jean-Moulin"
           autoComplete="off"
-          className="w-full rounded-(--radius-sm) border border-white/12 bg-(--color-carte) px-3.5 py-3 text-base text-(--color-encre) placeholder:text-(--color-encre-faible)"
+          className="champ px-3.5 py-3 text-base"
         />
       </label>
 
@@ -513,7 +513,7 @@ function LieuLibre({
           inputMode="text"
           aria-autocomplete="list"
           aria-controls="suggestions-adresse"
-          className="w-full rounded-(--radius-sm) border border-white/12 bg-(--color-carte) px-3.5 py-3 text-base text-(--color-encre) placeholder:text-(--color-encre-faible)"
+          className="champ px-3.5 py-3 text-base"
         />
       </label>
 

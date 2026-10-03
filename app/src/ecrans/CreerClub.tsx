@@ -60,7 +60,7 @@ export function CreerClub({
             onChange={(e) => maj('nom', e.target.value)}
             placeholder="Ex. Les Bleus du Dimanche"
             autoComplete="off"
-            className="w-full rounded-(--radius-sm) border border-white/12 bg-(--color-carte) px-3.5 py-3 text-base text-(--color-encre) placeholder:text-(--color-encre-faible)"
+            className="champ  px-3.5 py-3 text-base"
           />
         </label>
         <p className="mt-1 text-right text-[11px] text-(--color-encre-faible)">{s.nom.length}/{NOM_CLUB_MAX}</p>
@@ -137,7 +137,7 @@ export function CreerClub({
             onChange={(e) => maj('appel', e.target.value)}
             rows={2}
             placeholder="« On cherche un gardien pour le dimanche matin »"
-            className="w-full resize-none rounded-(--radius-sm) border border-white/12 bg-(--color-carte) px-3.5 py-3 text-base text-(--color-encre) placeholder:text-(--color-encre-faible)"
+            className="champ resize-none  px-3.5 py-3 text-base"
           />
         </label>
         <p className="mt-1 text-right text-[11px] text-(--color-encre-faible)">{s.appel.length}/{APPEL_MAX}</p>

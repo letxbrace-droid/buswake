@@ -202,9 +202,8 @@ function Champ({
       <input
         id={id}
         aria-invalid={!!erreur}
-        className={`w-full rounded-(--radius-sm) border bg-(--color-carte) px-3.5 py-3 text-base ${
-          erreur ? 'border-(--color-feu)' : 'border-white/12'
-        }`}
+        // Le bord orange d'erreur vient de `aria-invalid` (styles/verre.css).
+        className="champ px-3.5 py-3 text-base"
         {...reste}
       />
       {erreur && <p className="mt-1 text-xs text-(--color-feu)">{erreur}</p>}

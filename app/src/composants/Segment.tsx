@@ -22,7 +22,7 @@ export function Segment<T extends string>({
   return (
     <div
       role="tablist"
-      className="relative flex gap-1 rounded-(--radius-pill) bg-(--color-fond) p-1 shadow-[inset_0_1px_2px_rgba(0,0,0,.6),0_0_0_1px_rgba(255,255,255,.06)]"
+      className="relative flex gap-1 rounded-(--radius-pill) bg-(--color-creux) p-1 shadow-(--creux)"
     >
       {options.map((o) => {
         const actif = o.cle === valeur;
@@ -38,7 +38,7 @@ export function Segment<T extends string>({
               <motion.span
                 layoutId="curseur-segment"
                 transition={{ type: 'spring', stiffness: 420, damping: 34 }}
-                className="absolute inset-0 rounded-(--radius-pill) bg-(--color-vert)/15 shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--color-vert)_32%,transparent)]"
+                className="absolute inset-0 rounded-(--radius-pill) bg-[linear-gradient(180deg,var(--color-plaque-haut),var(--color-plaque-milieu))] shadow-(--relief-1)"
               />
             )}
             <span

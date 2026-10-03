@@ -41,8 +41,11 @@
     left: 6px;
     width: calc((100% - 12px) / 5);
     border-radius: var(--radius-lg);
-    background: color-mix(in srgb, var(--color-vert) 15%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-vert) 28%, transparent);
+    /* Une touche graphite en relief, comme le curseur des onglets : la
+       planche « tactile » allume l'onglet actif par le relief, et le vert
+       reste porté par l'icône et le libellé. */
+    background: linear-gradient(180deg, var(--color-bord-clair), var(--color-carte2));
+    box-shadow: var(--relief-1);
     transition:
       transform var(--duration-recompense) var(--ease-ressort),
       opacity var(--duration-interface) var(--ease-kolektif);

@@ -53,7 +53,7 @@ export function Amis({
             value={terme}
             onChange={(e) => setTerme(e.target.value)}
             placeholder="Chercher un pseudo"
-            className="w-full rounded-(--radius-sm) border border-white/12 bg-(--color-carte) px-3.5 py-2.5 text-base"
+            className="champ  px-3.5 py-2.5 text-base"
           />
         </form>
       </Plaque>

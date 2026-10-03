@@ -52,9 +52,12 @@
     color: var(--color-fond);
     /* Aplat franc et tranche dure : le halo vert qui l'entourait « bavait »
        sur la plaque et rendait le bord du bouton indécis. */
-    background: var(--color-vert);
+    /* Biseau tactile : la face s'éclaire légèrement vers le haut, une arête
+       claire, une tranche sombre de 3 px. Pas de halo — il « bavait ». */
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-vert) 82%, white) 0%, var(--color-vert) 45%, color-mix(in srgb, var(--color-vert) 88%, black) 100%);
     box-shadow:
-      inset 0 1px 0 rgb(255 255 255 / 0.32),
+      inset 0 1px 0 rgb(255 255 255 / 0.45),
+      inset 0 -1px 0 rgb(0 0 0 / 0.18),
       0 3px 0 var(--color-vert-sombre),
       0 6px 12px -4px rgb(0 0 0 / 0.6);
   }
@@ -67,13 +70,12 @@
       0 6px 12px -4px rgb(0 0 0 / 0.6);
   }
   /* Le second choix : la matière du dock. */
+  /* Le second choix : un bouton graphite en relief, niveau 1. */
   .btn-verre {
     color: var(--color-encre);
     font-weight: 500;
-    background: rgb(255 255 255 / 0.07);
-    border: 1px solid rgb(255 255 255 / 0.06);
-    border-top-color: rgb(255 255 255 / 0.14);
-    border-bottom-color: rgb(0 0 0 / 0.45);
+    background: linear-gradient(180deg, var(--color-bord-clair), var(--color-carte2));
+    box-shadow: var(--relief-1), 0 3px 0 rgb(0 0 0 / 0.85);
   }
   /* Le geste sans retour : contour rouge, jamais un aplat qui attire. */
   .btn-danger {
@@ -84,8 +86,8 @@
   }
   .btn-danger-plein {
     color: var(--color-encre);
-    background: var(--color-rouge-fond);
-    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.18);
+    background: linear-gradient(180deg, color-mix(in srgb, var(--color-rouge-fond) 80%, white) -30%, var(--color-rouge-fond) 60%);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.25), 0 3px 0 color-mix(in srgb, var(--color-rouge-fond) 50%, black), 0 6px 12px -4px rgb(0 0 0 / 0.6);
   }
 
   /* — Les puces : un choix parmi plusieurs (rayon, poste, niveau…).
@@ -99,8 +101,9 @@
     justify-content: center;
     border-radius: var(--radius-pill);
     color: var(--color-encre-sec);
-    background: rgb(255 255 255 / 0.07);
-    box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.05);
+    /* Au repos : une touche en relief. Active : enfoncée (voir `etats`). */
+    background: linear-gradient(180deg, var(--color-plaque-haut), var(--color-plaque-milieu));
+    box-shadow: var(--relief-1);
     -webkit-tap-highlight-color: transparent;
     transition:
       color var(--duration-interface) var(--ease-kolektif),
@@ -108,6 +111,19 @@
       box-shadow var(--duration-interface) var(--ease-kolektif),
       transform var(--duration-doigt) var(--ease-kolektif);
   }
+
+  /* — Le champ creusé : on écrit DANS la surface, pas dessus. — */
+  .champ {
+    width: 100%;
+    border-radius: var(--radius-sm);
+    background: var(--color-creux);
+    color: var(--color-encre);
+    border: 1px solid transparent;
+    box-shadow: var(--creux);
+    transition: box-shadow var(--duration-interface) var(--ease-kolektif),
+      border-color var(--duration-interface) var(--ease-kolektif);
+  }
+  .champ::placeholder { color: var(--color-encre-faible); }
 
   /* Le bouton retour est fixé en haut à gauche : le titre se décale. */
   .avec-retour .titre-ecran { padding-left: 52px; }
@@ -147,21 +163,37 @@
 @layer etats {
   .puce[aria-pressed='true'],
   .puce[aria-selected='true'] {
+    /* ENFONCÉE : la touche descend dans la surface — ombre intérieure — et
+       s'allume en vert. Le choix se lit au relief autant qu'à la couleur. */
     color: var(--color-vert);
     font-weight: 600;
-    background: color-mix(in srgb, var(--color-vert) 15%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-vert) 32%, transparent);
+    background: color-mix(in srgb, var(--color-vert) 12%, var(--color-creux));
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.6), inset 0 0 0 1px color-mix(in srgb, var(--color-vert) 45%, transparent), 0 1px 0 rgb(255 255 255 / 0.06);
   }
 
   /* L'homme du match : le même geste, en or — la couleur de la récompense. */
   .puce-or[aria-pressed='true'] {
     color: var(--color-or);
-    background: color-mix(in srgb, var(--color-or) 14%, transparent);
-    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-or) 34%, transparent);
+    background: color-mix(in srgb, var(--color-or) 12%, var(--color-creux));
+    box-shadow: inset 0 2px 4px rgb(0 0 0 / 0.6), inset 0 0 0 1px color-mix(in srgb, var(--color-or) 45%, transparent);
   }
 
-  .btn:not(:disabled):active,
-  .puce:not(:disabled):active { transform: scale(0.97); }
+  /* Le champ qui a le focus s'éclaire de l'intérieur, en vert. */
+  .champ:focus,
+  .champ:focus-visible {
+    outline: none;
+    border-color: color-mix(in srgb, var(--color-vert) 70%, transparent);
+    box-shadow: var(--creux), 0 0 0 3px color-mix(in srgb, var(--color-vert) 22%, transparent);
+  }
+  .champ[aria-invalid='true'] { border-color: var(--color-feu); }
+
+  /* APPUYÉ : le bouton descend de la hauteur de sa tranche. Un « scale »
+     rétrécissait ; ici il s'enfonce, comme une vraie touche. */
+  .btn:not(:disabled):active {
+    transform: translateY(2px);
+    box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2), 0 1px 0 rgb(0 0 0 / 0.6);
+  }
+  .puce:not(:disabled):active { transform: translateY(1px); }
 
   .btn:focus-visible,
   .puce:focus-visible {
@@ -172,10 +204,11 @@
   /* Un bouton fermé l'est franchement — et reste lisible : l'écran dit
      toujours pourquoi juste en dessous. */
   .btn:disabled {
+    /* Désactivé : à plat, presque creusé — rien à enfoncer. */
     color: var(--color-encre-sec);
-    background: rgb(255 255 255 / 0.1);
+    background: var(--color-carte2);
     border-color: transparent;
-    box-shadow: none;
+    box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.5);
     cursor: not-allowed;
   }
 

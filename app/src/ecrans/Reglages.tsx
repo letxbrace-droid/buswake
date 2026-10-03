@@ -250,12 +250,14 @@ function Interrupteur({ actif, bloque }: { actif: boolean; bloque: boolean }) {
   return (
     <span
       aria-hidden
-      className={`relative h-7 w-12 shrink-0 rounded-(--radius-pill) transition-colors duration-(--duration-interface) ${
-        actif ? 'bg-(--color-vert)' : 'bg-white/15'
+      // Piste CREUSÉE, bouton en MÉTAL : l'interrupteur de la planche de
+      // référence. Allumé, la piste se remplit de vert par l'intérieur.
+      className={`relative h-7 w-12 shrink-0 rounded-(--radius-pill) shadow-(--creux) transition-colors duration-(--duration-interface) ${
+        actif ? 'bg-(--color-vert-sombre)' : 'bg-(--color-creux)'
       } ${bloque ? 'opacity-50' : ''}`}
     >
       <span
-        className={`absolute top-0.5 size-6 rounded-full bg-white shadow-[0_2px_4px_rgba(0,0,0,.4)] transition-transform duration-(--duration-interface) ease-(--ease-ressort) ${
+        className={`absolute top-0.5 size-6 rounded-full bg-[linear-gradient(180deg,#f4f4f4,#a9a9a9)] shadow-[inset_0_1px_0_#fff,0_2px_4px_rgba(0,0,0,.6)] transition-transform duration-(--duration-interface) ease-(--ease-ressort) ${
           actif ? 'translate-x-[22px]' : 'translate-x-0.5'
         }`}
       />

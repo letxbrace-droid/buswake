@@ -27,4 +27,21 @@ describe('matière commune', () => {
     const fautifs = classes.filter(([, c]) => /'bg-\(--color-vert\) font-semibold text-\(--color-fond\)'/.test(c));
     expect(fautifs.map(([f]) => f), 'utiliser .puce et aria-pressed').toEqual([]);
   });
+  it('tout champ de saisie est creusé (.champ)', () => {
+    // Un champ posé à plat sur la carte se confond avec elle : la planche
+    // « tactile » creuse ce qu'on peut écrire. Un nouvel <input> qui
+    // recopierait l'ancien style à plat serait le premier écart.
+    // On découpe chaque balise jusqu'à « /> » au lieu d'une regex `[^>]*` :
+    // les `=>` des gestionnaires (onChange={(e) => …}) coupaient la balise
+    // avant son className, et le contrôle ne voyait que 2 champs sur 14.
+    const balises = Object.entries(SOURCES).flatMap(([f, src]) =>
+      src.split(/<(?=input\b|textarea\b)/).slice(1).map((b) => [f, b.slice(0, b.indexOf('/>'))] as const),
+    );
+    expect(balises.length, 'aucun champ trouvé : le découpage est cassé').toBeGreaterThan(10);
+    const fautifs = balises
+      .filter(([, b]) => !/type="(range|checkbox|radio|hidden)"/.test(b))
+      .filter(([, b]) => !/className=(?:"[^"]*\bchamp\b|\{`[^`]*\bchamp\b)/.test(b))
+      .map(([f]) => f);
+    expect(fautifs, 'utiliser la classe .champ').toEqual([]);
+  });
 });
