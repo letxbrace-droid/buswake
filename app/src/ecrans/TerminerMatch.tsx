@@ -112,7 +112,7 @@ export function TerminerMatch({
                 : ''}
           </p>
 
-          <div className="mb-2 flex items-center gap-2 pr-1 text-xs tracking-wide text-(--color-encre-faible) uppercase">
+          <div className="etiquette mb-2 flex items-center gap-2 pr-1">
             <span className="flex-1" />
             <span className="w-[86px] text-center">Buts</span>
             <span className="w-[86px] text-center">Passes</span>
