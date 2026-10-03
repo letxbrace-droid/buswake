@@ -368,7 +368,26 @@ un attribut SVG, un `style` ou une URL — d'où les listes fermées.
 | Être élu homme du match | +200 |
 | Créer un match | +50 |
 | Voter pour un créneau | +10 |
-| **Poser un lapin** (inscrit, absent) | **−15**, série remise à zéro, compteur `lapins` +1 |
+| **Poser un lapin** (inscrit, absent) | **−30**, série remise à zéro, compteur `lapins` +1 |
+| Retirer tous ses votes | −10 (le gain est rendu ; revoter repaie) |
+| Se désister à plus de 48 h | 0 |
+| Se désister entre 48 h et 24 h | −10 |
+| Se désister à moins de 24 h | −25, noté « D » dans l'historique |
+| … si un remplaçant du banc prend la place | pénalité divisée par deux |
+| Supprimer un match confirmé où d'autres sont inscrits | −20, en plus du remboursement |
+
+**Fiabilité (oct. 2026).** Le barème vit dans `functions/index.js`
+(`PENALITE`) et en miroir dans `app/src/domaine/penalites.ts` (testé).
+Seul l'**auteur** d'un désistement est pénalisé : la fonction
+`onDesistement` (déclencheur *avec contexte d'authentification*) distingue
+le joueur qui part de celui que l'organisateur retire. Pénalités
+plafonnées à 3 par 24 h ; l'XP ne descend jamais sous zéro, et c'est la
+perte réelle qui est inscrite au grand livre. `users/{uid}.historique` :
+les 10 derniers matchs (J joué, L lapin, D désistement tardif), écrit par
+le serveur uniquement — `domaine/fiabilite.ts` en tire le badge
+**Fiable** (≥ 90 %) ou le **widget lapin** (< 70 % ou 2 lapins sur 10),
+visibles dans la liste des inscrits et sur le profil. La fenêtre glisse :
+on se rachète en venant.
 
 **Rangs** — seuils d'XP, affichés par une pastille de couleur :
 

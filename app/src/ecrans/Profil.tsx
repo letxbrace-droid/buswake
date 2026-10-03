@@ -2,9 +2,12 @@ import { Plaque } from '../composants/Plaque';
 import { CarteFut, type Joueur } from '../composants/CarteFut';
 import { progressionDe } from '../domaine/xp';
 import { noteMoyenne } from '../domaine/club';
+import { fiabilite, libelleFiabilite } from '../domaine/fiabilite';
+import { BadgeFiabilite } from '../composants/BadgeFiabilite';
 
 export interface ProfilJoueur extends Joueur {
   readonly xp: number;
+  readonly historique?: readonly string[];
   readonly badges?: readonly string[];
   readonly stats?: {
     matchsJoues?: number; hommeDuMatch?: number; presences?: number; lapins?: number;
@@ -20,6 +23,7 @@ export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => 
   const p = progressionDe(j.xp);
   const s = j.stats ?? {};
   const note = noteMoyenne(j.noteSum ?? 0, j.noteCount ?? 0);
+  const fia = fiabilite(j.historique);
 
   return (
     <div className="terrain terrain-profil h-full overflow-y-auto px-4 pt-6 pb-(--reserve-dock)">
@@ -43,6 +47,21 @@ export function Profil({ j, onModifier }: { j: ProfilJoueur; onModifier?: () => 
           Modifier ma carte
         </button>
       )}
+
+      {/* LA FIABILITÉ — ce que les organisateurs voient de toi. On le dit
+          au joueur lui-même : c'est ce qui donne envie de venir. */}
+      <Plaque className="mb-3 flex items-center gap-3 p-4">
+        <span className="min-w-0 flex-1">
+          <span className="block etiquette">Fiabilité</span>
+          <span className="mt-0.5 block text-sm text-(--color-encre-sec)">{libelleFiabilite(fia)}</span>
+          {fia.statut === 'lapin' && (
+            <span className="mt-1 block text-xs text-(--color-encre-sec)">
+              Le badge disparaît après quelques matchs honorés.
+            </span>
+          )}
+        </span>
+        <BadgeFiabilite f={fia} plein />
+      </Plaque>
 
       {/* LA NOTE MOYENNE. Elle n'apparaît que si quelqu'un a noté : « 0,0 »
           à côté du nom de quelqu'un qui vient d'arriver serait faux, et

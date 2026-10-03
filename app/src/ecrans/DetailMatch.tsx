@@ -11,6 +11,9 @@ import { YAller } from '../composants/YAller';
 import { Avatar, RangeeJoueurs } from '../composants/Avatar';
 import { LIBELLES_NIVEAU } from '../domaine/assistant';
 import { EXPLICATION_REFUS, terminableMaintenant } from '../domaine/garde';
+import { apercuDesistement } from '../domaine/penalites';
+import type { Fiabilite } from '../domaine/fiabilite';
+import { BadgeFiabilite } from '../composants/BadgeFiabilite';
 import {
   ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, lieuSaisiDuMatch, nomDuLieu,
   type Ambiance,
@@ -48,8 +51,10 @@ export interface ActionsMatch {
 }
 
 export function DetailMatch({
-  m, votes, uid, actions, occupe = false, pseudos = {},
+  m, votes, uid, actions, occupe = false, pseudos = {}, fiabilites = {},
 }: {
+  /** uid → fiabilité, pour le widget lapin dans la liste des inscrits. */
+  fiabilites?: Record<string, Fiabilite>;
   m: Match;
   votes: Votes;
   uid: string;
@@ -71,6 +76,8 @@ export function DetailMatch({
   const terminable = terminableMaintenant(m);
   const refus = m._xp?.refus;
   const [confirme, setConfirme] = useState(false);
+  const [desister, setDesister] = useState(false);
+  const cout = place === 'deja-titulaire' ? apercuDesistement(m) : null;
   // Rejouer le geste quand l'effectif change : quelqu'un vient d'arriver.
   const entree = useEntree(inscrits.length);
   const conf = peutConfirmer(m);
@@ -176,8 +183,16 @@ export function DetailMatch({
         <button
           type="button"
           disabled={occupe}
-          onClick={dedans ? actions.onQuitter : actions.onRejoindre}
-          className={`btn mt-4 w-full ${dedans ? 'btn-verre' : 'btn-vert'}`}
+          onClick={
+            dedans
+              ? // Un désistement qui COÛTE se confirme, chiffre à l'appui. Le
+                // découvrir après, sur un compteur d'XP, ressemble à une amende.
+                cout && cout.xp < 0 && !desister
+                ? () => setDesister(true)
+                : actions.onQuitter
+              : actions.onRejoindre
+          }
+          className={`btn mt-4 w-full ${dedans ? 'btn-verre' : 'btn-vert'} ${desister ? 'hidden' : ''}`}
         >
           {dedans
             ? place === 'deja-banc'
@@ -187,6 +202,28 @@ export function DetailMatch({
               ? 'Match plein — me mettre sur le banc'
               : 'Je viens'}
         </button>
+
+        {desister && cout && (
+          <div className="mt-4 rounded-(--radius-md) border border-(--color-feu)/40 bg-(--color-creux) p-3.5">
+            <p className="text-sm text-(--color-encre)">
+              Te désister maintenant te coûte <b className="text-(--color-feu)">{-cout.xp} XP</b>
+              {cout.remplacantPret ? ` — ${-cout.xpSiRemplace} seulement, car un remplaçant du banc prendra ta place` : ''}.
+            </p>
+            {cout.tardif && (
+              <p className="mt-1 text-xs text-(--color-encre-sec)">
+                À moins de 24 h, c’est un désistement tardif : il compte dans ta fiabilité.
+              </p>
+            )}
+            <div className="mt-3 flex gap-2">
+              <button type="button" onClick={() => setDesister(false)} className="btn btn-vert flex-1">
+                Je viens quand même
+              </button>
+              <button type="button" disabled={occupe} onClick={() => { setDesister(false); actions.onQuitter(); }} className="btn btn-verre flex-1">
+                Me désister
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Le banc n'est pas un refus : on le dit AVANT de cliquer, sinon le
             joueur croit qu'il s'inscrit et découvre après coup qu'il attend. */}
@@ -339,6 +376,7 @@ export function DetailMatch({
               <span className={j === uid ? 'font-semibold' : ''}>
                 {j === uid ? 'Toi' : (pseudos[j] ?? 'Joueur')}
               </span>
+              <BadgeFiabilite f={fiabilites[j]} />
             </li>
           ))}
         </ul>
@@ -352,7 +390,7 @@ export function DetailMatch({
               {banc.map((j, i) => (
                 <li key={j} className="flex items-center gap-2 text-sm text-(--color-encre-sec)">
                   <span className="w-4 tabular-nums text-(--color-encre-faible)">{i + 1}</span>
-                  {j === uid ? 'Toi' : j}
+                  {j === uid ? 'Toi' : (pseudos[j] ?? 'Joueur')}
                 </li>
               ))}
             </ul>

@@ -18,7 +18,7 @@ export const XP = {
   noter: 10,
   motm: 15,
   /** Malus de lapin : poser un lapin coûte. C'est le seul gain négatif. */
-  lapin: -15,
+  lapin: -30,
 } as const;
 
 export type MotifXP = keyof typeof XP;

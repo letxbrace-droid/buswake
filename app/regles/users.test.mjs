@@ -101,3 +101,17 @@ describe('créer son compte', () => {
     await refuse(db('neuf').doc('users/autre').set(neuf));
   });
 });
+
+describe('fiabilité', () => {
+  it('refuse : se fabriquer un historique « joué » à la création', async () => {
+    await refuse(db('n2').doc('users/n2').set({ pseudo: 'N2', historique: Array(10).fill('J') }));
+  });
+  it('refuse : effacer ses lapins de son historique', async () => {
+    await poser(env, 'users/moi', { pseudo: 'Moi', historique: ['L', 'L', 'J'] });
+    await refuse(db('moi').doc('users/moi').update({ historique: ['J', 'J', 'J'] }));
+  });
+  it('refuse : remettre son compteur de désistements à zéro', async () => {
+    await poser(env, 'users/moi', { pseudo: 'Moi', desistements: 4 });
+    await refuse(db('moi').doc('users/moi').update({ desistements: 0 }));
+  });
+});

@@ -261,6 +261,7 @@ function Coque() {
                           stats: profil.stats,
                           noteSum: profil.noteSum,
                           noteCount: profil.noteCount,
+                          historique: profil.historique,
                         }}
                         onModifier={() => naviguer('/profil/modifier')}
                       />

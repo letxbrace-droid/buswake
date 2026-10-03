@@ -32,6 +32,10 @@ const _applique = (cible, maj) => {
       const p = k.split('.'); let o = cible;
       for (let i = 0; i < p.length - 1; i++) o = (o[p[i]] ||= {});
       o[p.at(-1)] = [...new Set([...(o[p.at(-1)] || []), ...v.__union])];
+    } else if (v && v.__remove) {
+      const p = k.split('.'); let o = cible;
+      for (let i = 0; i < p.length - 1; i++) o = (o[p[i]] ||= {});
+      o[p.at(-1)] = (o[p.at(-1)] || []).filter((x) => !v.__remove.includes(x));
     } else {
       const p = k.split('.'); let o = cible;
       for (let i = 0; i < p.length - 1; i++) o = (o[p[i]] ||= {});
@@ -55,6 +59,7 @@ const setGlobalOptions = () => {};
 const getFirestore = () => __db;
 const getMessaging = () => ({ sendEachForMulticast: async () => ({ responses: [], successCount: 0 }) });
 const onDocumentWritten = (chemin, fn) => { globalThis.__onEcrit = fn; return fn; };
+const onDocumentWrittenWithAuthContext = (chemin, fn) => { globalThis.__onDesist = fn; return fn; };
 const onSchedule = (opt, fn) => fn;
 `;
 globalThis.__ecrits = ecrits; globalThis.__base = BASE;
@@ -63,6 +68,7 @@ const { createRequire } = await import('module');
 const require_ = createRequire(import.meta.url);
 require_(TMP);
 const trigger = globalThis.__onEcrit;
+const desist = globalThis.__onDesist;
 
 // `createTime` : la date de création posée par Firestore. Par défaut, le
 // document a deux jours — un match ordinaire, créé avant d'être joué.
@@ -80,6 +86,7 @@ const ev = (before, after, id='m1', createTime = IL_Y_A(48)) => ({
           for (let i = 0; i < p.length - 1; i++) o = (o[p[i]] ||= {});
           if (v && v.__inc !== undefined) o[p.at(-1)] = (o[p.at(-1)] || 0) + v.__inc;
           else if (v && v.__union) o[p.at(-1)] = [...new Set([...(o[p.at(-1)] || []), ...v.__union])];
+          else if (v && v.__remove) o[p.at(-1)] = (o[p.at(-1)] || []).filter((x) => !v.__remove.includes(x));
           else o[p.at(-1)] = v;
         } } } },
   },
@@ -150,7 +157,8 @@ test('un absent ne marque pas, même si le document le dit', 0, stat('p9','buts'
 // Aucune XP n'est attachée aux buts : en donner changerait le sens du
 // classement, qui récompense la présence et l'organisation.
 const totalApresFin = joueurs.reduce((n,u)=>n+xp(u), 0);
-test('fin de match : 9×100 + 200 MVP + 50 création − 15 lapin', 1135, totalApresFin);
+// Le lapin coûte −30, mais p9 n'avait rien : l'XP ne descend pas sous 0.
+test('fin de match : 9×100 + 200 MVP + 50 création, lapin plafonné à 0', 1150, totalApresFin);
 
 await trigger(ev(fini, null));                       // suppression
 test('suppression après fin : tout repris', 0, joueurs.reduce((n,u)=>n+xp(u), 0));
@@ -234,7 +242,7 @@ test('garde : sans coup d’envoi connu, rien', 0, r.total);
   const avant = xp('fidele');
   await trigger(ev(base, { ...base, statut:'terminé', scoreA:0, scoreB:0,
     attendance:{ fidele:false } }, id));
-  test('plafond : le lapin coûte même au-delà du quota', avant - 15, xp('fidele'));
+  test('plafond : le lapin coûte même au-delà du quota', avant - 30, xp('fidele'));
 }
 
 // Buts : jamais plus qu'au score.
@@ -248,6 +256,99 @@ test('garde : sans coup d’envoi connu, rien', 0, r.total);
   test('buts : 16 attribués pour 2 au score, la table est refusée', 0, stat(qui[0], 'buts') + stat(qui[1], 'buts'));
   test('buts : le reste du match paie quand même', 400, qui.reduce((t, u) => t + xp(u), 0));
   test('passes : 2 pour 2 buts, acceptées', 2, stat(qui[2], 'passes'));
+}
+
+// ---- 7. la fiabilité : rendre d'abord, punir ce qui gêne ----
+const hist = (u) => (BASE['users/' + u] || {}).historique || [];
+// Un événement « écrit par » un joueur.
+const evAuteur = (before, after, auteur, id) => ({ ...ev(before, after, id), authType: 'unknown', authId: auteur });
+const dans = (h) => { const d = new Date(Date.now() + h * 3600000);
+  return { dateFinale: { toMillis: () => d.getTime() }, creneauxProposes: [] }; };
+{
+  // Retirer son vote rend les +10 ; revoter repaie ; la boucle vaut +10.
+  BASE['users/v1'] = { xp: 0 };
+  const a = { statut:'sondage', createurUid:'o', votes:{ c0:[] }, creneauxProposes:[] };
+  const b = { ...a, votes:{ c0:['v1'] } };
+  await trigger(ev(a, b, 'vv'));
+  const c = { ...b, votes:{ c0:[] }, _xp: b._xp };
+  await trigger(ev(b, c, 'vv'));
+  test('retirer son vote rend les 10 XP', 0, xp('v1'));
+  const d = { ...c, votes:{ c0:['v1'] }, _xp: c._xp };
+  await trigger(ev(c, d, 'vv'));
+  test('revoter repaie : voter/retirer/revoter vaut +10, jamais plus', 10, xp('v1'));
+}
+{
+  const base = (h, extra = {}) => ({ statut:'confirmé', createurUid:'o', joueursInscrits:['o','dp'], waitlist:[], ...dans(h), ...extra });
+  BASE['users/dp'] = { xp: 100 };
+  await desist(evAuteur(base(72), { ...base(72), joueursInscrits:['o'] }, 'dp', 'd1'));
+  test('désistement à plus de 48 h : gratuit', 100, xp('dp'));
+  await desist(evAuteur(base(30), { ...base(30), joueursInscrits:['o'] }, 'dp', 'd2'));
+  test('désistement entre 48 h et 24 h : −10', 90, xp('dp'));
+  await desist(evAuteur(base(5), { ...base(5), joueursInscrits:['o'] }, 'dp', 'd3'));
+  test('désistement à moins de 24 h : −25', 65, xp('dp'));
+  test('… et compte comme « D » dans l’historique', ['D'], hist('dp'));
+  BASE['users/rp'] = { xp: 100 };
+  const avecBanc = { ...base(5), joueursInscrits:['o','rp'], waitlist:['remp'] };
+  await desist(evAuteur(avecBanc, { ...avecBanc, joueursInscrits:['o','remp'], waitlist:[] }, 'rp', 'd4'));
+  test('remplacé par le banc : pénalité divisée par deux (−12, arrondi pour le joueur)', 88, xp('rp'));
+  BASE['users/sorti'] = { xp: 100 };
+  const b5 = { ...base(5), joueursInscrits:['o','sorti'] };
+  await desist(evAuteur(b5, { ...b5, joueursInscrits:['o'] }, 'o', 'd5'));
+  test('sorti par l’organisateur : aucune pénalité', 100, xp('sorti'));
+  BASE['users/sd'] = { xp: 100 };
+  const sansDate = { statut:'sondage', createurUid:'o', joueursInscrits:['o','sd'], creneauxProposes:[] };
+  await desist(evAuteur(sansDate, { ...sansDate, joueursInscrits:['o'] }, 'sd', 'd6'));
+  test('match sans date confirmée : aucune pénalité', 100, xp('sd'));
+  BASE['users/pl'] = { xp: 10 };
+  const bp = { ...base(2), joueursInscrits:['o','pl'] };
+  await desist(evAuteur(bp, { ...bp, joueursInscrits:['o'] }, 'pl', 'd7'));
+  test('l’XP ne descend jamais sous zéro', 0, xp('pl'));
+  // Plafond : trois pénalités par 24 h au plus.
+  BASE['users/pf'] = { xp: 1000 };
+  for (let i = 0; i < 5; i++) {
+    const bi = { ...base(2), joueursInscrits:['o','pf'] };
+    await desist(evAuteur(bi, { ...bi, joueursInscrits:['o'] }, 'pf', 'p' + i));
+  }
+  test('plafond : trois pénalités par 24 h, pas cinq', 1000 - 3 * 25, xp('pf'));
+  const sys = { ...base(2), joueursInscrits:['o','dp2'] };
+  BASE['users/dp2'] = { xp: 50 };
+  await desist({ ...ev(sys, { ...sys, joueursInscrits:['o'] }, 'd8'), authType: 'service_account', authId: undefined });
+  test('une écriture du serveur ne pénalise personne', 50, xp('dp2'));
+}
+{
+  // Supprimer un match confirmé où d'autres sont inscrits : −20 en plus.
+  BASE['users/org'] = { xp: 200 };
+  const conf2 = { statut:'confirmé', createurUid:'org', joueursInscrits:['org','x1'], votes:{}, creneauxProposes:[] };
+  await trigger(ev(conf2, null, 'sup1'));
+  test('supprimer un match confirmé avec des inscrits : −20', 180, xp('org'));
+  const seul = { ...conf2, joueursInscrits:['org'] };
+  await trigger(ev(seul, null, 'sup2'));
+  test('… mais rien s’il était seul inscrit', 180, xp('org'));
+}
+{
+  // Historique : joué / lapin en fin de match, dix derniers seulement.
+  const id = 'h1';
+  // Cinq inscrits dont un absent : quatre présents, le minimum pour payer.
+  const qui = ['ha','hb','hc','he','hd'];
+  qui.forEach(u => BASE['users/' + u] = { xp: 100, historique: Array(10).fill('J') });
+  const base = { statut:'confirmé', createurUid:'ha', joueursInscrits:qui, votes:{},
+                 creneauxProposes:creneauHier, dateFinale:HIER, joueursMax:5 };
+  await trigger(ev(base, { ...base, statut:'terminé', scoreA:1, scoreB:0, attendance:{ hd:false } }, id));
+  test('historique : le lapin entre, la fenêtre reste à 10', 10, hist('hd').length);
+  test('historique : dernier match noté L', 'L', hist('hd').at(-1));
+  test('historique : un présent est noté J', 'J', hist('ha').at(-1));
+  // Le lapin à 100 XP perd 30 ; si le match disparaît, il récupère 30 — pas plus.
+}
+{
+  BASE['users/z0'] = { xp: 0 };
+  const qui = ['za','zb','zc','zd','z0'];
+  ['za','zb','zc','zd'].forEach(u => BASE['users/' + u] = { xp: 0 });
+  const base = { statut:'confirmé', createurUid:'za', joueursInscrits:qui, votes:{},
+                 creneauxProposes:creneauHier, dateFinale:HIER, joueursMax:5 };
+  const fin = { ...base, statut:'terminé', scoreA:0, scoreB:0, attendance:{ z0:false } };
+  await trigger(ev(base, fin, 'z1'));
+  await trigger(ev(fin, null, 'z1'));
+  test('lapin à 0 XP puis match supprimé : il ne gagne rien au passage', 0, xp('z0'));
 }
 
 console.log(ko ? `\n✗ ${ko} test(s) en échec` : '\n✓ tous les tests passent');

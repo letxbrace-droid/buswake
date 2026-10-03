@@ -124,6 +124,9 @@ export const UtilisateurSchema = z.object({
     .partial()
     .default({}),
   streak: z.number().catch(0),
+  /** Les dix derniers matchs, écrits par le serveur : J joué, L lapin,
+   *  D désistement tardif. Source du widget lapin (domaine/fiabilite). */
+  historique: z.array(z.string()).max(20).catch([]).default([]),
   /** LA NOTE DU JOUEUR, en somme et en nombre.
    *
    *  Ces deux champs existent en base — les règles les refusent d'ailleurs

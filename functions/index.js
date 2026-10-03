@@ -15,7 +15,7 @@
 // Anti-spam : marqueurs _notifs sur le doc match (écrits par Admin SDK,
 // hors des règles Firestore ; le trigger ignore ces écritures techniques).
 // ============================================================
-const { onDocumentWritten } = require('firebase-functions/v2/firestore');
+const { onDocumentWritten, onDocumentWrittenWithAuthContext } = require('firebase-functions/v2/firestore');
 const { onSchedule } = require('firebase-functions/v2/scheduler');
 const { setGlobalOptions } = require('firebase-functions/v2');
 const { initializeApp } = require('firebase-admin/app');
@@ -132,7 +132,48 @@ async function send(map, { title, body, matchId }) {
 // du match et terminer sont tous des écritures dessus. Ce trigger les lit et
 // en déduit l'XP. Il est naturellement idempotent : il compare l'avant et
 // l'après, donc une écriture rejouée à l'identique ne donne rien.
-const XP = { participer: 100, voter: 10, creer: 50, hdm: 200, noter: 10, motm: 15, lapin: -15 };
+const XP = { participer: 100, voter: 10, creer: 50, hdm: 200, noter: 10, motm: 15, lapin: -30 };
+
+// ---------- Fiabilité : rendre d'abord, punir ce qui gêne le groupe ----------
+// Barème validé par le produit (oct. 2026). Recopié dans
+// app/src/domaine/penalites.ts ; un test vérifie que les deux concordent.
+//   - retirer son vote rend ses +10 (ce n'est pas une punition) ;
+//   - se désister : rien à plus de 48 h, −10 entre 48 h et 24 h, −25 à
+//     moins de 24 h — divisé par deux si un remplaçant du banc prend la
+//     place (le groupe n'est pas lésé) ;
+//   - supprimer un match CONFIRMÉ où d'autres sont inscrits : −20 en plus
+//     du remboursement ;
+//   - le lapin passe à −30 (barème XP).
+const PENALITE = { desist48: -10, desist24: -25, suppression: -20, parJour: 3 };
+const HISTORIQUE_MAX = 10;
+
+function penaliteDesistement(heuresAvant, remplace) {
+  let p = 0;
+  if (heuresAvant < 24) p = PENALITE.desist24;
+  else if (heuresAvant < 48) p = PENALITE.desist48;
+  return remplace ? Math.round(p / 2) : p;
+}
+
+// L'historique des derniers matchs : 'J' joué, 'L' lapin, 'D' désistement
+// tardif (< 24 h). C'est lui, et non l'XP, qui mesure la fiabilité : un
+// habitué à 5000 XP qui pose des lapins doit se voir.
+async function pousserHistorique(uid, code) {
+  const ref = db.doc('users/' + uid);
+  const snap = await ref.get().catch(() => null);
+  if (!snap || !snap.exists) return;
+  const h = Array.isArray((snap.data() || {}).historique) ? snap.data().historique : [];
+  await ref.update({ historique: [...h, code].slice(-HISTORIQUE_MAX) }).catch(() => {});
+}
+
+// L'XP ne descend jamais sous zéro : une pénalité n'efface pas un compte.
+async function plancherXp(uids) {
+  await Promise.all([...new Set(uids)].map(async (uid) => {
+    const ref = db.doc('users/' + uid);
+    const snap = await ref.get().catch(() => null);
+    const xp = snap && snap.exists ? (snap.data() || {}).xp : 0;
+    if (typeof xp === 'number' && xp < 0) await ref.update({ xp: 0 }).catch(() => {});
+  }));
+}
 
 // ---------- Garde-fous contre le farm ----------
 // Le grand livre `_xp` empêche d'être payé DEUX FOIS par le même match. Il
@@ -189,7 +230,8 @@ async function plafonner(uids, type, maintenant) {
     const snap = await ref.get().catch(() => null);
     const d = (snap && snap.exists && snap.data()) || {};
     const liste = recents((d._gains || {})[type], maintenant);
-    if (liste.length >= GARDE.parJour) return;
+    const plafond = type === 'penalite' ? PENALITE.parJour : GARDE.parJour;
+    if (liste.length >= plafond) return;
     libres.push(uid);
     await ref.update({ ['_gains.' + type]: [...liste, maintenant] }).catch(() => {});
   }));
@@ -215,6 +257,16 @@ function uidsDeCarte(carte) {
 }
 
 async function appliquer(acc) {
+  // Une perte d'XP ne descend pas sous zéro, et c'est la perte RÉELLE qu'on
+  // inscrit dans `acc` — donc au grand livre. Sans ça, un joueur à 0 XP qui
+  // pose un lapin restait à 0, mais la suppression du match lui « rendait »
+  // 30 XP qu'il n'avait jamais perdus.
+  await Promise.all([...acc.entries()].map(async ([uid, champs]) => {
+    if (!(typeof champs.xp === 'number' && champs.xp < 0)) return;
+    const snap = await db.doc('users/' + uid).get().catch(() => null);
+    const actuel = snap && snap.exists ? Number((snap.data() || {}).xp) || 0 : 0;
+    champs.xp = Math.max(champs.xp, -Math.max(0, actuel));
+  }));
   const ecritures = [...acc.entries()].map(async ([uid, champs]) => {
     const maj = {};
     for (const [k, v] of Object.entries(champs)) {
@@ -299,6 +351,7 @@ async function gainsCourants(before, after, ref, maintenant = Date.now()) {
   const acc = new Map();
   const paye = after._xp || {};
   const nouveaux = { votes: [], motm: [], notes: [], creation: [] };
+  const retraits = [];
   const dejaPaye = (cle, uid) => (paye[cle] || []).includes(uid)
     || nouveaux[cle].includes(uid);
 
@@ -316,6 +369,13 @@ async function gainsCourants(before, after, ref, maintenant = Date.now()) {
     ap.forEach(u => {
       if (av.has(u) || dejaPaye('votes', u)) return;
       ajout(acc, u, { xp: XP.voter }); nouveaux.votes.push(u);
+    });
+    // Retirer TOUS ses votes rend les +10 — et on oublie qu'il a été payé :
+    // revoter repaie. Voter, retirer, revoter donne donc +10 au total,
+    // jamais plus : la boucle ne rapporte rien.
+    av.forEach(u => {
+      if (ap.has(u) || !(paye.votes || []).includes(u)) return;
+      ajout(acc, u, { xp: -XP.voter }); retraits.push(u);
     });
 
     // Vote homme du match : +15, une fois. Changer d'avis ne repaie pas.
@@ -348,6 +408,12 @@ async function gainsCourants(before, after, ref, maintenant = Date.now()) {
     if (uids.length) marques['_xp.' + cle] = FieldValue.arrayUnion(...uids);
   }
   await noterLivre(ref, acc, marques);
+  // Un champ ne peut pas recevoir arrayUnion ET arrayRemove dans la même
+  // écriture : le retrait des payés part à part.
+  if (retraits.length && ref) {
+    await ref.update({ '_xp.votes': FieldValue.arrayRemove(...retraits) }).catch(() => {});
+  }
+  await plancherXp([...acc.keys()]);
 }
 
 // Fin de match : présents, absents, homme du match. Protégé par le marqueur
@@ -421,6 +487,11 @@ async function gainsFinDeMatch(m, ref, maintenant = Date.now(), creeMs = 0) {
 
   await appliquer(acc);
   await noterLivre(ref, acc);
+  await Promise.all([
+    ...presents.map(u => pousserHistorique(u, 'J')),
+    ...absents.map(u => pousserHistorique(u, 'L')),
+  ]);
+  await plancherXp(absents);
   await majBadges([...acc.keys()]);
 }
 
@@ -438,6 +509,16 @@ exports.onMatchEcrit = onDocumentWritten('matchs/{matchId}', async (event) => {
   if (!after) {
     const n = await rembourser(before).catch(() => 0);
     if (n) console.log('match supprimé : XP reprise à ' + n + ' joueur(s)');
+    // Supprimer un match CONFIRMÉ où d'autres comptaient jouer : on rend
+    // l'XP, et l'organisateur paie le soir qu'il a fait sauter. Hors du
+    // grand livre : la pénalité ne se « rembourse » pas.
+    const autres = (before && before.joueursInscrits || []).filter(u => u !== before.createurUid);
+    if (before && before.statut === 'confirmé' && before.createurUid && autres.length) {
+      const acc = new Map();
+      ajout(acc, before.createurUid, { xp: PENALITE.suppression });
+      await appliquer(acc).catch(() => {});
+      await plancherXp([before.createurUid]).catch(() => {});
+    }
     return;
   }
   // Écriture purement technique (marqueurs _notifs) : on ignore.
@@ -613,4 +694,42 @@ exports.rappels = onSchedule({ schedule: 'every 30 minutes', timeZone: 'Europe/P
       });
     }
   }
+});
+
+// ---------- Désistements : qui s'est retiré, et quand ----------
+// Une fonction À PART, avec le contexte d'authentification : sans savoir
+// QUI a écrit, on ne distinguerait pas le joueur qui se retire du joueur
+// que l'organisateur a sorti — et punir ce dernier serait injuste. Séparée
+// d'`onMatchEcrit` pour ne pas changer le type d'un déclencheur déjà déployé.
+async function traiterDesistement(before, after, auteur, maintenant = Date.now()) {
+  if (!before || !after || !auteur) return null;
+  if (!['sondage', 'confirmé'].includes(after.statut)) return null;
+  const avant = before.joueursInscrits || [];
+  const apres = after.joueursInscrits || [];
+  // Seul l'AUTEUR peut être pénalisé, et seulement s'il était titulaire.
+  if (!avant.includes(auteur) || apres.includes(auteur)) return null;
+  const w = matchWhen(after);
+  // Pas encore de date : personne ne s'est engagé sur un soir précis.
+  if (!w.ms) return null;
+  const heures = (w.ms - maintenant) / 3600000;
+  const banc = before.waitlist || [];
+  const remplace = apres.some(u => banc.includes(u) && !avant.includes(u));
+  const pen = penaliteDesistement(heures, remplace);
+  if (!pen) return 0;
+  const libres = await plafonner([auteur], 'penalite', maintenant);
+  if (!libres.size) return 0;
+  const acc = new Map();
+  ajout(acc, auteur, { xp: pen, desistements: 1 });
+  await appliquer(acc);
+  if (heures < 24) await pousserHistorique(auteur, 'D');
+  await plancherXp([auteur]);
+  return pen;
+}
+
+exports.onDesistement = onDocumentWrittenWithAuthContext('matchs/{matchId}', async (event) => {
+  const before = event.data.before.exists ? event.data.before.data() : null;
+  const after = event.data.after.exists ? event.data.after.data() : null;
+  // Les écritures de nos propres fonctions (compte de service) : ignorées.
+  if (event.authType === 'service_account' || event.authType === 'system') return;
+  await traiterDesistement(before, after, event.authId).catch(() => {});
 });

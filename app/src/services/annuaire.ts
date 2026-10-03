@@ -106,6 +106,8 @@ export interface FicheComplete extends FicheJoueur {
   readonly posteFavori?: string;
   readonly noteSum?: number;
   readonly noteCount?: number;
+  /** Pour le badge de fiabilité (domaine/fiabilite). */
+  readonly historique?: readonly string[];
 }
 
 /**
@@ -134,6 +136,8 @@ export async function lireFichesCompletes(
           posteFavori: d.POSTES_DEMO[u],
           noteSum: d.NOTES_DEMO[u]?.somme,
           noteCount: d.NOTES_DEMO[u]?.nombre,
+          // Démo : un joueur fiable, un poseur de lapin, les autres neutres.
+          historique: u === 'u7' ? Array(10).fill('J') : u === 'u3' ? ['J', 'J', 'L', 'J', 'D', 'J', 'L', 'J'] : ['J', 'J', 'J', 'D', 'J'],
         }];
       }),
     );
@@ -157,6 +161,7 @@ export async function lireFichesCompletes(
           posteFavori: typeof v.posteFavori === 'string' ? v.posteFavori : undefined,
           noteSum: typeof v.noteSum === 'number' ? v.noteSum : 0,
           noteCount: typeof v.noteCount === 'number' ? v.noteCount : 0,
+          historique: Array.isArray(v.historique) ? v.historique.filter((x: unknown) => typeof x === 'string') : [],
         };
       }
     }),

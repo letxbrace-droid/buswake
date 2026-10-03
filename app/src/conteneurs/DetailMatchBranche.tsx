@@ -8,6 +8,7 @@ import { useAction } from '../services/useAction';
 import { usePseudos } from '../services/usePseudos';
 import * as cycle from '../services/cycle';
 import { lireMatch, type Match } from '../domaine/schemas';
+import { fiabilite, type Fiabilite } from '../domaine/fiabilite';
 import type { Votes } from '../domaine/cycle';
 import { useNavigate } from 'react-router-dom';
 
@@ -29,10 +30,24 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
   });
 
   const rafraichir = [['match', id], ['fil', uid]] as const;
-  const pseudos = usePseudos(data?.m.joueursInscrits ?? []);
+  // Le banc aussi : depuis que `waitlist` est lu, il s'affiche — et montrait
+  // des identifiants bruts faute de pseudos.
+  const pseudos = usePseudos([...(data?.m.joueursInscrits ?? []), ...(data?.m.waitlist ?? [])]);
+  // La fiabilité de chaque inscrit — le widget lapin. Une lecture pour la
+  // liste entière.
+  const inscrits = data?.m.joueursInscrits ?? [];
+  const { data: fiches } = useQuery({
+    queryKey: ['fiabilites', inscrits.join(',')],
+    enabled: inscrits.length > 0,
+    staleTime: 60_000,
+    queryFn: async () => (await import('../services/annuaire')).lireFichesCompletes(inscrits),
+  });
+  const fiabilites: Record<string, Fiabilite> = Object.fromEntries(
+    Object.entries(fiches ?? {}).map(([u, f]) => [u, fiabilite(f.historique)]),
+  );
 
   const voter = useAction((i: number) => cycle.voter(id, i, uid), {
-    succes: (aVote) => (aVote ? 'Vote enregistré — 10 XP en route.' : 'Vote retiré.'),
+    succes: (aVote) => (aVote ? 'Vote enregistré — 10 XP en route.' : 'Vote retiré — tes 10 XP sont repris.'),
     invalider: rafraichir,
   });
 
@@ -113,6 +128,7 @@ export function DetailMatchBranche({ uid }: { uid: string }) {
       uid={uid}
       occupe={occupe}
       pseudos={pseudos}
+      fiabilites={fiabilites}
       actions={{
         onVoter: voter.lancer,
         onRejoindre: rejoindre.lancer,

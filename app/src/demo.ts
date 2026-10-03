@@ -88,6 +88,7 @@ export const PROFIL_DEMO = {
   pseudo: 'Sam',
   noteSum: 33.6,
   noteCount: 4,
+  historique: ['J', 'J', 'J', 'J', 'D', 'J', 'J', 'J', 'J', 'J'],
   friends: [] as string[],
   friendRequestsSent: [] as string[],
   friendRequestsReceived: [] as string[],

@@ -47,7 +47,7 @@ service cloud.firestore {
     // est une règle distincte, et un document neuf n'a rien à gonfler.
     function champsDeJeu() {
       return ['xp', 'badges', 'stats', 'noteSum', 'noteCount',
-              'presences', 'lapins', 'streak', '_gains'];
+              'presences', 'lapins', 'streak', '_gains', 'historique', 'desistements'];
     }
     // Ce qu'un AUTRE joueur peut modifier : uniquement le social.
     // Une demande d'ami s'écrit forcément chez quelqu'un d'autre.
@@ -70,6 +70,10 @@ service cloud.firestore {
         && d.get('presences', 0) == 0 && d.get('lapins', 0) == 0
         && d.get('streak', 0) == 0
         && !('_gains' in d)
+        // L'historique de fiabilité naît vide : sinon un nouveau compte se
+        // fabriquerait dix matchs « joués » et le badge « Fiable ».
+        && d.get('historique', []).size() == 0
+        && d.get('desistements', 0) == 0
         && st is map
         && st.keys().hasOnly(['matchsJoues', 'victoires', 'hommeDuMatch', 'buts', 'passes'])
         && st.get('matchsJoues', 0) == 0 && st.get('victoires', 0) == 0
