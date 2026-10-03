@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { CreerMatch } from '../ecrans/CreerMatch';
 import { useAction } from '../services/useAction';
 import { creer } from '../services/cycle';
+import { chercherAdresses } from '../services/adresses';
 import type { Position } from '../domaine/rayon';
 import type { CreerMatch as Saisie } from '../domaine/schemas';
 
@@ -17,6 +18,11 @@ export function CreerMatchBranche({ uid, domicile }: { uid: string; domicile: Po
   });
 
   return (
-    <CreerMatch domicile={domicile} occupe={action.occupe} onCreer={action.lancer} />
+    <CreerMatch
+      domicile={domicile}
+      occupe={action.occupe}
+      onCreer={action.lancer}
+      chercherAdresses={(q, signal) => chercherAdresses(q, domicile, signal)}
+    />
   );
 }

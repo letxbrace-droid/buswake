@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest';
 import {
-  ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, nomDuLieu,
+  ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, lieuSaisiDuMatch, nomDuLieu,
 } from './terrainDuMatch';
 import { TERRAINS_VERIFIES } from './terrains';
-import type { Match } from './schemas';
+import { lireMatch, type Match } from './schemas';
 
 const m = (p: Partial<Match> = {}): Match =>
   ({
@@ -92,5 +92,20 @@ describe('detailsDuLieu', () => {
     const d = detailsDuLieu(m({ lieuFinal: REEL.n }), f);
     expect(d.some((x) => x.texte === REEL.adr)).toBe(true);
     expect(d.some((x) => x.url === REEL.url)).toBe(true);
+  });
+});
+
+describe('lieu saisi par l’organisateur', () => {
+  const m = lireMatch('x', {
+    statut: 'sondage',
+    creneauxProposes: [{ date: new Date(), lieu: 'Gymnase Jean-Moulin', adresse: '12 rue Jean Moulin, 91300 Massy', lat: 48.73, lon: 2.27, votes: [] }],
+  })!;
+  it('montre son adresse, sans la dire vérifiée', () => {
+    const d = detailsDuLieu(m, ficheDuTerrain(m));
+    expect(d.map((x) => x.texte)).toContain('12 rue Jean Moulin, 91300 Massy');
+    expect(d.some((x) => x.url)).toBe(false);
+  });
+  it('donne de quoi ouvrir l’itinéraire', () => {
+    expect(lieuSaisiDuMatch(m)).toEqual({ n: 'Gymnase Jean-Moulin', adr: '12 rue Jean Moulin, 91300 Massy', lat: 48.73, lon: 2.27 });
   });
 });

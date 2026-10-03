@@ -12,7 +12,7 @@
 export type NomIcone =
   | 'accueil' | 'ballon' | 'blason' | 'message' | 'joueur'
   | 'plus' | 'calendrier' | 'recherche' | 'carte' | 'partage' | 'cloche'
-  | 'toit' | 'verifie';
+  | 'toit' | 'verifie' | 'cadenas' | 'sortie' | 'poubelle' | 'crayon' | 'chevron' | 'cible';
 
 const CHEMINS: Record<NomIcone, string> = {
   accueil: 'M3 10.6 12 3l9 7.6M5.4 9.2V20a1 1 0 0 0 1 1h3.3v-5.4h4.6V21h3.3a1 1 0 0 0 1-1V9.2',
@@ -27,6 +27,12 @@ const CHEMINS: Record<NomIcone, string> = {
   partage: 'M12 15.5V4m0 0L8.2 7.8M12 4l3.8 3.8M5 14v5.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V14',
   toit: 'M3.5 11 12 4.5l8.5 6.5M6 12.4v7.1h12v-7.1',
   verifie: 'M12 3.4 19 6v5.4c0 4-2.8 7.3-7 9.1-4.2-1.8-7-5.1-7-9.1V6l7-2.6Zm-2.8 8.5 2 2 3.6-3.7',
+  cadenas: 'M6.5 10.5h11v9.5h-11v-9.5Zm2.5 0V7.8a3 3 0 0 1 6 0v2.7',
+  sortie: 'M14 4.5H6v15h8M10.5 12H20m0 0-3.2-3.2M20 12l-3.2 3.2',
+  poubelle: 'M5 7h14M9.5 7V4.8h5V7M7 7l.9 12.5h8.2L17 7M10.5 10.5v5.5m3-5.5v5.5',
+  crayon: 'M4.5 19.5l1-4.2L15.8 5a1.9 1.9 0 0 1 2.7 0l.5.5a1.9 1.9 0 0 1 0 2.7L8.7 18.5l-4.2 1Zm9.3-12.5 3.2 3.2',
+  chevron: 'M9.5 6l6 6-6 6',
+  cible: 'M12 20.5a8.5 8.5 0 1 0 0-17 8.5 8.5 0 0 0 0 17Zm0-4.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm0-3.2a.8.8 0 1 0 0-1.6.8.8 0 0 0 0 1.6Z',
   cloche: 'M12 3.5a5.5 5.5 0 0 0-5.5 5.5c0 5-2 6.5-2 6.5h15s-2-1.5-2-6.5A5.5 5.5 0 0 0 12 3.5ZM10.3 19a2 2 0 0 0 3.4 0',
 };
 

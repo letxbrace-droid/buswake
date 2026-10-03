@@ -1,0 +1,1 @@
+import{D as e,S as t,v as n}from"./firebase-BuSF_Jxm.js";import{r}from"./client-DmAjRncV.js";import{n as i}from"./schemas-DLQyM2it.js";function a(t,a){return n(e(r,`users`,t),e=>{if(!e.exists())return a(null);let n=i.safeParse({...e.data(),uid:t});a(n.success?n.data:null)},()=>a(null))}async function o(n,i){await t(e(r,`users`,n),{...i})}export{a as ecouterProfil,o as majProfil};

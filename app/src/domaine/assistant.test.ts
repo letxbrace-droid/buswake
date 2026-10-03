@@ -7,12 +7,12 @@ import {
 
 const s = (p: Partial<Saisie> = {}): Saisie => ({ ...SAISIE_VIDE, ...p });
 const d = (n: number) => new Date(2026, 9, n, 19, 0);
-const complete = s({ creneaux: [d(1), d(3)], lieu: 'LE FIVE Morangis' });
+const complete = s({ creneaux: [d(1), d(3)], lieu: { nom: 'LE FIVE Morangis', adresse: '81 Avenue Ferdinand de Lesseps, 91420 Morangis', lat: 48.7, lon: 2.3, verifie: true } });
 
 describe('manqueA', () => {
   it('dit ce qui manque, étape par étape', () => {
     expect(manqueA('infos', s())).toBe('Coche au moins un créneau');
-    expect(manqueA('lieu', s({ creneaux: [d(1)] }))).toBe('Choisis un terrain');
+    expect(manqueA('lieu', s({ creneaux: [d(1)] }))).toBe('Choisis un terrain ou saisis une adresse');
     expect(manqueA('joueurs', s({ joueursMax: 1 }))).toContain('2 et 40');
     expect(manqueA('publier', s({ message: 'x'.repeat(MESSAGE_MAX + 1) }))).toContain('maximum');
   });
@@ -81,7 +81,7 @@ describe('peutPublier', () => {
   it('exige TOUTES les étapes, pas seulement la dernière', () => {
     expect(peutPublier(complete)).toBe(true);
     expect(peutPublier(s({ creneaux: [d(1)] }))).toBe(false);
-    expect(peutPublier(s({ lieu: 'X' }))).toBe(false);
+    expect(peutPublier(s({ lieu: { nom: 'X', adresse: '1 rue Y', lat: null, lon: null, verifie: false } }))).toBe(false);
   });
 });
 

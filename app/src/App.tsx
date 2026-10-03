@@ -388,7 +388,9 @@ function Coque() {
                 <Reglages
                   ouvert={reglages}
                   onFermer={() => setReglages(false)}
+                  uid={uid ?? ''}
                   pseudo={profil?.pseudo ?? '…'}
+                  xp={profil?.xp ?? 0}
                   fournisseurs={fournisseurs}
                   actions={{
                     onDeconnexion: () => import('./services/auth').then((m) => m.deconnecter()),
@@ -400,11 +402,25 @@ function Coque() {
                       setReglages(false);
                       naviguer('/compte/supprimer');
                     },
-                    onInviter: () => {},
+                    // Il ne faisait RIEN, et l'écran affichait « Lien copié ».
+                    // Feuille de partage du téléphone, sinon presse-papier.
+                    onInviter: () => {
+                      const lien = `${window.location.origin}${window.location.pathname}`;
+                      const texte = 'Viens jouer au foot à 5 avec moi sur KOLEKTIF ⚽';
+                      if (navigator.share) {
+                        navigator.share({ title: 'KOLEKTIF', text: texte, url: lien }).catch(() => {});
+                      } else {
+                        navigator.clipboard?.writeText(`${texte} ${lien}`).catch(() => {});
+                      }
+                    },
                     onActiverNotifications: () => void push.activer(),
                     onProfil: () => {
                       setReglages(false);
                       naviguer('/profil');
+                    },
+                    onModifierCarte: () => {
+                      setReglages(false);
+                      naviguer('/profil/modifier');
                     },
                   }}
                   push={push.etat}

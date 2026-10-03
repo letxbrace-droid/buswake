@@ -176,7 +176,7 @@ Le cœur du produit.
 | `duree` | int | Minutes, **30 à 240** (règle et schéma) |
 | `niveau` | string | `tous` \| `debutant` \| `intermediaire` \| `confirme` — liste fermée, identique dans `schemas.ts` et `firestore.rules` |
 | `joueursMax` | int | 2 à 40 |
-| `creneauxProposes` | array | `[{ id, date, lieu, lat, lon, votants: [uid] }]` |
+| `creneauxProposes` | array | `[{ date, lieu, adresse?, lat?, lon?, votes: [uid] }]` — `lieu` est un terrain vérifié **ou** un lieu saisi par l'organisateur (nom ≤ 60, adresse ≤ 160) ; `lat`/`lon` viennent de la suggestion d'adresse choisie (Géoplateforme IGN) — sans elles le match n'est pas filtré par le rayon |
 | `joueursInscrits` | array | UID des joueurs engagés |
 | `lieuFinal`, `dateFinale` | — | Renseignés à la confirmation |
 | `equipes` | array | Composition des deux équipes |

@@ -106,36 +106,3 @@ export function Tiroir({
     </AnimatePresence>
   );
 }
-
-export function Section({ titre, children }: { titre: string; children: ReactNode }) {
-  return (
-    <section className="mb-5">
-      <h3 className="mb-2 text-xs tracking-[0.14em] text-(--color-encre-faible) uppercase">
-        {titre}
-      </h3>
-      {children}
-    </section>
-  );
-}
-
-export function Ligne({
-  children, onClick, danger = false, aide,
-}: {
-  children: ReactNode;
-  onClick?(): void;
-  danger?: boolean;
-  aide?: string;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`mb-1.5 min-h-12 w-full rounded-(--radius-sm) bg-black/25 px-3.5 py-3 text-left text-sm ${
-        danger ? 'text-(--color-rouge)' : 'text-(--color-encre)'
-      }`}
-    >
-      {children}
-      {aide && <span className="mt-0.5 block text-xs text-(--color-encre-faible)">{aide}</span>}
-    </button>
-  );
-}

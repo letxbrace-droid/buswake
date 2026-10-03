@@ -12,7 +12,7 @@ import { Avatar, RangeeJoueurs } from '../composants/Avatar';
 import { LIBELLES_NIVEAU } from '../domaine/assistant';
 import { EXPLICATION_REFUS, terminableMaintenant } from '../domaine/garde';
 import {
-  ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, nomDuLieu,
+  ambianceDuTerrain, detailsDuLieu, ficheDuTerrain, formatDuMatch, lieuSaisiDuMatch, nomDuLieu,
   type Ambiance,
 } from '../domaine/terrainDuMatch';
 // Importées et non écrites en chemin : Vite les empreinte et les résout
@@ -77,6 +77,7 @@ export function DetailMatch({
   const fiche = ficheDuTerrain(m);
   const photo = PHOTOS[ambianceDuTerrain(fiche)];
   const details = detailsDuLieu(m, fiche);
+  const lieuSaisi = fiche ? null : lieuSaisiDuMatch(m);
   const gagnant = creneauGagnant(m, votes);
   const finale = versDate(m.dateFinale);
   const enTete =
@@ -414,9 +415,9 @@ export function DetailMatch({
           <Icone nom="partage" taille={17} />
           Partager
         </button>
-        {fiche && (
+        {(fiche ?? lieuSaisi) && (
           <div className="flex-1">
-            <YAller lieu={fiche} />
+            <YAller lieu={(fiche ?? lieuSaisi)!} />
           </div>
         )}
       </div>

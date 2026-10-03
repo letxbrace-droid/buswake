@@ -1,3 +1,4 @@
+import type { LieuChoisi } from './lieu';
 /**
  * L'ASSISTANT DE CRÉATION — quatre étapes.
  *
@@ -65,7 +66,8 @@ export interface Saisie {
    *  liste de suggestions : ça interdisait de proposer autre chose. */
   readonly creneaux: readonly Date[];
   readonly duree: Duree;
-  readonly lieu: string | null;
+  /** Terrain vérifié OU lieu saisi par l'organisateur (voir domaine/lieu). */
+  readonly lieu: LieuChoisi | null;
   readonly joueursMax: number;
   readonly niveau: NiveauMatch;
   readonly message: string;
@@ -88,7 +90,7 @@ export function manqueA(etape: Etape, s: Saisie): string | null {
       if (s.creneaux.length > 10) return 'Dix créneaux au maximum';
       return null;
     case 'lieu':
-      return s.lieu ? null : 'Choisis un terrain';
+      return s.lieu ? null : 'Choisis un terrain ou saisis une adresse';
     case 'joueurs':
       if (!Number.isInteger(s.joueursMax) || s.joueursMax < 2 || s.joueursMax > 40) {
         return 'Entre 2 et 40 joueurs';

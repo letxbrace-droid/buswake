@@ -24,6 +24,9 @@ const CoordsSchema = z.object({ lat: z.number(), lon: z.number() });
 export const CreneauSchema = z.object({
   date: horodatage.nullish(),
   lieu: z.string().default(''),
+  /** Adresse du lieu, posée à la création. Non déclarée, Zod la supprimerait
+   *  et un lieu saisi à la main n'aurait plus d'adresse à l'écran. */
+  adresse: z.string().max(160).optional().catch(undefined),
   votes: z.array(z.string()).default([]),
   // Un créneau peut porter les coordonnées du terrain proposé. Sans elles
   // déclarées ici, Zod les supprime et `positionDuMatch` ne trouve jamais
@@ -150,7 +153,12 @@ export const CreerMatchSchema = z.object({
     .array(
       z.object({
         date: z.date(),
-        lieu: z.string().min(1, 'Indique un lieu'),
+        lieu: z.string().min(1, 'Indique un lieu').max(60),
+        // L'adresse d'un lieu saisi par l'organisateur. Un terrain vérifié
+        // la porte aussi : la fiche du match n'a pas à la reconstruire.
+        adresse: z.string().max(160).optional(),
+        lat: z.number().min(-90).max(90).optional(),
+        lon: z.number().min(-180).max(180).optional(),
       }),
     )
     .min(1, 'Propose au moins un créneau')

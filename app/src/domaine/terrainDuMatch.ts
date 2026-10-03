@@ -82,7 +82,13 @@ export function detailsDuLieu(m: Match, fiche: TerrainVerifie | null): Detail[] 
   const lignes: Detail[] = [
     { icone: 'ballon', texte: `${formatDuMatch(m)} · ${libelleDuree(m.duree)} de jeu` },
   ];
-  if (!fiche) return lignes;
+  if (!fiche) {
+    // Un lieu saisi par l'organisateur : on montre SON adresse, et on ne
+    // prétend pas l'avoir vérifiée.
+    const adr = lieuSaisiDuMatch(m)?.adr;
+    if (adr) lignes.push({ icone: 'carte', texte: adr });
+    return lignes;
+  }
 
   lignes.push({
     icone: 'toit',
@@ -91,4 +97,18 @@ export function detailsDuLieu(m: Match, fiche: TerrainVerifie | null): Detail[] 
   lignes.push({ icone: 'carte', texte: fiche.adr });
   lignes.push({ icone: 'verifie', texte: 'Lieu vérifié — voir la source', url: fiche.url });
   return lignes;
+}
+
+/** Le lieu d'un match hors liste vérifiée, tel que l'organisateur l'a saisi :
+ *  de quoi afficher l'adresse et ouvrir l'itinéraire. `null` sans adresse. */
+export function lieuSaisiDuMatch(m: Match): { n: string; adr: string; lat?: number; lon?: number } | null {
+  const nom = nomDuLieu(m);
+  const crs = m.creneauxProposes ?? [];
+  const c = crs.find((x) => x.lieu === nom && x.adresse) ?? crs.find((x) => x.adresse);
+  if (!c?.adresse) return null;
+  return {
+    n: nom || c.lieu,
+    adr: c.adresse,
+    ...(c.lat != null && c.lon != null ? { lat: c.lat, lon: c.lon } : {}),
+  };
 }
