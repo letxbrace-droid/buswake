@@ -50,6 +50,11 @@ export const MatchSchema = z.object({
   sport: z.string().default('foot5'),
   statut: StatutMatch.catch('sondage'),
   joueursInscrits: z.array(z.string()).default([]),
+  /** LE BANC. Non déclaré, Zod le supprimait : l'app voyait toujours un banc
+   *  vide. « Me mettre sur le banc » inscrivait le joueur… puis l'écran le
+   *  montrait à nouveau dehors, et un second appui réécrivait le banc avec
+   *  lui seul — en effaçant les autres remplaçants. */
+  waitlist: z.array(z.string()).default([]),
   creneauxProposes: z.array(CreneauSchema).default([]),
   dateFinale: horodatage.nullish(),
   lieuFinal: z.string().default(''),

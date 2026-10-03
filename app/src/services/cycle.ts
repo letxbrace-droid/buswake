@@ -50,11 +50,16 @@ export interface ResultatEffectif {
 export async function rejoindreMatch(matchId: string, uid: string): Promise<ResultatEffectif> {
   const m = await relire(matchId);
   const e = rejoindre(m, uid);
-  await updateDoc(doc(db, 'matchs', matchId), {
-    joueursInscrits: e.joueursInscrits,
-    waitlist: e.waitlist,
-  });
-  return { place: e.joueursInscrits.includes(uid) ? 'titulaire' : 'banc', promu: null };
+  const titulaire = e.joueursInscrits.includes(uid);
+  // arrayUnion, pas une réécriture du tableau : deux joueurs qui rejoignent
+  // à la même seconde ne doivent pas s'effacer l'un l'autre.
+  await updateDoc(
+    doc(db, 'matchs', matchId),
+    titulaire
+      ? { joueursInscrits: arrayUnion(uid), waitlist: arrayRemove(uid) }
+      : { waitlist: arrayUnion(uid) },
+  );
+  return { place: titulaire ? 'titulaire' : 'banc', promu: null };
 }
 
 export async function quitterMatch(matchId: string, uid: string): Promise<{ promu: string | null }> {

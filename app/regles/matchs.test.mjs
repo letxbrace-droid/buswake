@@ -181,3 +181,34 @@ describe('supprimer un match', () => {
     await refuse(db('a').doc('matchs/m1').delete());
   });
 });
+
+// Les écritures EXACTES de services/cycle.rejoindreMatch (arrayUnion), sur
+// un match à la forme de services/cycle.creer.
+import firebase from 'firebase/compat/app';
+import 'firebase/compat/firestore';
+const FV = firebase.firestore.FieldValue;
+
+describe('rejoindre un match, comme l’app le fait', () => {
+  const cree = {
+    createurUid: 'orga', sport: 'foot5', statut: 'sondage', joueursMax: 10, duree: 60, niveau: 'tous',
+    message: '', joueursInscrits: ['orga'], waitlist: [], votes: {}, visibilite: 'public',
+    creneauxProposes: [{ date: new Date(), lieu: 'Gymnase', adresse: '1 rue X, Massy', lat: 48.7, lon: 2.3 }],
+    finVisible: new Date(Date.now() + 86400000),
+  };
+  it('passe : un joueur devient titulaire', async () => {
+    await poser(env, 'matchs/r1', cree);
+    await passe(db('moi').doc('matchs/r1').update({ joueursInscrits: FV.arrayUnion('moi'), waitlist: FV.arrayRemove('moi') }));
+  });
+  it('passe : un joueur se met sur le banc d’un match complet', async () => {
+    await poser(env, 'matchs/r2', { ...cree, joueursMax: 2, joueursInscrits: ['orga', 'x'], waitlist: ['y'] });
+    await passe(db('moi').doc('matchs/r2').update({ waitlist: FV.arrayUnion('moi') }));
+  });
+  it('passe : un joueur vote', async () => {
+    await poser(env, 'matchs/r3', cree);
+    await passe(db('moi').doc('matchs/r3').update({ 'votes.0': FV.arrayUnion('moi') }));
+  });
+  it('passe : le créateur se retire de son propre match', async () => {
+    await poser(env, 'matchs/r4', { ...cree, joueursInscrits: ['orga', 'a'] });
+    await passe(db('orga').doc('matchs/r4').update({ joueursInscrits: ['a'], waitlist: [] }));
+  });
+});

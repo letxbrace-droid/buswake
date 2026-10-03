@@ -96,12 +96,12 @@ describe('lireMatch — fidélité au document réellement stocké', () => {
    * Tout champ que l'app LIT doit survivre au passage.
    */
   const DOCUMENT_REEL = {
+    waitlist: ['remplacant'],
     createurUid: 'zizou',
     sport: 'foot5',
     statut: 'sondage',
     joueursMax: 12,
     joueursInscrits: ['zizou'],
-    waitlist: [],
     creneauxProposes: [
       { date: new Date('2026-09-18T19:00:00Z'), lieu: 'LE FIVE Morangis', votes: [], lat: 48.71, lon: 2.33 },
     ],
@@ -123,12 +123,16 @@ describe('lireMatch — fidélité au document réellement stocké', () => {
     expect(m?.creneauxProposes[0].lat).toBe(48.71);
   });
 
+  it('garde le banc — sans lui, rejoindre un match complet ne laissait aucune trace', () => {
+    expect(lireMatch('m1', DOCUMENT_REEL)?.waitlist).toEqual(['remplacant']);
+  });
+
   it('garde tout ce que l’app lit sur un match', () => {
     const m = lireMatch('m1', DOCUMENT_REEL);
     // Le champ nommé ici est un champ dont un écran dépend. En retirer un
     // du schéma le vide en silence.
     for (const champ of [
-      'createurUid', 'sport', 'statut', 'joueursMax', 'joueursInscrits',
+      'createurUid', 'sport', 'statut', 'joueursMax', 'joueursInscrits', 'waitlist',
       'creneauxProposes', 'finVisible', 'lieuCoords',
     ] as const) {
       expect(m?.[champ], `champ perdu au parsing : ${champ}`).not.toBeUndefined();

@@ -52,7 +52,8 @@ export function CarteMatch({
   /** Affiché quand le match dépasse le rayon mais reste montré parce qu'on y
    *  joue — sinon le filtre a l'air cassé. */
   horsRayon?: boolean;
-  onOuvrir?: () => void;
+  /** Obligatoire : une carte qui se touche sans rien ouvrir est un piège. */
+  onOuvrir: () => void;
   /** uid → pseudo, pour les pastilles. Absent, la carte rend sans avatars
    *  plutôt que d'afficher des identifiants bruts. */
   pseudos?: Record<string, string>;

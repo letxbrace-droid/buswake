@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { Plaque } from '../composants/Plaque';
 import { Segment } from '../composants/Segment';
 import { CarteMatch } from '../composants/CarteMatch';
@@ -11,6 +12,7 @@ import { useEntree } from '../services/useEntree';
 import { usePseudos } from '../services/usePseudos';
 
 export function Matchs({ uid, domicile }: { uid: string | null; domicile: Position | null }) {
+  const aller = useNavigate();
   const [onglet, setOnglet] = useState<Onglet>('sondage');
   const km = usePreferences((s) => s.km);
   const setKm = usePreferences((s) => s.setKm);
@@ -96,6 +98,9 @@ export function Matchs({ uid, domicile }: { uid: string | null; domicile: Positi
               distanceKm={d}
               horsRayon={d != null && km > 0 && d > km}
               pseudos={pseudos}
+              // La carte se touchait SANS RIEN FAIRE : depuis l'onglet
+              // Matchs, impossible d'ouvrir un match, donc de le rejoindre.
+              onOuvrir={() => aller(`/match/${m.id}`)}
             />
           );
         })}

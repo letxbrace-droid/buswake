@@ -12,6 +12,7 @@ function match(p: Partial<Match> = {}): Match {
     sport: 'foot5',
     statut: 'sondage',
     joueursInscrits: [],
+    waitlist: [],
     creneauxProposes: [],
     dateFinale: null,
     lieuFinal: '',

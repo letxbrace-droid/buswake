@@ -54,4 +54,16 @@ describe('matière commune', () => {
     );
     expect(fautifs.map(([f, c]) => `${f} : ${c}`)).toEqual([]);
   });
+  it('tout ce qui se présente comme un bouton fait quelque chose', () => {
+    // Les cartes de l'onglet Matchs étaient des <Plaque as="button"> sans
+    // onClick : on les touchait, rien ne se passait, et personne ne pouvait
+    // ouvrir un match pour le rejoindre. Aucune sonde visuelle ne voit ça.
+    const balises = Object.entries(SOURCES).flatMap(([f, src]) =>
+      src.split(/<(?=[A-Z][A-Za-z]*\b[^>]*?as="button")/).slice(1)
+        .map((b) => [f, b.slice(0, b.search(/\/?>\s*\n/))] as const),
+    );
+    expect(balises.length).toBeGreaterThan(0);
+    const morts = balises.filter(([, b]) => !/\bonClick=/.test(b)).map(([f, b]) => `${f} : <${b.slice(0, 60)}`);
+    expect(morts).toEqual([]);
+  });
 });

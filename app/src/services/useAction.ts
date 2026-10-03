@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { messageAction } from '../domaine/erreurs';
 import { useToast } from '../composants/Toasts';
 
 interface Options<T> {
@@ -42,7 +43,7 @@ export function useAction<A extends unknown[], T>(
         }
         options.apres?.(r);
       } catch (e) {
-        toast(e instanceof Error ? e.message : 'Ça n’a pas marché. Réessaie.', 'erreur');
+        toast(messageAction(e), 'erreur');
       } finally {
         setOccupe(false);
       }

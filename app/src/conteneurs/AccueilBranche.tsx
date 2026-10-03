@@ -34,6 +34,9 @@ export function AccueilBranche({
       return rejoindreMatch(id, uid ?? '');
     },
     {
+      // Sans message, l'appui semblait sans effet tant que la page du match
+      // n'était pas chargée.
+      succes: (r) => (r.place === 'titulaire' ? 'Tu es sur le terrain.' : 'Match plein — tu es sur le banc.'),
       invalider: [['fil', uid]],
       // On ouvre le match : le joueur vient de s'y inscrire, c'est là qu'il
       // va vouloir voter le créneau.

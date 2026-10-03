@@ -8,19 +8,19 @@ const h = (n: number) => new Date(Date.now() + n * 3600e3);
 export const MATCHS_DEMO: Match[] = [
   {
     id: 'd1', createurUid: 'u9', sport: 'foot5', statut: 'confirmé',
-    joueursInscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4', 'u8'],
+    joueursInscrits: ['u1', 'u7', 'u3', 'u9', 'u2', 'u5', 'u4', 'u8'], waitlist: [],
     creneauxProposes: [], dateFinale: h(50), lieuFinal: 'LE FIVE Morangis',
     finVisible: h(54), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
   {
     id: 'd2', createurUid: 'u1', sport: 'foot5', statut: 'sondage',
-    joueursInscrits: ['u1', 'u7', 'u3'],
+    joueursInscrits: ['u1', 'u7', 'u3'], waitlist: [],
     creneauxProposes: [{ date: h(74), lieu: 'UrbanSoccer Orsay', votes: ['u1', 'u7'] }],
     dateFinale: null, lieuFinal: '', finVisible: h(80), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
   {
     id: 'd3', createurUid: 'u4', sport: 'foot5', statut: 'sondage',
-    joueursInscrits: ['u2', 'u5'],
+    joueursInscrits: ['u2', 'u5'], waitlist: [],
     creneauxProposes: [{ date: h(98), lieu: 'LE FIVE Créteil', votes: ['u2'] }],
     dateFinale: null, lieuFinal: '', finVisible: h(104), joueursMax: 10, duree: 60, niveau: 'tous' as const, message: '',
   },
