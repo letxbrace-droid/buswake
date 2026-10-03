@@ -25,6 +25,7 @@ const MonClubBranche = lazy(() => import('./conteneurs/MonClubBranche').then((m)
 const ClassementBranche = lazy(() => import('./conteneurs/ClassementBranche').then((m) => ({ default: m.ClassementBranche })));
 const Profil = lazy(() => import('./ecrans/Profil').then((m) => ({ default: m.Profil })));
 const EditerProfil = lazy(() => import('./conteneurs/EditerProfilBranche').then((m) => ({ default: m.EditerProfilBranche })));
+const CreerClub = lazy(() => import('./conteneurs/CreerClubBranche').then((m) => ({ default: m.CreerClubBranche })));
 const DetailMatch = lazy(() => import('./conteneurs/DetailMatchBranche').then((m) => ({ default: m.DetailMatchBranche })));
 const Auth = lazy(() => import('./ecrans/Auth').then((m) => ({ default: m.Auth })));
 const Accueillir = lazy(() => import('./ecrans/Accueillir').then((m) => ({ default: m.Accueillir })));
@@ -213,10 +214,18 @@ function Coque() {
                 }
               />
               <Route
+                path="/club/creer"
+                element={
+                  <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
+                    <CreerClub uid={uid} />
+                  </Suspense>
+                }
+              />
+              <Route
                 path="/equipes"
                 element={
                   <Suspense fallback={<div className="p-4 text-(--color-encre-faible)">…</div>}>
-                    <EquipesBranche />
+                    <EquipesBranche uid={uid} />
                   </Suspense>
                 }
               />

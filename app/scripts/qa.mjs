@@ -43,6 +43,8 @@ const ROUTES = [
   { nom: 'matchs', hash: '#/matchs' },
   { nom: 'equipes', hash: '#/equipes' },
   { nom: 'club', hash: '#/club' },
+  { nom: 'club-creer', hash: '#/club/creer' },
+  { nom: 'club-creer-formulaire', hash: '#/club/creer?apercu' },
   { nom: 'classement', hash: '#/classement' },
   { nom: 'profil', hash: '#/profil' },
   { nom: 'profil-modifier', hash: '#/profil/modifier' },

@@ -36,7 +36,11 @@ export function ongletActif(chemin: string): number {
  *  d'un cran dans l'arborescence : c'est ce chemin-là que rend la fonction.
  *  `null` : un onglet du dock, ou un écran d'entrée, n'a pas de retour. */
 export function parentDe(chemin: string): string | null {
-  if (ongletActif(chemin) >= 0) return null;
+  // La RACINE d'un onglet n'a pas de retour — le dock y mène. Une sous-page
+  // d'onglet en a un : « Modifier ma carte » ou « Créer un club » n'étaient
+  // quittables que par le dock, qui ramène à la racine sans rien dire.
+  const i = ongletActif(chemin);
+  if (i >= 0) return ONGLETS[i].to === chemin ? null : ONGLETS[i].to;
   if (chemin === '/connexion' || chemin === '/bienvenue') return null;
   const sousMatch = chemin.match(/^\/match\/([^/]+)\/[^/]+$/);
   if (sousMatch) return `/match/${sousMatch[1]}`;

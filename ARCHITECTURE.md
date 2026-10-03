@@ -136,6 +136,16 @@ gère tout ; un joueur ne peut qu'ajouter ou retirer **son propre** uid de
 `membres` — la règle `rejointOuQuitte()` vérifie que le diff ne touche
 que ce tableau et que la variation est exactement de un, sur soi.
 
+**Création et adhésion (v2).** `/club/creer` (`ecrans/CreerClub.tsx`) :
+nom 2–28, couleur et emblème pris dans les listes fermées, niveau, appel
+≤ 120 ; le créateur est capitaine **et** membre. `domaine/creationClub.ts`
+porte la règle, et un test vérifie que chaque couleur, emblème et niveau
+proposé figure dans la liste de `firestore.rules`. Un joueur appartient à
+**un seul club** (contrôlé côté client : `monClub` n'en affiche qu'un). On
+rejoint depuis `/equipes` en ouvrant la carte d'un club (`arrayUnion` de son
+propre uid, seule écriture que permet `rejointOuQuitte()`). La règle
+`palmaresVierge()` refuse un club qui naîtrait avec un palmarès non nul.
+
 ### `defis/{defiId}`
 
 Le maillon qui fait qu'une équipe peut **jouer** et pas seulement exister.

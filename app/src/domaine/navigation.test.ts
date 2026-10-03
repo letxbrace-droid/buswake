@@ -23,9 +23,13 @@ describe('onglet actif du dock', () => {
 });
 
 describe('retour', () => {
-  it('un onglet du dock n’a pas de retour', () => {
+  it('la racine d’un onglet n’a pas de retour', () => {
     expect(parentDe('/')).toBeNull();
-    expect(parentDe('/profil/modifier')).toBeNull();
+    expect(parentDe('/club')).toBeNull();
+  });
+  it('une sous-page d’onglet remonte à sa racine', () => {
+    expect(parentDe('/profil/modifier')).toBe('/profil');
+    expect(parentDe('/club/creer')).toBe('/club');
   });
   it('l’entrée non plus', () => {
     expect(parentDe('/connexion')).toBeNull();

@@ -66,7 +66,7 @@ export function MonClubBranche({ uid }: { uid: string | null }) {
       actions={{
         onInviter: inviter.lancer,
         onVoirEquipes: () => aller('/equipes'),
-        onCreer: () => aller('/equipes'),
+        onCreer: () => aller('/club/creer'),
       }}
     />
   );

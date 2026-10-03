@@ -45,7 +45,7 @@ export function MonClub({
             onClick={actions.onCreer}
             className="btn btn-vert mt-4 w-full"
           >
-            Créer une équipe
+            Créer mon club
           </button>
           <button
             type="button"

@@ -289,12 +289,24 @@ service cloud.firestore {
             && o.membres.hasAll(d.membres) && moi in o.membres && !(moi in d.membres))
         );
     }
+    // Un club NAÎT sans palmarès. `stats` est refusé à tout client en
+    // modification, mais la création l'acceptait tel quel : un club pouvait
+    // naître avec 999 victoires et prendre la tête du classement.
+    function palmaresVierge() {
+      let st = request.resource.data.get('stats', {});
+      return st is map
+        && st.keys().hasOnly(['victoires', 'nuls', 'defaites', 'serie', 'butsPour', 'butsContre'])
+        && st.get('victoires', 0) == 0 && st.get('nuls', 0) == 0
+        && st.get('defaites', 0) == 0 && st.get('serie', 0) == 0
+        && st.get('butsPour', 0) == 0 && st.get('butsContre', 0) == 0;
+    }
     match /equipes/{equipeId} {
       allow get, list: if isSignedIn();
       allow create: if isSignedIn()
         && request.resource.data.capitaineUid == request.auth.uid
         && request.auth.uid in request.resource.data.membres
-        && equipeValide();
+        && equipeValide()
+        && palmaresVierge();
       // Le palmarès (`stats`) est HORS DE PORTÉE DE TOUT CLIENT, capitaine
       // compris. Il n'est écrit qu'à la création (à zéro) et par la Cloud
       // Function qui clôt un match, via l'Admin SDK qui contourne ces règles.
