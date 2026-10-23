@@ -38,7 +38,9 @@ jobs:
       # Sans SDK, settings.gradle.kts ne déclarerait pas le module :app — et
       # le build passerait sans rien produire. On l'exige explicitement.
       - name: Vérifier le SDK Android
-        run: test -n "$ANDROID_HOME" && echo "SDK : $ANDROID_HOME"
+        run: |
+          test -n "$ANDROID_HOME"
+          echo "SDK Android : $ANDROID_HOME"
 
       - name: Tests du domaine (dont la concordance avec le serveur)
         run: ./gradlew --no-daemon :domaine:test
