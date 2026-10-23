@@ -54,6 +54,16 @@ jobs:
           name: captures
           path: android/app/src/test/snapshots/images/
 
+      # Les mêmes images sur une branche à part, lisibles en clair
+      # (raw.githubusercontent.com) — sans toucher aux branches de travail.
+      - name: Publier les captures (branche captures-android)
+        run: |
+          cd app/src/test/snapshots/images
+          git init -q && git checkout -q -b captures-android
+          git -c user.name=ci -c user.email=ci@kolektif add .
+          git -c user.name=ci -c user.email=ci@kolektif commit -q -m "Captures ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" captures-android
+
       - name: Compiler l'APK
         run: ./gradlew --no-daemon :app:assembleRelease
 
