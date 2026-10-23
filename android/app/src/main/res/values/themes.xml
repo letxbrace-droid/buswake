@@ -1,0 +1,9 @@
+<resources>
+    <!-- Fond PLEIN dès le premier pixel : pas d'écran blanc au démarrage. -->
+    <style name="Theme.Kolektif" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/fond</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+    </style>
+    <color name="fond">#0F0F0F</color>
+</resources>
