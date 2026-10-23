@@ -45,6 +45,15 @@ jobs:
       - name: Tests du domaine (dont la concordance avec le serveur)
         run: ./gradlew --no-daemon :domaine:test
 
+      # Les écrans rendus sur la JVM : on les regarde AVANT de publier.
+      - name: Captures d'écran (Paparazzi)
+        run: ./gradlew --no-daemon :app:recordPaparazziDebug
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: captures
+          path: android/app/src/test/snapshots/images/
+
       - name: Compiler l'APK
         run: ./gradlew --no-daemon :app:assembleRelease
 

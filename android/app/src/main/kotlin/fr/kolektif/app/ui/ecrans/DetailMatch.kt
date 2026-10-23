@@ -50,6 +50,7 @@ import fr.kolektif.app.ui.theme.Grotesk
 import fr.kolektif.app.ui.theme.K
 import fr.kolektif.app.ui.theme.Typo
 import fr.kolektif.domaine.Joueur
+import fr.kolektif.domaine.Match
 import fr.kolektif.domaine.Place
 import fr.kolektif.domaine.Statut
 import fr.kolektif.domaine.apercuDesistement
@@ -67,7 +68,6 @@ fun DetailMatch(id: String, uid: String, onRetour: () -> Unit) {
     val m by remember(id) { Depot.match(id) }.collectAsState(initial = null)
     var fiches by remember { mutableStateOf<Map<String, Joueur>>(emptyMap()) }
     var occupe by remember { mutableStateOf(false) }
-    var confirmerDepart by remember { mutableStateOf(false) }
 
     val tous = m?.let { it.joueursInscrits + it.waitlist }.orEmpty()
     LaunchedEffect(tous) { if (tous.isNotEmpty()) fiches = Depot.fiches(tous) }
@@ -82,6 +82,27 @@ fun DetailMatch(id: String, uid: String, onRetour: () -> Unit) {
         }
     }
 
+    DetailMatchContenu(
+        m, uid, fiches, occupe, onRetour,
+        onRejoindre = { match, banc ->
+            action(if (banc) "Tu es sur le banc." else "Tu es sur le terrain.") { Depot.rejoindre(match, uid) }
+        },
+        onQuitter = { match -> action("Tu ne joues plus ce match.") { Depot.quitterMatch(match, uid) } },
+        onVoter = { match, i, mien ->
+            action(if (mien) "Vote retiré — tes 10 XP sont repris." else "Vote enregistré — 10 XP en route.") {
+                Depot.voter(match, i, uid, retirer = mien)
+            }
+        },
+    )
+}
+
+/** L'écran sans accès réseau : ce que les captures de test affichent. */
+@Composable
+fun DetailMatchContenu(
+    m: Match?, uid: String, fiches: Map<String, Joueur>, occupe: Boolean, onRetour: () -> Unit,
+    onRejoindre: (Match, Boolean) -> Unit, onQuitter: (Match) -> Unit, onVoter: (Match, Int, Boolean) -> Unit,
+) {
+    var confirmerDepart by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(16.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
@@ -142,7 +163,7 @@ fun DetailMatch(id: String, uid: String, onRetour: () -> Unit) {
                                 BoutonVert("Je viens quand même", { confirmerDepart = false }, Modifier.weight(1f))
                                 BoutonGris("Me désister", {
                                     confirmerDepart = false
-                                    action("Tu ne joues plus ce match.") { Depot.quitterMatch(match, uid) }
+                                    onQuitter(match)
                                 }, Modifier.weight(1f), actif = !occupe)
                             }
                         }
@@ -151,18 +172,14 @@ fun DetailMatch(id: String, uid: String, onRetour: () -> Unit) {
                         if (place == Place.DEJA_BANC) "Quitter le banc" else "Je ne viens plus",
                         {
                             if (cout != null && cout.xp < 0) confirmerDepart = true
-                            else action("Tu ne joues plus ce match.") { Depot.quitterMatch(match, uid) }
+                            else onQuitter(match)
                         },
                         Modifier.fillMaxWidth(), actif = !occupe,
                     )
                     else -> {
                         BoutonVert(
                             if (place == Place.BANC) "Match plein — me mettre sur le banc" else "Je viens",
-                            {
-                                action(if (place == Place.BANC) "Tu es sur le banc." else "Tu es sur le terrain.") {
-                                    Depot.rejoindre(match, uid)
-                                }
-                            },
+                            { onRejoindre(match, place == Place.BANC) },
                             Modifier.fillMaxWidth(), actif = !occupe,
                         )
                         if (place == Place.BANC) Text("Tu entres dès que quelqu’un se désiste.", style = Typo.sec, modifier = Modifier.padding(top = 6.dp))
@@ -182,11 +199,7 @@ fun DetailMatch(id: String, uid: String, onRetour: () -> Unit) {
                         Modifier.fillMaxWidth().padding(vertical = 4.dp).clip(RoundedCornerShape(12.dp))
                             .background(if (mien) K.creux else K.carteBas)
                             .border(1.dp, if (mien) K.vert.copy(alpha = 0.6f) else K.bord, RoundedCornerShape(12.dp))
-                            .clickable(enabled = !occupe) {
-                                action(if (mien) "Vote retiré — tes 10 XP sont repris." else "Vote enregistré — 10 XP en route.") {
-                                    Depot.voter(match, i, uid, retirer = mien)
-                                }
-                            }
+                            .clickable(enabled = !occupe) { onVoter(match, i, mien) }
                             .padding(14.dp),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {

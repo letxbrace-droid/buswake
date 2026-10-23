@@ -57,9 +57,9 @@ import fr.kolektif.domaine.prochainMatch
 import fr.kolektif.domaine.rangerFil
 import kotlinx.coroutines.launch
 
-private data class OngletDock(val route: String, val libelle: String, val icone: ImageVector)
+internal data class OngletDock(val route: String, val libelle: String, val icone: ImageVector)
 
-private val ONGLETS = listOf(
+internal val ONGLETS = listOf(
     OngletDock("accueil", "Accueil", Icones.accueil),
     OngletDock("matchs", "Matchs", Icones.ballon),
     OngletDock("profil", "Profil", Icones.joueur),
@@ -132,7 +132,7 @@ private fun aller(nav: NavHostController, route: String) {
 /** Le dock : PLEIN, détaché des bords. L'onglet actif est une touche
  *  graphite en relief ; le vert est porté par l'icône et le libellé. */
 @Composable
-private fun Dock(actif: String?, modifier: Modifier, onAller: (String) -> Unit) {
+internal fun Dock(actif: String?, modifier: Modifier, onAller: (String) -> Unit) {
     val forme = RoundedCornerShape(24.dp)
     Row(
         modifier
